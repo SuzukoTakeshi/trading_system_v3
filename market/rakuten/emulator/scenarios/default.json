@@ -1,0 +1,19 @@
+{
+    "trade": {
+        "symbol": 6758,
+        "price": 1000,
+        "quantity": 100,
+        "atr": 10,
+        "side": "long",
+        "strategy": "daytrade"
+    },
+
+    "market": {
+        "mode": "random",
+        "interval": 1,
+        "range": {
+            "min": -5.0,
+            "max": 5.0
+        }
+    }
+}

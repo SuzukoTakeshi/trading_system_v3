@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+.venv/
+
+# Logs
+logs/
+*.log
+
+# Editor
+.vscode/
+.idea/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Python cache
+.pytest_cache/
+.mypy_cache/
+
+# Local settings
+.env
+
+# Database
+*.db
+
+# Build
+build/
+dist/
+
+# Excel temporary files
+~$*.xlsm
+
+# OS
+.DS_Store
+
+# runtime storage
+storage/json/*.json
+storage/logs/*.log

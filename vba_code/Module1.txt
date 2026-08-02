@@ -1,0 +1,88 @@
+Option Explicit
+
+' VBAの処理自体はすぐ終わる（ほぼ一瞬）
+' 発注が完了するタイミングは別問題
+
+' 列 内容
+' A : 発注ID(order_id)
+' B : 銘柄名
+' C : 銘柄コード
+' D : 売買(買 / 売)
+' E : 数量
+' F : 状態
+' G : 結果
+' H : 時刻
+' I : 価格（指値）
+' Z2 : DEBUG(TRUE/FALSE)
+
+Public Sub OrderAll()
+    ' MsgBox "OrderAll()"
+
+    Dim ws As Worksheet
+    Dim debugMode As Boolean
+    Dim lastRow As Long
+   
+    Dim r As Long
+    Dim side As String
+    Dim price As Variant
+    Dim orderType As String
+    
+    Dim p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12
+    Dim param As String
+    
+    Set ws = Sheets("ORDER")
+    debugMode = ws.Range("$Z$2").Value
+
+    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+
+    For r = 2 To lastRow
+
+        If ws.Cells(r, 6).Value = "待機" Then
+        
+            If ws.Cells(r, 4).Value = "買" Then ' D列：買/売
+                side = 3
+            Else
+                side = 1
+            End If
+            
+            price = ws.Cells(r, 9).Value    ' I列：指値価格
+
+
+            ws.Cells(r, 6).Value = "発注中"
+            ws.Cells(r, 8).Value = Now()
+            
+            ' 成行 or 指値判定
+            If price = "" Or price = 0 Then
+                orderType = "1"
+            Else
+                orderType = "0"
+            End If
+            
+            If debugMode Then
+                ws.Cells(r, 7).Value = "DEBUG"
+            Else
+                p1 = "A" & r    ' 発注ID（例：1001）
+                p2 = "A1"       ' 発注トリガー（例：A1）
+                p3 = "C" & r    ' 銘柄コード（例："4755.T"）
+                p4 = side       ' 売買区分（例：3＝買 / 1＝売）
+                p5 = 1          ' 注文区分（例：1＝現物）
+                p6 = 1 '        ' SOR区分（例：0＝SOR無効 / 1＝有効）
+                p7 = "E" & r '  ' 注文数量（例：100）
+                p8 = orderType  ' 価格区分（例：0＝指値 / 1＝成行）
+                p9 = price      ' 注文価格（例：3000）
+                p10 = 0         ' 執行条件（例：0＝本日中）
+                p11 = ""        ' 注文期限（省略時は本日中）
+                p12 = 1         ' 口座区分（例：1＝特定 / 4＝NISA）
+                param = "=RssStockOrder(" & p1 & "," & p2 & "," & p3 & "," & p4 & "," & p5 & "," & p6 & "," & p7 & "," & p8 & "," & p9 & "," & p10 & "," & p11 & "," & p12 & ", , , , , , , , )"
+                
+                MsgBox param
+                ws.Cells(r, 7).Formula = param
+            End If
+        End If
+
+    Next r
+
+    Application.Calculate
+    
+    ' 実行後の ws.Cells(r, 6).Value（状態）は「発注中」のまま、RSS処理後「約定」または「エラー」になる
+End Sub

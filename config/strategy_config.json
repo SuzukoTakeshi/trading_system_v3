@@ -1,0 +1,137 @@
+{
+    "description": {
+        "strategy.default": "デフォルトで使用する戦略",
+
+        "strategy.scalping": "超短期売買（秒〜数分）",
+        "strategy.daytrade": "日中売買（当日決済）",
+        "strategy.swing": "数日〜数週間保有",
+
+        "side.long": "買い方向使用可否",
+        "side.short": "売り方向使用可否",
+
+        "entry.enabled": "エントリー判定の有効/無効",
+        "entry.pullback_atr_multiplier": "押し込み判定に使用するATR倍率",
+        "entry.reversal_confirm_count": "反転確認回数",
+
+        "entry.atr.enabled": "ATR条件によるエントリー判定の有効/無効",
+        "entry.atr.min": "エントリー可能なATR最小値",
+        "entry.atr.max": "エントリー可能なATR最大値",
+
+        "exit.stop.atr_multiplier": "ATRによる損切り幅",
+        "exit.profit.atr_multiplier": "ATRによる利益確定幅",
+        "exit.time.enabled": "時間決済の有効/無効",
+        "exit.time.limit_minutes": "保有時間上限（分）"
+    },
+
+    "strategy": {
+        "default": "daytrade",
+
+        "scalping": {
+            "enabled": true,
+
+            "side": {
+                "long": true,
+                "short": true
+            },
+
+            "entry": {
+                "pullback_atr_multiplier": 0.5,
+
+                "reversal_confirm_count": 2,
+
+                "atr": {
+                    "enabled": true,
+                    "min": 0,
+                    "max": 9999
+                }
+            },
+
+            "exit": {
+                "stop": {
+                    "atr_multiplier": 0.5
+                },
+
+                "profit": {
+                    "atr_multiplier": 1.0
+                },
+
+                "time": {
+                    "enabled": true,
+                    "limit_minutes": 30
+                }
+            }
+        },
+
+        "daytrade": {
+            "enabled": true,
+
+            "side": {
+                "long": true,
+                "short": true
+            },
+
+            "entry": {
+                "pullback_atr_multiplier": 2.0,
+
+                "reversal_confirm_count": 3,
+
+                "atr": {
+                    "enabled": true,
+                    "min": 0,
+                    "max": 9999
+                }
+            },
+
+            "exit": {
+                "stop": {
+                    "atr_multiplier": 0.2
+                },
+
+                "profit": {
+                    "atr_multiplier": 0.2
+                },
+
+                "time": {
+                    "enabled": true,
+                    "limit_minutes": 300
+                }
+            }
+        },
+
+        "swing": {
+            "enabled": true,
+
+            "side": {
+                "long": true,
+                "short": false
+            },
+
+            "entry": {
+                "pullback_atr_multiplier": 2.0,
+
+                "reversal_confirm_count": 5,
+
+                "atr": {
+                    "enabled": false,
+                    "min": 0,
+                    "max": 9999
+                }
+            },
+
+            "exit": {
+                "stop": {
+                    "atr_multiplier": 3.0
+                },
+
+                "profit": {
+                    "atr_multiplier": 6.0
+                },
+
+                "time": {
+                    "enabled": false,
+                    "limit_minutes": 0
+                }
+            }
+        }
+    }
+}

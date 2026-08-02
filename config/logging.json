@@ -1,0 +1,49 @@
+{
+    "EVENT": true,
+    "INFO": true,
+    "WARN": true,
+    "ERROR": true,
+
+    "DEBUG": true,
+    "EMULATOR": true,
+
+    "FLOW": true,
+    "CHECK": true,
+
+    "STATE": true,
+
+    "TRADE": true,
+    "ORDER": true,
+    "EXECUTION": true,
+
+    "TRAIL": true,
+    "BREAKEVEN": true,
+
+    "RSS PRICE": true,
+    "PRICE WAIT": false,
+
+    "description": {
+        "EVENT": "重要イベント（起動・停止・状態遷移など）",
+        "INFO": "一般情報",
+        "WARN": "警告",
+        "ERROR": "エラー",
+
+        "DEBUG": "開発用デバッグログ",
+        "EMULATOR": "エミュレーター動作",
+
+        "FLOW": "処理フロー確認",
+        "CHECK": "条件判定確認",
+
+        "STATE": "状態遷移",
+
+        "TRADE": "売買処理",
+        "ORDER": "注文処理",
+        "EXECUTION": "約定処理",
+
+        "TRAIL": "トレーリングストップ",
+        "BREAKEVEN": "建値ストップ",
+
+        "RSS PRICE": "楽天RSS価格更新",
+        "PRICE WAIT": "価格監視待機"
+    }
+}

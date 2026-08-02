@@ -1,0 +1,5 @@
+Sub ClearOrderList()
+
+    Worksheets("ORDER_LIST").Range("A3:L1000").ClearContents
+
+End Sub

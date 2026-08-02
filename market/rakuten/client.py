@@ -1,0 +1,206 @@
+#
+# market/rakuten/client.py
+#
+# Rakuten RSS Client
+#
+# 役割:
+#   ・楽天RSS Excelへの接続
+#   ・Workbook取得
+#   ・Excel管理
+#
+
+import pythoncom
+import win32com.client
+
+from core.logger import Log
+from config.config_loader import Config
+
+from market.rakuten.config.config_loader import MarketConfig
+
+from market.rakuten.quote_sheet import QuoteSheet
+from market.rakuten.order_sheet import OrderSheet
+from market.rakuten.order_id_list_sheet import OrderIDListSheet
+from market.rakuten.order_list_sheet import OrderListSheet
+
+
+class RakutenClient:
+
+    def __init__(self):
+
+        system_config = Config.instance().data
+
+        self.mode = system_config["mode"]
+        self.debug = system_config.get("debug", {})
+
+
+        market_config = MarketConfig.instance().data
+
+        self.path = market_config["excel"]["path"]
+        self.sheets = market_config["excel"]["sheets"]
+
+        # Excel Application
+        self.app = None
+
+        # Workbook
+        self.book = None
+
+        self.quote_sheet = None
+        self.order_sheet = None
+        self.order_id_list_sheet = None
+        self.order_list_sheet = None
+
+
+        self.debug_order_no = {}
+
+
+    def open(self):
+
+        self.quote_sheet = None
+        self.order_sheet = None
+        self.order_id_list_sheet = None
+        self.order_list_sheet = None
+
+        pythoncom.CoInitialize()
+
+        Log.event(f"EXCEL OPEN : {self.path}")
+
+        try:
+            self.app = win32com.client.GetObject(None, "Excel.Application")
+
+        except Exception:
+            raise Exception("Excel(RSS)が起動していません。")
+
+        for book in self.app.Workbooks:
+            if book.FullName == self.path:
+                self.book = book
+                break
+
+        if self.book is None:
+            raise Exception(f"Workbookが見つかりません: {self.path}")
+
+        self.quote_sheet = QuoteSheet(
+            self,
+            self.get_sheet(self.sheets["quote"]),
+            self.mode,
+            self.debug
+        )
+
+        self.order_sheet = OrderSheet(
+            self,
+            self.get_sheet(self.sheets["order"]),
+            self.mode,
+            self.debug
+        )
+
+        self.order_id_list_sheet = OrderIDListSheet(
+            self,
+            self.get_sheet(self.sheets["order_id_list"]),
+            self.mode,
+            self.debug
+        )
+
+        self.order_list_sheet = OrderListSheet(
+            self,
+            self.get_sheet(self.sheets["order_list"]),
+            self.mode,
+            self.debug
+        )
+
+    def close(self):
+        """
+        Excel切断
+
+        ・参照解放のみ
+        ・Excelは終了しない
+        """
+
+        self.quote_sheet = None
+        self.order_sheet = None
+        self.order_id_list_sheet = None
+        self.order_list_sheet = None
+
+        self.book = None
+        self.app = None
+
+        # COM解放
+        pythoncom.CoUninitialize()
+
+        Log.event("EXCEL CLOSE")
+
+
+    def get_sheet(self, name):
+
+        try:
+            return self.book.Worksheets(name)
+
+        except Exception:
+            raise Exception(f"Worksheetが見つかりません: {name}")
+
+
+    def sync_quotes(self, symbols):
+
+        self.quote_sheet.reset()
+
+        for symbol in symbols:
+            self.quote_sheet.add_symbol(symbol)
+
+
+    def get_quote(self, symbol):
+        quote = self.quote_sheet.get_quote(symbol)
+        if quote is None:
+            Log.event(f"QUOTE ADD SYMBOL : {symbol}")
+            self.quote_sheet.add_symbol(symbol)
+            # RSSの取得がすぐされないので、ここの取得はなし。
+            # quote = self.quote_sheet.get_quote(symbol)
+            return None
+
+        return quote
+
+
+    def get_quotes(self):
+        return self.quote_sheet.get_quotes()
+
+
+    def request_order(self, request):
+        """
+        発注依頼
+        """
+
+        result = self.order_sheet.request_order(request)
+
+        if self.mode == "debug":
+            order_no = self.order_id_list_sheet.debug_add_order(request)
+            self.order_list_sheet.debug_add_order(order_no, request)
+
+        return result
+
+
+    def run_macro(self, name, *args):
+        return self.app.Run(
+            f"'{self.book.Name}'!{name}",
+            *args,
+        )
+
+    #
+    # 注文番号取得
+    #
+    # return: 注文番号
+    #
+    def get_order_no(self, request):
+        """
+        注文番号取得
+        """
+
+        return self.order_id_list_sheet.get_order_no(request)
+
+    #
+    # 約定確認
+    #
+    # return: 約定結果コード
+    #
+    def get_order_result(self, order_no):
+        """
+        注文結果取得
+        """
+
+        return self.order_list_sheet.get_order_result(order_no)

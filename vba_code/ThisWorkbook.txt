@@ -1,0 +1,7 @@
+
+Private Sub Workbook_Open()
+
+    ClearOrderList
+
+End Sub
+
