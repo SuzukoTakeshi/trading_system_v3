@@ -11,9 +11,9 @@
 from core.logger import Log
 from core.entity import BaseEntity
 
-from trade.enums import (
-    OrderState,
+from trade.order_enums import (
     OrderAction,
+    OrderType,
 )
 
 class OrderModel(BaseEntity):
@@ -28,6 +28,7 @@ class OrderModel(BaseEntity):
         order_action: OrderAction,
         price,
         quantity,
+        order_type: OrderType = OrderType.MARKET,
         generate_id=True,
     ):
 
@@ -49,6 +50,13 @@ class OrderModel(BaseEntity):
         self.price = price
         self.quantity = quantity
 
+        # 注文方式
+        #
+        # LIMIT  : 指値注文
+        # MARKET : 成行注文
+        #
+        self.order_type = order_type
+
         # 楽天注文番号
         #
         # 発注後、OrderIDListから取得
@@ -58,9 +66,9 @@ class OrderModel(BaseEntity):
         # 注文状態
         #
         # 初期状態:
-        #   StrategyProcで生成された注文要求
+        #   ProcessOrderRequest.create_order()で生成された注文要求
         #
-        self.state = OrderState.REQUEST
+        self.state = None
 
         # 注文結果
         #
@@ -83,15 +91,12 @@ class OrderModel(BaseEntity):
 
         self.state = new_state
 
+        old_state_name = old_state.value if old_state else "None"
+
         Log.event(
             f"ORDER STATE CHANGE "
             f"{self.id} "
-            f"{old_state.value} -> {new_state.value}"
-        )
-
-
-        self.trade.on_order_state_changed(
-            self
+            f"{old_state_name} -> {new_state.value}"
         )
 
         return True
@@ -115,6 +120,7 @@ class OrderModel(BaseEntity):
             # 注文情報
             "symbol": self.symbol,
             "order_action": self.order_action.value,
+            "order_type": self.order_type.value,
             "price": self.price,
             "quantity": self.quantity,
 

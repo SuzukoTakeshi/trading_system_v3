@@ -1,7 +1,7 @@
 @echo off
 
 rem ==========================================================
-rem Trading System V2
+rem Trading System V3
 rem APP API 起動（Debug用）
 rem
 rem 使用環境:
@@ -37,7 +37,7 @@ rem ==========================================================
 rem プロジェクト移動
 rem ==========================================================
 
-cd /d C:\StockProjects\trading_system_v2
+cd /d C:\StockProjects\trading_system_v3
 
 
 

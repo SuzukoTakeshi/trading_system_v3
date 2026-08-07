@@ -17,10 +17,10 @@ from config.config_loader import Config
 
 from market.rakuten.config.config_loader import MarketConfig
 
-from market.rakuten.quote_sheet import QuoteSheet
-from market.rakuten.order_sheet import OrderSheet
-from market.rakuten.order_id_list_sheet import OrderIDListSheet
-from market.rakuten.order_list_sheet import OrderListSheet
+from market.rakuten.sheets.quote_sheet import QuoteSheet
+from market.rakuten.sheets.order_sheet import OrderSheet
+from market.rakuten.sheets.order_id_list_sheet import OrderIDListSheet
+from market.rakuten.sheets.order_list_sheet import OrderListSheet
 
 
 class RakutenClient:
@@ -157,41 +157,53 @@ class RakutenClient:
         return quote
 
 
-    def get_quotes(self):
-        return self.quote_sheet.get_quotes()
-
-
-    def request_order(self, request):
+    def request_order(self, request_order_dto):
         """
         発注依頼
         """
 
+        request = {
+            "order_id": request_order_dto.order_id,
+            "symbol": request_order_dto.symbol,
+
+            # 売買
+            # BUY  -> "buy"
+            # SELL -> "sell"
+            "order_action": request_order_dto.order_action.value,
+
+            # 数量
+            "quantity": request_order_dto.quantity,
+
+            # 価格
+            "price": request_order_dto.price,
+
+            # 注文方式
+            # LIMIT  -> "limit"
+            # MARKET -> "market"
+            "order_type": request_order_dto.order_type.value,
+        }
+
         result = self.order_sheet.request_order(request)
 
         if self.mode == "debug":
-            order_no = self.order_id_list_sheet.debug_add_order(request)
+
+            order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
+
             self.order_list_sheet.debug_add_order(order_no, request)
 
         return result
-
-
-    def run_macro(self, name, *args):
-        return self.app.Run(
-            f"'{self.book.Name}'!{name}",
-            *args,
-        )
 
     #
     # 注文番号取得
     #
     # return: 注文番号
     #
-    def get_order_no(self, request):
+    def get_order_no(self, order_id):
         """
         注文番号取得
         """
 
-        return self.order_id_list_sheet.get_order_no(request)
+        return self.order_id_list_sheet.get_order_no(order_id)
 
     #
     # 約定確認

@@ -17,8 +17,11 @@
         "entry.atr.min": "エントリー可能なATR最小値",
         "entry.atr.max": "エントリー可能なATR最大値",
 
-        "exit.stop.atr_multiplier": "ATRによる損切り幅",
-        "exit.profit.atr_multiplier": "ATRによる利益確定幅",
+        "exit.initial_stop_delay_seconds": "STOP判定開始までの待機時間（秒）",
+
+        "exit.stop.atr_multiplier": "初期STOP設定に使用するATR倍率",
+        "exit.trail.atr_multiplier": "トレーリングSTOP更新幅に使用するATR倍率",
+
         "exit.time.enabled": "時間決済の有効/無効",
         "exit.time.limit_minutes": "保有時間上限（分）"
     },
@@ -47,11 +50,12 @@
             },
 
             "exit": {
+                "initial_stop_delay_seconds": 1,
                 "stop": {
                     "atr_multiplier": 0.5
                 },
 
-                "profit": {
+                "trail": {
                     "atr_multiplier": 1.0
                 },
 
@@ -83,11 +87,12 @@
             },
 
             "exit": {
+                "initial_stop_delay_seconds": 3,
                 "stop": {
                     "atr_multiplier": 0.2
                 },
 
-                "profit": {
+                "trail": {
                     "atr_multiplier": 0.2
                 },
 
@@ -119,12 +124,13 @@
             },
 
             "exit": {
+                "initial_stop_delay_seconds": 10,
                 "stop": {
                     "atr_multiplier": 3.0
                 },
 
-                "profit": {
-                    "atr_multiplier": 6.0
+                "trail": {
+                    "atr_multiplier": 3.0
                 },
 
                 "time": {

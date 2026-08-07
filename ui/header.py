@@ -1,7 +1,7 @@
 #
 # ui/header.py
 #
-# Trading System V2 Console Header
+# Trading System Console Header
 #
 
 import streamlit as st
@@ -64,9 +64,11 @@ def header(ctx):
 
         with col_engine:
             engine_state_display = {
-                "RUNNING": "🟢 RUNNING",
-                "STOPPED": "⚪ STOPPED",
-                "ERROR": "🔴 ERROR",
+                "running": "🟢 RUNNING",
+                "stopped": "⚪ STOPPED",
+                "starting": "🔵 STARTING",
+                "stopping": "🟠 STOPPING",
+                "error": "🔴 ERROR",
             }.get(
                 engine,
                 "🟡 UNKNOWN"

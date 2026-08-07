@@ -56,18 +56,7 @@ class MarketService:
         return self.client.get_quote(symbol)
 
 
-    def get_quotes(self):
-        """
-        現在の市場情報取得
-
-        ・監視銘柄の現在値取得
-        ・Quotesシートの内容を読み込む
-        """
-
-        return self.client.get_quotes()
-
-
-    def request_order(self, request):
+    def request_order(self, request_dto):
         """
         発注依頼
 
@@ -75,10 +64,10 @@ class MarketService:
         ・Trade層とはDTOで分離
         """
 
-        return self.client.request_order(request)
+        return self.client.request_order(request_dto)
 
 
-    def get_order_no(self, request):
+    def get_order_no(self, order_id):
         """
         注文番号取得
 
@@ -86,21 +75,21 @@ class MarketService:
         ・Trade層とはDTOで分離
         """
 
-        return self.client.get_order_no(request)
+        return self.client.get_order_no(order_id)
 
 
-    def get_order_result(self, order):
+    def get_order_result(self, order_no):
         """
         注文結果取得
         """
 
-        data = self.client.get_order_result(order.order_no)
+        data = self.client.get_order_result(order_no)
         if data is None:
             raise Exception(
-                f"ORDER RESULT NOT FOUND order_no={order.order_no}"
+                f"ORDER RESULT NOT FOUND order_no={order_no}"
             )
 
-        order.order_result = OrderResultModel(
+        order_result = OrderResultModel(
             order_no=data["order_no"],
             status=data["status"],
             order_datetime=data["order_datetime"],
@@ -108,8 +97,8 @@ class MarketService:
             price=data["price"],
         )
 
-        if order.order_result.status == "約定":
-            return True
+        if order_result.status == "約定":
+            return True, order_result
 
         else:
-            return False
+            return False, order_result

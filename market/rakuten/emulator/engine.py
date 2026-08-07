@@ -28,14 +28,11 @@ class EmulatorEngine:
     def __init__(
         self,
         symbol,
-        create_trade=False,
-        interval=0.5
+        create_trade=False
     ):
         self.symbol = symbol
 
         self.create_trade = create_trade
-
-        self.interval = interval
 
         print(
             f"EmulatorEngine: "
@@ -45,6 +42,9 @@ class EmulatorEngine:
 
         # Scenario
         self.scenario = Scenario(symbol=symbol)
+
+        # Scenario設定を優先
+        self.interval = self.scenario.interval
 
         # Excel
         self.excel = EmulatorExcel()

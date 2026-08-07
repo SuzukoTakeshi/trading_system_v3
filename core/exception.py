@@ -79,6 +79,7 @@ class QuoteError(SystemError):
     """
     pass
 
+
 class QuoteNotFoundError(QuoteError):
     """
     Quote未存在エラー
@@ -90,6 +91,7 @@ class QuoteNotFoundError(QuoteError):
         ・Symbol不一致
 
     発生箇所:
+        TradeEngine.run()
         StrategyProc
     """
     pass
@@ -120,5 +122,60 @@ class StrategySideDisabledError(StrategyError):
         swing + short
         （swingではshort禁止）
 
+    """
+    pass
+
+class EntryPreviousPriceNotFoundError(StrategyError):
+    """
+    Entry前回価格未設定
+
+    原因:
+        ・ENTRY_PULLBACK初期化漏れ
+        ・TradeState遷移不整合
+        ・Runtime初期化漏れ
+
+    発生箇所:
+        ProcessEntryReversalLong.process()
+        ProcessEntryReversalShort.process()
+    """
+    pass
+
+
+# ==================================================
+# Order Error
+# ==================================================
+
+class OrderError(SystemError):
+    """
+    Order関連エラー
+    """
+    pass
+
+
+class DuplicateOrderError(OrderError):
+    """
+    二重注文エラー
+
+    原因:
+        ・同一Tradeに既存Orderが存在
+        ・TradeState遷移不整合
+        ・StrategyProc二重実行
+
+    発生箇所:
+        ProcessOrderRequest.process()
+        ProcessOrderWait.get_order()
+    """
+    pass
+
+class OrderNotFoundError(OrderError):
+    """
+    注文なしエラー
+
+    原因:
+        ・TradeにOrderが存在しない
+        ・TradeState遷移不整合
+
+    発生箇所:
+        ProcessOrderWait.process()
     """
     pass

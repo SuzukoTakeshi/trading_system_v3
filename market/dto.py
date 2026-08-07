@@ -5,9 +5,11 @@
 #
 # Trade層とMarket層のインタフェース用
 #
-#
 
-from trade.enums import OrderAction
+from trade.order_enums import (
+    OrderAction,
+    OrderType,
+)
 
 
 #
@@ -26,6 +28,7 @@ class OrderRequestDTO:
         order_action: OrderAction,
         quantity,
         price,
+        order_type: OrderType = OrderType.MARKET,
     ):
         # 発注ID
         self.order_id = order_id
@@ -42,23 +45,9 @@ class OrderRequestDTO:
         # 指値価格
         self.price = price
 
-
-#
-# 注文番号取得DTO
-#
-# 役割:
-#   ・Marketの発注後の注文番号を取得する
-#   ・Trade Orderとは分離
-#
-class GetOrderNoRequestDTO:
-
-    def __init__(
-        self,
-        order_id,
-        symbol,
-    ):
-        # 発注ID
-        self.order_id = order_id
-
-        # 銘柄コード
-        self.symbol = symbol
+        # 注文方式
+        #
+        # LIMIT  : 指値
+        # MARKET : 成行
+        #
+        self.order_type = order_type

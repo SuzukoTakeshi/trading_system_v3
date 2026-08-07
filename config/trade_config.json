@@ -21,7 +21,7 @@
 
 
   "engine": {
-    "interval_sec": 0.1
+    "interval_sec": 0.5
   },
 
 

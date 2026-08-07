@@ -1,34 +1,28 @@
 #
-# trade/cycle/market_proc.py
+# trade/process/process_market.py
 #
-# Market Cycle Process
+# Market Process
 #
 # 役割:
 #   ・市場情報更新
 #   ・RSS価格取得
 #
-#
 
 from core.logger import Log
+
+from trade.process.process_base import ProcessBase
 
 from models.quote.quote_model import QuoteModel
 
 
-class MarketProc:
+class ProcessMarket(ProcessBase):
 
     def __init__(self, context, market):
+        super().__init__(context, market)
 
-        # 共通データ
-        self.context = context
-
-        # 市場サービス
-        self.market = market
-
+        Log.debug("CREATE MarketProc")
 
     def process(self, trade):
-        """
-        市場情報更新
-        """
 
         symbol = trade.param.symbol
 

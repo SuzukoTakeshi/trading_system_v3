@@ -7,11 +7,13 @@
 
 from pydantic import BaseModel
 
-from trade.enums import (
+from trade.trade_enums import (
     TradeType,
     SideType,
     StrategyType,
 )
+
+
 #
 # Trade登録 Request
 #

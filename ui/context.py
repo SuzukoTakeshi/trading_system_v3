@@ -1,7 +1,7 @@
 #
 # ui/context.py
 #
-# Trading System V2 UI Context
+# Trading System UI Context
 #
 
 from dataclasses import dataclass, field

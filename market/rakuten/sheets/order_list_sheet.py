@@ -12,7 +12,7 @@ from datetime import datetime
 
 from core.logger import Log
 
-from market.rakuten.base_sheet import BaseSheet
+from market.rakuten.sheets.base_sheet import BaseSheet
 
 
 class OrderListSheet(BaseSheet):
@@ -76,26 +76,11 @@ class OrderListSheet(BaseSheet):
             return None
 
         data = {
-            "order_no": self.get_value(
-                row,
-                self.column_map[self.ORDER_NO_COLUMN]
-            ),
-            "status": self.get_value(
-                row,
-                self.column_map[self.ORDER_STATUS_COLUMN]
-            ),
-            "order_datetime": self.get_value(
-                row,
-                self.column_map[self.ORDER_DATETIME_COLUMN]
-            ),
-            "quantity": self.get_value(
-                row,
-                self.column_map[self.FILLED_QUANTITY_COLUMN]
-            ),
-            "price": self.get_value(
-                row,
-                self.column_map[self.ORDER_PRICE_COLUMN]
-            ),
+            "order_no": self.get_value(row, self.column_map[self.ORDER_NO_COLUMN]),
+            "status": self.get_value(row, self.column_map[self.ORDER_STATUS_COLUMN]),
+            "order_datetime": self.get_value(row, self.column_map[self.ORDER_DATETIME_COLUMN]),
+            "quantity": self.get_value(row, self.column_map[self.FILLED_QUANTITY_COLUMN]),
+            "price": self.get_value(row, self.column_map[self.ORDER_PRICE_COLUMN]),
         }
 
         return data
@@ -112,11 +97,10 @@ class OrderListSheet(BaseSheet):
             True
         """
 
-        if request.order_action.value == "BUY":
+        if request["order_action"] == "buy":
             side = "買付"
         else:
             side = "売付"
-
 
         values = {
             self.ORDER_NO_COLUMN: order_no,
@@ -124,7 +108,7 @@ class OrderListSheet(BaseSheet):
 
             # 約定確認用
             self.ORDER_STATUS_COLUMN: "約定",
-            self.SYMBOL_COLUMN: request.symbol,
+            self.SYMBOL_COLUMN: request["symbol"],
             self.SYMBOL_NAME_COLUMN: "DEBUG",
             self.ACCOUNT_TYPE_COLUMN: "特定",
             self.ORDER_DATETIME_COLUMN: datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
@@ -132,9 +116,9 @@ class OrderListSheet(BaseSheet):
             self.TRADE_TYPE_COLUMN: "現物",
             self.EXECUTION_CONDITION_COLUMN: "本日中",
             self.ORDER_EXPIRATION_COLUMN: datetime.now().strftime("%Y%m%d"),
-            self.ORDER_QUANTITY_COLUMN: request.quantity,
-            self.FILLED_QUANTITY_COLUMN: request.quantity,
-            self.ORDER_PRICE_COLUMN: request.price,
+            self.ORDER_QUANTITY_COLUMN: request["quantity"],
+            self.FILLED_QUANTITY_COLUMN: request["quantity"],
+            self.ORDER_PRICE_COLUMN: request["price"],
         }
 
         self.add_row(values)

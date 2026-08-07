@@ -16,7 +16,7 @@ from datetime import datetime
 
 from models.asset.asset_store import AssetStore
 
-from trade.enums import OrderState
+from trade.trade_enums import OrderState
 
 
 class AssetProc:

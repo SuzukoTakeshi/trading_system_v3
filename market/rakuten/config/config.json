@@ -1,6 +1,6 @@
 {
     "excel": {
-        "path": "C:\\StockProjects\\TradingData\\楽天RSS_v2_Debug.xlsm",
+        "path": "C:\\StockProjects\\TradingData\\楽天RSS_v3_Debug.xlsm",
 
         "sheets": {
             "quote": "Quotes",

@@ -1,7 +1,7 @@
 @echo off
 
 rem ==========================================================
-rem Trading System V2 Start
+rem Trading System V3 Start
 rem
 rem 目的:
 rem   Trading System の各サービスを起動し、
@@ -62,7 +62,7 @@ if /i "%1"=="/?" goto HELP
 
 
 
-set ROOT=C:\StockProjects\trading_system_v2
+set ROOT=C:\StockProjects\trading_system_v3
 
 
 
@@ -230,7 +230,7 @@ if "%BROWSER_MONITOR%"=="0" (
 
 
     powershell -ExecutionPolicy Bypass ^
-    -File "%ROOT%\tools\CheckWindow.ps1" "Trading System V2 Console"
+    -File "%ROOT%\tools\CheckWindow.ps1" "Trading System V3 Console"
 
 
 
@@ -253,7 +253,7 @@ if "%BROWSER_MONITOR%"=="0" (
 
     powershell -ExecutionPolicy Bypass ^
     -File "%ROOT%\tools\ArrangeWindow.ps1" ^
-    -Title "Trading System V2 Console" ^
+    -Title "Trading System V3 Console" ^
     -Monitor %BROWSER_MONITOR% ^
     -Layout MAX
 
@@ -278,7 +278,7 @@ exit /b
 
 echo.
 echo ==========================================================
-echo Trading System V2 Start
+echo Trading System V3 Start
 echo ==========================================================
 echo.
 

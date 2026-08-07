@@ -1,7 +1,6 @@
 #
 # ui/trade_panel.py
 #
-# Trading System V2
 # Trade Entry Panel
 #
 

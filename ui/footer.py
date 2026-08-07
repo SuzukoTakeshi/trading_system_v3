@@ -1,7 +1,7 @@
 #
 # ui/footer.py
 #
-# Trading System V2 Console Footer
+# Trading System Console Footer
 #
 
 import streamlit as st

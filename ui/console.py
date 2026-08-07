@@ -1,7 +1,7 @@
 #
 # ui/console.py
 #
-# Trading System V2 Console
+# Trading System Console
 #
 
 from datetime import datetime
@@ -19,7 +19,7 @@ from footer import footer
 
 
 st.set_page_config(
-    page_title="Trading System V2 Console",
+    page_title="Trading System V3 Console",
     page_icon="📈",
     layout="wide",
 )
@@ -99,7 +99,7 @@ def system_header():
     col_title, col_datetime = st.columns([6, 2])
 
     with col_title:
-        st.caption("📈 Trading System V2 Console")
+        st.caption("📈 Trading System V3 Console")
 
     with col_datetime:
         st.markdown(

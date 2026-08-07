@@ -10,36 +10,91 @@
 
     "market": {
         "mode": "scenario",
-        "interval": 0.5,
+        "interval": 1.0,
+        "scenario": [
+            {
+                "comment": [
+                    "=== TEST CONDITION ===",
+                    "Strategy : DAYTRADE",
+                    "Side     : LONG",
+                    "ATR      : 2.0",
+                    "Pullback : 2.0 ATR",
+                    "Reversal : 3",
+                    "Stop     : 0.2 ATR",
+                    "Trail    : 0.2 ATR",
+                    "Profit   : 0.2 ATR",
+                    "Time     : 300 min"
+                ]
+            },
 
-        "prices": [
-            3000.0,
-            3000.0,
-            3000.5,
-            3001.0,
+            { "comment": "開始" },
 
-            2999.5,
-            2998.5,
-            2997.5,
-            2996.0,
+            { "price": 3000.0 },
+            { "price": 3000.0 },
+            { "price": 3000.5 },
+            { "price": 3001.0 },
 
-            2996.5,
-            2997.0,
-            2997.5,
+            { "comment": "押し目開始" },
+            { "price": 2999.5 },
+            { "price": 2998.5 },
+            { "price": 2997.5 },
+            { "price": 2996.0 },
 
-            2997.0,
-            2996.5,
-            2996.0,
-            2995.5,
-            2995.0,
-            2994.5,
-            2994.0,
-            2994.5,
-            2994.0,
-            2993.5,
-            2993.0,
+            { "comment": "反転開始" },
+            { "price": 2996.5 },
+            { "price": 2997.0 },
+            { "price": 2997.5 },
 
-            3000.0
+            { "comment": "再度下落" },
+            { "price": 2997.0 },
+            { "price": 2996.5 },
+            { "price": 2996.0 },
+            { "price": 2995.5 },
+            { "price": 2995.0 },
+            { "price": 2994.5 },
+
+            { "comment": "買い成立" },
+            { "price": 2994.6 },
+            { "price": 2994.7 },
+            { "price": 2994.8 },
+
+            { "comment": "約定待ち" },
+            { "sleep": 1 },
+
+            { "comment": "トレーリング開始" },
+            { "price": 2995.0 },
+
+            { "comment": "トレーリング 2" },
+            { "price": 2995.2 },
+
+            { "comment": "トレーリング 3" },
+            { "price": 2995.4 },
+
+            { "comment": "トレーリング 4" },
+            { "price": 2995.6 },
+
+            { "comment": "トレーリング 5" },
+            { "price": 2995.8 },
+
+            { "comment": "トレーリング 6" },
+            { "price": 2996.0 },
+
+            { "comment": "トレーリング 7" },
+            { "price": 2996.2 },
+
+            { "comment": "トレーリング 8" },
+            { "price": 2996.4 },
+
+            { "comment": "トレーリング 9" },
+            { "price": 2996.6 },
+
+            { "comment": "トレーリング 10" },
+            { "price": 2996.8 },
+
+            { "comment": "STOP発動" },
+            { "price": 2996.3 },
+
+            { "end": true }
         ]
-    }
+   }
 }

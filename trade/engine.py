@@ -32,13 +32,12 @@ from core.exception import StrategySideDisabledError
 
 from market.service import MarketService
 
-from trade.enums import (
-    SideType,
-    StrategyType,
+from trade.trade_enums import (
     EngineState,
     TradeState,
+    SideType,
     TradeType,
-    OrderState,
+    StrategyType,
 )
 
 from models.trade.trade_model import TradeModel
@@ -46,28 +45,34 @@ from models.trade.trade_store import TradeStore
 
 from trade.context import EngineContext
 
-from trade.cycle.trade_proc import TradeProc
-from trade.cycle.market_proc import MarketProc
-from trade.cycle.order_proc import OrderProc
-from trade.cycle.strategy_proc import StrategyProc
-from trade.cycle.asset_proc import AssetProc
+from trade.process.process_market import ProcessMarket
+from trade.process.process_entry_wait import ProcessEntryWait
+from trade.process.process_entry_pullback import ProcessEntryPullback
+from trade.process.process_entry_reversal import ProcessEntryReversal
+from trade.process.process_order_request import ProcessOrderRequest
+from trade.process.process_order_wait import ProcessOrderWait
+from trade.process.process_trailing import ProcessTrailing
+from trade.process.process_exit_create import ProcessExitCreate
+from trade.process.process_exit_wait import ProcessExitWait
+from trade.process.process_complated import ProcessComplated
+from trade.process.process_canceled import ProcessCanceled
 
 
 class TradeEngine:
 
     # cycle loop
-    # CYCLE_INTERVAL_SEC = 0.1
-    CYCLE_INTERVAL_SEC = 5.0
+    CYCLE_INTERVAL_SEC = 0.5
 
     # proc interval
-    PROC_MARKET_INTERVAL_SEC = 1.0
+    PROC_MARKET_INTERVAL_SEC = 0.5
     PROC_ORDER_INTERVAL_SEC = 0.5
-    PROC_STRATEGY_INTERVAL_SEC = 1.0
+    PROC_STRATEGY_INTERVAL_SEC = 0.5
     PROC_ASSET_INTERVAL_SEC = 1.0
 
     # persistence
-    SAVE_INTERVAL_SEC = 1.0
+    SAVE_INTERVAL_SEC = 0.5
 
+    PROC_STATE_LOG_INTERVAL_SEC = 10   # 10秒
 
     def __init__(self):
 
@@ -96,11 +101,17 @@ class TradeEngine:
         self.restore()
 
         # Cycle Process
-        self.trade_proc = TradeProc(self.context)
-        self.market_proc = MarketProc(self.context, self.market)
-        self.order_proc = OrderProc(self.context, self.market)
-        self.strategy_proc = StrategyProc(self.context, self.market)
-        self.asset_proc = AssetProc(self.context)
+        self.process_market = ProcessMarket(self.context, self.market)
+        self.process_entry_wait = ProcessEntryWait(self.context, self.market)
+        self.process_entry_pullback = ProcessEntryPullback(self.context, self.market)
+        self.process_entry_reversal = ProcessEntryReversal(self.context, self.market)
+        self.process_order_request = ProcessOrderRequest(self.context, self.market)
+        self.process_order_wait = ProcessOrderWait(self.context, self.market)
+        self.process_trailing = ProcessTrailing(self.context, self.market)
+        self.process_exit_create = ProcessExitCreate(self.context, self.market)
+        self.process_exit_wait = ProcessExitWait(self.context, self.market)
+        self.process_complated = ProcessComplated(self.context, self.market)
+        self.process_canceled = ProcessCanceled(self.context, self.market)
 
         # Engine Thread
         self.thread = None
@@ -176,7 +187,7 @@ class TradeEngine:
 
             # Tradeから監視銘柄を作成
             symbols = {
-                trade.symbol
+                trade.param.symbol
                 for trade in self.context.trades.values()
             }
 
@@ -194,7 +205,7 @@ class TradeEngine:
                 self.init_cycle_error()
 
                 try:
-                    self.cycle()
+                    self.process()
 
                 except Exception as e:
                     self.handle_cycle_error(e)
@@ -241,109 +252,162 @@ class TradeEngine:
             Log.event("TRADE ENGINE STOP")
 
 
-    def cycle(self):
+    def process(self):
         """
         サイクル処理
 
         1サイクル分の処理を実行する。
 
+        1サイクル = 1ステップ進行 とする。
         """
 
-        #
-        # Trade初期化
-        #
-        # CREATED Tradeの市場準備
-        #
-        # ・初回Quote取得
-        # ・CREATED → WAITING
-        #
-        #
-        if self.check_cycle(
-            "market",
-            self.PROC_MARKET_INTERVAL_SEC
-        ):
-            for trade in self.context.trades.values():
-                if trade.state in (
-                    TradeState.CREATED,
-                    TradeState.WAITING,
-                    TradeState.ACTIVE,
-                    TradeState.PAUSED,
-                    TradeState.HOLDING,
-                ):
-                    if self.market_proc.process(trade):
-                        if trade.state == TradeState.CREATED:
-                            # 市場同期完了でTradeState.WAITINGに遷移する。
-                            trade.change_state(TradeState.WAITING)
-
-
-        # 売買判断
-        #
-        # ・Entry判定
-        # ・Exit判定
-        # ・ATRストップ更新
-        # ・トレーリング更新
-        # ・利確・損切りライン更新
-        #
-        if self.check_cycle(
-            "strategy",
-            self.PROC_STRATEGY_INTERVAL_SEC
-        ):
-            for trade in self.context.trades.values():
-                if trade.state in (TradeState.WAITING, TradeState.ACTIVE, TradeState.HOLDING):
-                    self.strategy_proc.process(trade)
-
-
-        #
-        # Order管理
-        #
-        # ・発注処理
-        # ・注文状態取得
-        # ・約定確認
-        #
-        if self.check_cycle(
-            "order",
-            self.PROC_ORDER_INTERVAL_SEC
-        ):
-            for trade in self.context.trades.values():
-                if trade.state in (TradeState.WAITING, TradeState.ACTIVE, TradeState.EXITING):
-                    order = None
-                    for o in self.context.cache.orders.values():
-                        if o.trade.id != trade.id:
-                            continue
-                        if o.state in (
-                            OrderState.REQUEST,
-                            OrderState.SUBMITTED,
-                            OrderState.REQUESTED,
-                        ):
-                            order = o
-                            break
-                    if order is None:
-                        # Log.trace("ORDER", f"ORDER NOT FOUND trade_id={trade.id}")
-                        continue
-
-                    self.order_proc.process(order)
-
-
-        #
-        # 資産反映
-        #
-        if self.check_cycle(
-            "asset",
-            self.PROC_ASSET_INTERVAL_SEC
-        ):
-            for trade in self.context.trades.values():
-                if trade.state in (
-                    TradeState.ACTIVE,
-                    TradeState.EXITING
-                ):
-                    self.asset_proc.process(trade)
-
-                    if trade.state == TradeState.EXITING:
-                        trade.change_state(TradeState.COMPLETED)
-
-        # トレード状態更新
         for trade in self.context.trades.values():
-            self.trade_proc.update_process(trade)
+            try:
+
+                # Trade状態ログ
+                # ここはログ出力なのでcycle_processedはチェックしない
+                if self.check_cycle(
+                    "state_log",
+                    self.PROC_STATE_LOG_INTERVAL_SEC
+                ):
+                    Log.info(
+                        "TRADE STATE",
+                        f"id={trade.id} "
+                        f"{trade.param.symbol} "
+                        f"state={trade.state.name}"
+                    )
+
+                match trade.state:
+
+                    # ==========================================
+                    # Trade作成
+                    #
+                    # ・Market監視開始
+                    # ・初回価格取得待ちへ
+                    # ==========================================
+                    case TradeState.CREATED:
+                        if self.process_market.process(trade):
+                            trade.change_state(TradeState.ENTRY_WAIT)
+
+
+                    # ==========================================
+                    # Entry開始待機
+                    #
+                    # ・初回価格取得待ち
+                    # ・ENTRY監視開始準備
+                    # ==========================================
+                    case TradeState.ENTRY_WAIT:
+                        self.process_market.process(trade)
+                        if self.process_entry_wait.process(trade):
+                            trade.change_state(TradeState.ENTRY_PULLBACK)
+
+
+                    # ==========================================
+                    # Entry判定
+                    #
+                    # ・押し込み確認
+                    # ・反転確認
+                    # ・ENTRY成立判定
+                    # ==========================================
+                    case TradeState.ENTRY_PULLBACK:
+                        self.process_market.process(trade)
+                        if self.process_entry_pullback.process(trade):
+                            trade.change_state(TradeState.ENTRY_REVERSAL)
+
+
+                    # ==========================================
+                    # Entry確定
+                    #
+                    # ・ENTRY成立後処理
+                    # ・ENTRY成立判定
+                    # ==========================================
+                    case TradeState.ENTRY_REVERSAL:
+                        self.process_market.process(trade)
+                        if self.process_entry_reversal.process(trade):
+                            trade.change_state(TradeState.ORDER_REQUEST)
+
+
+                    # ==========================================
+                    # 発注処理
+                    #
+                    # ・Order生成と証券会社へ注文送信
+                    # ==========================================
+                    case TradeState.ORDER_REQUEST:
+                        if self.process_order_request.process(trade):
+                            trade.change_state(TradeState.ORDER_WAIT)
+
+
+                    # ==========================================
+                    # 約定待ち
+                    #
+                    # ・注文状態監視
+                    # ・約定確認
+                    # ==========================================
+                    case TradeState.ORDER_WAIT:
+                        if self.process_order_wait.process(trade):
+                            trade.change_state(TradeState.TRAILING)
+
+
+                    # ==========================================
+                    # 利確/損切管理
+                    #
+                    # ・最初のSTOP設定
+                    # ・STOP更新
+                    # ・利益が乗ったらSTOPを切り上げる
+                    # ・利確/損切判定
+                    # ・損失側は固定STOP
+                    # ・利益側はTrailで追う
+                    # ==========================================
+                    case TradeState.TRAILING:
+                        self.process_market.process(trade)
+                        if self.process_trailing.process(trade):
+                            trade.change_state(TradeState.EXIT_CREATE)
+
+
+                    # ==========================================
+                    # 決済注文作成
+                    #
+                    # ・EXIT注文生成
+                    # ==========================================
+                    case TradeState.EXIT_CREATE:
+                        if self.process_exit_create.process(trade):
+                            trade.change_state(TradeState.EXIT_WAIT)
+
+
+                    # ==========================================
+                    # 決済約定待ち
+                    #
+                    # ・決済注文状態監視
+                    # ・決済完了確認
+                    # ==========================================
+                    case TradeState.EXIT_WAIT:
+                        if self.process_exit_wait.process(trade):
+                            trade.change_state(TradeState.COMPLETED)
+
+
+                    # ==========================================
+                    # Trade完了
+                    #
+                    # ・後処理
+                    # ・保存
+                    # ==========================================
+                    case TradeState.COMPLETED:
+                        self.process_complated.process(trade)
+
+
+                    # ==========================================
+                    # Trade取消
+                    #
+                    # ・取消後処理
+                    # ==========================================
+                    case TradeState.CANCELED:
+                        self.process_canceled.process(trade)
+
+            # 後で検討　★★★★★★
+            except Exception as e:
+                Log.error(
+                    f"ProcessOrderRequest Exception: {type(e).__name__}: {e}"
+                )
 
 
         # 永続化
@@ -474,54 +538,75 @@ class TradeEngine:
             trade_type=TradeType(req.trade_type),
             side=side,
             strategy=strategy,
+
+            initial_stop_delay_seconds=(
+                strategy_cfg["exit"]["initial_stop_delay_seconds"]
+            ),
+            stop_atr_multiplier=(
+                strategy_cfg["exit"]["stop"]["atr_multiplier"]
+            ),
+            trail_atr_multiplier=(
+                strategy_cfg["exit"]["trail"]["atr_multiplier"]
+            ),
+            time_enabled=(
+                strategy_cfg["exit"]["time"]["enabled"]
+            ),
+            time_limit_minutes=(
+                strategy_cfg["exit"]["time"]["limit_minutes"]
+            ),
         )
 
         self.context.trades[trade.id] = trade
 
         trade.add_timeline(
-            f"CREATE "
-            f"price={trade.price} "
-            f"quantity={trade.quantity} "
-            f"atr={trade.atr} "
-            f"type={trade.trade_type.value} "
-            f"side={trade.side.value} "
-            f"strategy={trade.strategy.value}"
+            type = "ENGINE",
+            message = (
+                f"CREATE "
+                f"price={trade.param.price} "
+                f"quantity={trade.param.quantity} "
+                f"atr={trade.param.atr} "
+                f"type={trade.param.trade_type.value} "
+                f"side={trade.param.side.value} "
+                f"strategy={trade.param.strategy.value}"
+            )
         )
 
         self._save_trade(trade)
 
-        Log.event(f"CREATE TRADE {trade.id} {trade.symbol}")
+        Log.event(f"CREATE TRADE {trade.id} {trade.param.symbol}")
 
         Log.event(
             f"TRADE PARAM "
             f"id={trade.id} "
-            f"symbol={trade.symbol} "
-            f"price={trade.price} "
-            f"quantity={trade.quantity} "
-            f"atr={trade.atr} "
-            f"type={trade.trade_type.value} "
-            f"side={trade.side.value} "
-            f"strategy={trade.strategy.value} "
-        )
+            f"symbol={trade.param.symbol} "
+            f"price={trade.param.price} "
+            f"quantity={trade.param.quantity} "
+            f"atr={trade.param.atr} "
+            f"type={trade.param.trade_type.value} "
+            f"side={trade.param.side.value} "
+            f"strategy={trade.param.strategy.value} "
 
-        strategy_config = StrategyConfig.instance().get_strategy(
-            trade.strategy.value
+            f"initial_stop_delay={trade.param.initial_stop_delay_seconds}s "
+            f"stop_atr={trade.param.stop_atr_multiplier} "
+            f"trail_atr={trade.param.trail_atr_multiplier} "
         )
 
         Log.event(
             f"STRATEGY CONFIG "
             f"id={trade.id} "
-            f"symbol={trade.symbol} "
-            f"strategy={trade.strategy.value} "
-            f"pullback_atr={strategy_config['entry']['pullback_atr_multiplier']} "
-            f"reversal_count={strategy_config['entry']['reversal_confirm_count']} "
-            f"entry_atr={strategy_config['entry']['atr']['enabled']} "
-            f"atr_min={strategy_config['entry']['atr']['min']} "
-            f"atr_max={strategy_config['entry']['atr']['max']} "
-            f"stop_atr={strategy_config['exit']['stop']['atr_multiplier']} "
-            f"profit_atr={strategy_config['exit']['profit']['atr_multiplier']} "
-            f"time_enabled={strategy_config['exit']['time']['enabled']} "
-            f"time_limit={strategy_config['exit']['time']['limit_minutes']}min"
+            f"symbol={trade.param.symbol} "
+            f"strategy={trade.param.strategy.value} "
+            f"pullback_atr={strategy_cfg['entry']['pullback_atr_multiplier']} "
+            f"reversal_count={strategy_cfg['entry']['reversal_confirm_count']} "
+            f"entry_atr={strategy_cfg['entry']['atr']['enabled']} "
+            f"atr_min={strategy_cfg['entry']['atr']['min']} "
+            f"atr_max={strategy_cfg['entry']['atr']['max']} "
+
+            f"initial_stop_delay={strategy_cfg['exit']['initial_stop_delay_seconds']}s "
+            f"stop_atr={strategy_cfg['exit']['stop']['atr_multiplier']} "
+            f"trail_atr={strategy_cfg['exit']['trail']['atr_multiplier']} "
+            f"time_enabled={strategy_cfg['exit']['time']['enabled']} "
+            f"time_limit={strategy_cfg['exit']['time']['limit_minutes']}min"
         )
 
         return trade.id
@@ -551,18 +636,17 @@ class TradeEngine:
             return False
 
         if trade.state not in [
-            TradeState.WAITING,
-            TradeState.HOLDING,
+            TradeState.ENTRY_WAIT,
+            TradeState.ENTRY_PULLBACK,
+            TradeState.ENTRY_REVERSAL,
+            TradeState.TRAILING,
         ]:
             return False
-
-        # 停止前状態保存
-        trade.pause_before_state = trade.state
 
         Log.event(f"PAUSE TRADE {trade_id}")
 
         # 一時停止
-        trade.change_state(TradeState.PAUSED)
+        trade.pause_flag = True
 
         self._save_trade(trade)
 
@@ -591,23 +675,11 @@ class TradeEngine:
         if trade is None:
             return False
 
-        if trade.state != TradeState.PAUSED:
+        if not trade.pause_flag:
             return False
 
-
-        # 停止前状態へ復帰
-        restore_state = trade.pause_before_state
-
-        if restore_state is None:
-            restore_state = TradeState.WAITING
-
-
-        Log.event(f"RESUME TRADE {trade_id}")
-
-        trade.change_state(restore_state)
-
         # クリア
-        trade.pause_before_state = None
+        trade.pause_flag = False
 
         self._save_trade(trade)
 

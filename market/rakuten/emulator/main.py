@@ -16,7 +16,7 @@
 #
 # 例:
 #
-#   cd C:\StockProjects\trading_system_v2
+#   cd C:\StockProjects\trading_system_v3
 #   venv\Scripts\activate
 #   python -m market.rakuten.emulator.main 7203 1
 #
@@ -46,14 +46,11 @@ def main():
     # Config
     config = Config.instance().data
 
-    interval = config.get("emulator", {}).get("interval", DEFAULT_INTERVAL)
-
     # EmulatorEngine
     try:
         engine = EmulatorEngine(
             symbol=symbol,
-            create_trade=create_trade,
-            interval=interval
+            create_trade=create_trade
         )
 
     except FileNotFoundError as e:

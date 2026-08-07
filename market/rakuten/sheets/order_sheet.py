@@ -13,9 +13,7 @@ from datetime import datetime
 
 from core.logger import Log
 
-from market.rakuten.base_sheet import BaseSheet
-
-from trade.enums import OrderAction
+from market.rakuten.sheets.base_sheet import BaseSheet
 
 
 class OrderSheet(BaseSheet):
@@ -44,22 +42,32 @@ class OrderSheet(BaseSheet):
     def request_order(self, request):
         """
         発注情報書込
-
+        
         request:
-            OrderRequestDTO
+            Market Order Request dict
+
+            order_action:
+                buy / sell
+
+            order_type:
+                market / limit
         """
 
         row = self.find_empty_row(self.column_map[self.ORDER_ID_COLUMN])
 
-        self.ws.Cells(row, self.column_map[self.ORDER_ID_COLUMN]).Value = request.order_id
+        self.ws.Cells(row, self.column_map[self.ORDER_ID_COLUMN]).Value = request["order_id"]
 
-        self.ws.Cells(row, self.column_map[self.SYMBOL_COLUMN]).Value = request.symbol
+        self.ws.Cells(row, self.column_map[self.SYMBOL_COLUMN]).Value = request["symbol"]
 
-        self.ws.Cells(row, self.column_map[self.ACTION_COLUMN]).Value = request.order_action.value
+        self.ws.Cells(row, self.column_map[self.ACTION_COLUMN]).Value = request["order_action"]
 
-        self.ws.Cells(row, self.column_map[self.QUANTITY_COLUMN]).Value = request.quantity
+        self.ws.Cells(row, self.column_map[self.QUANTITY_COLUMN]).Value = request["quantity"]
 
-        self.ws.Cells(row, self.column_map[self.PRICE_COLUMN]).Value = request.price
+        if request["order_type"] == "market":
+            display_price = "成行"
+        else:
+            display_price = request["price"]
+        self.ws.Cells(row, self.column_map[self.PRICE_COLUMN]).Value = display_price
 
         self.ws.Cells(row, self.column_map[self.STATE_COLUMN]).Value = "REQUEST"
 
@@ -78,12 +86,11 @@ class OrderSheet(BaseSheet):
         else:
             raise Exception(f"未対応mode: {self.mode}")
 
-
         Log.event(
             f"ORDER REQUEST "
             f"{self.mode} "
-            f"{request.order_id} "
-            f"{request.symbol} "
+            f"{request["order_id"]} "
+            f"{request["symbol"]} "
             f"{result}"
         )
 
@@ -102,13 +109,13 @@ class OrderSheet(BaseSheet):
         # ------------------------------------------
 
         # 1:発注ID
-        order_id = request.order_id
+        order_id = request["order_id"]
 
         # 2:銘柄コード
-        symbol = request.symbol
+        symbol = request["symbol"]
 
         # 3:売買区分 (1：売 (売建) 3：買 (買建))
-        if request.order_action == OrderAction.BUY:
+        if request["order_action"] == "buy":
             action = 3
         else:
             action = 1
@@ -124,15 +131,21 @@ class OrderSheet(BaseSheet):
         margin_type = ""
 
         # 7: 注文数量
-        quantity = request.quantity
+        quantity = request["quantity"]
 
         # 8: 価格区分（0：成行 1：指値）「0：通常注文」、「1：逆指値付通常注文」の時必須。
-        price_type = 1
+        if request["order_type"] == "market":
+            price_type = 0
+        else:
+            price_type = 1
 
         # 9: 注文価格
         #  「0：通常注文」、「1：逆指値付通常注文」の時必須。
         #  価格区分が「1：指値」の時必須。成行の場合は省略
-        price = request.price
+        if request["order_type"] == "market":
+            price = ""
+        else:
+            price = request["price"]
 
         # 10: 執行条件
         # (1：本日中 2：今週中 3：寄付 4：引け 5：期間指定 6：大引不成 7：不成)
