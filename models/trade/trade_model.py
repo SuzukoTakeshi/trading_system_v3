@@ -57,6 +57,8 @@ class TradeModel(BaseEntity):
         trail_atr_multiplier,
         time_enabled,
         time_limit_minutes,
+        close_enabled,
+        close_time,
 
         generate_id=True,
     ):
@@ -89,6 +91,8 @@ class TradeModel(BaseEntity):
             trail_atr_multiplier=trail_atr_multiplier,
             time_enabled=time_enabled,
             time_limit_minutes=time_limit_minutes,
+            close_enabled=close_enabled,
+            close_time=close_time,
         )
 
         # Trade実行中データ

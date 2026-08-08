@@ -56,7 +56,7 @@ from trade.process.process_exit_create import ProcessExitCreate
 from trade.process.process_exit_wait import ProcessExitWait
 from trade.process.process_complated import ProcessComplated
 from trade.process.process_canceled import ProcessCanceled
-
+from trade.process.process_asset import ProcessAsset
 
 class TradeEngine:
 
@@ -112,6 +112,7 @@ class TradeEngine:
         self.process_exit_wait = ProcessExitWait(self.context, self.market)
         self.process_complated = ProcessComplated(self.context, self.market)
         self.process_canceled = ProcessCanceled(self.context, self.market)
+        self.process_asset = ProcessAsset(self.context, self.market)
 
         # Engine Thread
         self.thread = None
@@ -345,6 +346,7 @@ class TradeEngine:
                     # ==========================================
                     case TradeState.ORDER_WAIT:
                         if self.process_order_wait.process(trade):
+                            self.process_asset.process(trade)
                             trade.change_state(TradeState.TRAILING)
 
 
@@ -382,6 +384,7 @@ class TradeEngine:
                     # ==========================================
                     case TradeState.EXIT_WAIT:
                         if self.process_exit_wait.process(trade):
+                            self.process_asset.process(trade)
                             trade.change_state(TradeState.COMPLETED)
 
 
@@ -554,6 +557,12 @@ class TradeEngine:
             time_limit_minutes=(
                 strategy_cfg["exit"]["time"]["limit_minutes"]
             ),
+            close_enabled=(
+                strategy_cfg["exit"]["close"]["enabled"]
+            ),
+            close_time=(
+                strategy_cfg["exit"]["close"]["time"]
+            ),
         )
 
         self.context.trades[trade.id] = trade
@@ -589,6 +598,10 @@ class TradeEngine:
             f"initial_stop_delay={trade.param.initial_stop_delay_seconds}s "
             f"stop_atr={trade.param.stop_atr_multiplier} "
             f"trail_atr={trade.param.trail_atr_multiplier} "
+            f"time_enabled={trade.param.time_enabled} "
+            f"time_limit={trade.param.time_limit_minutes}min "
+            f"close_enabled={trade.param.close_enabled} "
+            f"close_time={trade.param.close_time} "
         )
 
         Log.event(
@@ -606,7 +619,9 @@ class TradeEngine:
             f"stop_atr={strategy_cfg['exit']['stop']['atr_multiplier']} "
             f"trail_atr={strategy_cfg['exit']['trail']['atr_multiplier']} "
             f"time_enabled={strategy_cfg['exit']['time']['enabled']} "
-            f"time_limit={strategy_cfg['exit']['time']['limit_minutes']}min"
+            f"time_limit={strategy_cfg['exit']['time']['limit_minutes']}min "
+            f"close_enabled={strategy_cfg['exit']['close']['enabled']} "
+            f"close_time={strategy_cfg['exit']['close']['time']}"
         )
 
         return trade.id

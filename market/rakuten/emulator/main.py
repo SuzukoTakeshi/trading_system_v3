@@ -58,7 +58,8 @@ def main():
         return
 
 
-    engine.start()
+    if not engine.start():
+        return
 
     try:
         while engine.running:

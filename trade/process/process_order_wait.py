@@ -8,7 +8,7 @@ from core.logger import Log
 
 from trade.process.process_base import ProcessBase
 
-from trade.order_enums import OrderState
+from market.order_enums import OrderState
 
 from core.exception import (
 	OrderNotFoundError,
@@ -19,11 +19,7 @@ from core.exception import (
 class ProcessOrderWait(ProcessBase):
 
     def __init__(self, context, market):
-
-        super().__init__(
-            context,
-            market
-        )
+        super().__init__(context, market)
 
         Log.debug("CREATE ProcessOrderWait")
 
@@ -39,10 +35,7 @@ class ProcessOrderWait(ProcessBase):
 
         if order is None:
             raise OrderNotFoundError(
-                message=(
-                    f"ORDER NOT FOUND "
-                    f"trade={trade.id}"
-                ),
+                message=f"ORDER NOT FOUND trade={trade.id}",
                 code="ORDER_NOT_FOUND",
             )
 
@@ -51,16 +44,16 @@ class ProcessOrderWait(ProcessBase):
         # 注文受付済み
         #
         if order.state == OrderState.REQUESTED:
-            Log.debug(
-                f"ORDER WAIT "
-                f"order_id={order.id} "
-                f"state={order.state.name}"
-            )
+            Log.debug(f"ORDER WAIT order_id={order.id} state={order.state.name}")
 
             result, result_dto = self.market.get_order_result(order.order_no)
 
             if result:
-                order.filled_price = result_dto.price
+
+                #
+                # 注文結果をOrderへ設定
+                #
+                order.result = result_dto
 
                 order.change_state(OrderState.FILLED)
 
@@ -68,25 +61,16 @@ class ProcessOrderWait(ProcessBase):
                 trade.runtime.entry_time = datetime.now()
 
                 Log.event(
-                    f"ORDER FILLED "
-                    f"id={order.id} "
-                    f"trade={trade.id} "
-                    f"{order.symbol} "
-                    f"order_no={order.order_no} "
-                    f"price={order.filled_price}"
+                    f"ORDER FILLED id={order.id} trade={trade.id} {order.symbol} "
+                    f"order_no={order.order_no} price={result_dto.price}"
                 )
 
                 trade.add_timeline(
                     type="ORDER",
-                    message=(
-                        f"FILLED id={order.id} "
-                        f"order_no={order.order_no} "
-                        f"price={order.filled_price}"
-                    )
+                    message=f"FILLED id={order.id} order_no={order.order_no} price={result_dto.price}",
                 )
 
                 return True
-
 
         return False
 
@@ -95,21 +79,13 @@ class ProcessOrderWait(ProcessBase):
     # Tradeに紐づくOrder取得
     #
     def get_order(self, trade):
-
         order = None
-
         for o in self.context.cache.orders.values():
-
             if o.trade.id == trade.id:
                 if order:
                     raise DuplicateOrderError(
-                        message=(
-                            f"MULTIPLE ORDER "
-                            f"trade={trade.id}"
-                        ),
+                        message=f"MULTIPLE ORDER trade={trade.id}",
                         code="MULTIPLE_ORDER",
                     )
-
                 order = o
-
         return order

@@ -67,7 +67,8 @@ class EmulatorEngine:
 
         # Trade作成
         if self.create_trade:
-            self.start_trade()
+            if not self.start_trade():
+                return False
 
         self.running = True
 
@@ -77,6 +78,8 @@ class EmulatorEngine:
         )
 
         self.thread.start()
+
+        return True
 
 
     # ==================================================

@@ -26,6 +26,8 @@ class TradeParam:
         trail_atr_multiplier,
         time_enabled,
         time_limit_minutes,
+        close_enabled,
+        close_time,
     ):
 
         # 銘柄
@@ -53,6 +55,8 @@ class TradeParam:
         self.trail_atr_multiplier = trail_atr_multiplier
         self.time_enabled = time_enabled
         self.time_limit_minutes = time_limit_minutes
+        self.close_enabled = close_enabled
+        self.close_time = close_time
 
 
     def to_dict(self):
@@ -72,6 +76,8 @@ class TradeParam:
             "trail_atr_multiplier": self.trail_atr_multiplier,
             "time_enabled": self.time_enabled,
             "time_limit_minutes": self.time_limit_minutes,
+            "close_enabled": self.close_enabled,
+            "close_time": self.close_time,
         }
 
 
@@ -96,7 +102,8 @@ class TradeParam:
             initial_stop_delay_seconds=(data.get("initial_stop_delay_seconds", 0)),
             stop_atr_multiplier=(data.get("stop_atr_multiplier", 0)),
             trail_atr_multiplier=(data.get("trail_atr_multiplier", 0)),
-
             time_enabled=(data.get("time_enabled", False)),
             time_limit_minutes=(data.get("time_limit_minutes", 0)),
+            close_enabled=(data.get("close_enabled", False)),
+            close_time=(data.get("close_time", "15:15")),
         )

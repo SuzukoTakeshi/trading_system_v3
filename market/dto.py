@@ -6,7 +6,7 @@
 # Trade層とMarket層のインタフェース用
 #
 
-from trade.order_enums import (
+from market.order_enums import (
     OrderAction,
     OrderType,
 )

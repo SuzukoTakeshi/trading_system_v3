@@ -14,7 +14,7 @@ from core.logger import Log
 
 from trade.process.process_base import ProcessBase
 
-from trade.order_enums import (
+from market.order_enums import (
 	OrderType,
 	OrderState,
 )

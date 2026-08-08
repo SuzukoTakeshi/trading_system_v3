@@ -11,10 +11,13 @@
 from core.logger import Log
 from core.entity import BaseEntity
 
-from trade.order_enums import (
+from market.order_enums import (
     OrderAction,
     OrderType,
 )
+
+from models.order.order_result_model import OrderResultModel
+
 
 class OrderModel(BaseEntity):
 
@@ -76,7 +79,7 @@ class OrderModel(BaseEntity):
         #
         # OrderListから取得した結果
         #
-        self.order_result = None
+        self.result: OrderResultModel | None = None
 
 
     def change_state(self, new_state):
@@ -125,9 +128,9 @@ class OrderModel(BaseEntity):
             "quantity": self.quantity,
 
             # 注文結果
-            "order_result": (
-                self.order_result.to_dict()
-                if self.order_result is not None
+            "result": (
+                self.result.to_dict()
+                if self.result is not None
                 else None
             ),
 

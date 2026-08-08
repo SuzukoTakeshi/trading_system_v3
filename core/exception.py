@@ -179,3 +179,40 @@ class OrderNotFoundError(OrderError):
         ProcessOrderWait.process()
     """
     pass
+
+
+# ==================================================
+# Asset Error
+# ==================================================
+
+class AssetError(SystemError):
+    """
+    Asset関連エラー
+    """
+    pass
+
+class AssetOrderResultNotFoundError(AssetError):
+    """
+    約定済みOrderの約定結果未存在エラー
+
+    原因:
+        ・OrderState.FILLEDなのにOrder.resultが存在しない
+        ・Order約定処理の不整合
+        ・Order.result設定漏れ
+
+    発生箇所:
+        ProcessAsset.process()
+        ProcessAsset.update_asset()
+    """
+    pass
+
+class InvalidOrderActionError(OrderError):
+    """
+    不正なOrderAction
+
+    原因:
+        ・OrderActionの値がBUY/SELL以外
+        ・Order生成時の不整合
+        ・Orderデータ破損
+    """
+    pass

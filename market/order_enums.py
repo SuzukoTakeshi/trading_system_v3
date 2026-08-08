@@ -48,3 +48,28 @@ class OrderState(str, Enum):
     CLOSED = "closed"
     CANCELED = "canceled"
     ERROR = "error"
+
+
+#
+# 通常注文状況
+#
+# 楽天RSS OrderList
+#
+# OrderResultModel.status に設定される
+#
+class OrderResultStatus(str, Enum):
+    EXECUTION_WAIT = "執行待ち"
+    EXECUTING = "執行中"
+    PARTIAL_FILLED = "出来有"
+    FILLED = "約定"
+
+    CANCELING_FILLED = "取消中（出来有）"
+    CANCELING_UNFILLED = "取消中（出来無）"
+
+    CANCELED_FILLED = "取消済（出来有）"
+    CANCELED_UNFILLED = "取消済（出来無）"
+
+    NOT_FILLED_FILLED = "出来ず（出来有）"
+    NOT_FILLED_UNFILLED = "出来ず（出来無）"
+
+    CORRECTED = "訂正済"

@@ -6,7 +6,7 @@ from core.logger import Log
 
 from trade.trade_enums import SideType
 
-from trade.order_enums import (
+from market.order_enums import (
     OrderType,
     OrderAction,
     OrderState,
@@ -44,7 +44,6 @@ class ProcessOrderRequest(ProcessOrderBase):
 
                 case OrderState.SUBMITTED:
                     order.order_no = self.market.get_order_no(order.id)
-                    # order.order_result = xxxx
 
                     order.change_state(OrderState.REQUESTED)
 
@@ -78,6 +77,7 @@ class ProcessOrderRequest(ProcessOrderBase):
         return self.create_order(
             trade,
             order_action,
+            # 成行(OrderType.MARKET)だが、DEBUGで約定単価とする為、priceを渡している。
             trade.runtime.entry_execution_price,
             OrderType.MARKET,
         )

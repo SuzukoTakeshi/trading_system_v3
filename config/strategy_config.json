@@ -54,14 +54,16 @@
                 "stop": {
                     "atr_multiplier": 0.5
                 },
-
                 "trail": {
                     "atr_multiplier": 1.0
                 },
-
                 "time": {
                     "enabled": true,
                     "limit_minutes": 30
+                },
+                "close": {
+                    "enabled": true,
+                    "time": "15:15"
                 }
             }
         },
@@ -87,18 +89,20 @@
             },
 
             "exit": {
-                "initial_stop_delay_seconds": 3,
+                "initial_stop_delay_seconds": 0,
                 "stop": {
                     "atr_multiplier": 0.2
                 },
-
                 "trail": {
                     "atr_multiplier": 0.2
                 },
-
                 "time": {
-                    "enabled": true,
+                    "enabled": false,
                     "limit_minutes": 300
+                },
+                "close": {
+                    "enabled": false,
+                    "time": "15:20"
                 }
             }
         },
@@ -128,14 +132,16 @@
                 "stop": {
                     "atr_multiplier": 3.0
                 },
-
                 "trail": {
                     "atr_multiplier": 3.0
                 },
-
                 "time": {
                     "enabled": false,
                     "limit_minutes": 0
+                },
+                "close": {
+                    "enabled": false,
+                    "time": "15:15"
                 }
             }
         }

@@ -61,11 +61,8 @@ class ProcessTrailingBase(ProcessBase):
     #
     def init_trailing(self, trade, price):
         # TRAILING管理情報初期化
-        trade.runtime.trailing_highest_price = None
-        trade.runtime.trailing_lowest_price = None
 
         trade.runtime.trailing_start_time = datetime.now()
-
 
         trade.runtime.stop_price = None
 
@@ -107,19 +104,54 @@ class ProcessTrailingBase(ProcessBase):
         if trade.runtime.entry_time is None:
             return False
 
-        limit_time = (
-            trade.runtime.entry_time
-            +
-            timedelta(minutes=trade.param.time_limit_minutes)
-        )
+        limit_time = trade.runtime.entry_time + timedelta(minutes=trade.param.time_limit_minutes)
 
         if datetime.now() >= limit_time:
 
             Log.event(f"TIME EXIT id={trade.id}")
 
+            trade.runtime.exit_execution_price = self.price
+
             trade.add_timeline(
                 type="EXIT",
                 message=(f"TIME LIMIT {trade.param.time_limit_minutes}min")
+            )
+
+            return True
+
+        return False
+
+
+    #
+    # 指定時刻決済判定
+    #
+    def is_close_time_exit(self, trade):
+
+        if not trade.param.close_enabled:
+            return False
+
+        close_time = datetime.strptime(
+            trade.param.close_time,
+            "%H:%M"
+        ).time()
+
+        now = datetime.now()
+
+        if now.time() >= close_time:
+
+            Log.event(
+                f"CLOSE TIME EXIT "
+                f"id={trade.id} "
+                f"time={trade.param.close_time}"
+            )
+
+            trade.runtime.exit_execution_price = self.price
+
+            trade.add_timeline(
+                type="EXIT",
+                message=(
+                    f"CLOSE TIME {trade.param.close_time}"
+                )
             )
 
             return True

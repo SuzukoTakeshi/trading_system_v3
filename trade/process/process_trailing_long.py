@@ -31,37 +31,27 @@ class ProcessTrailingLong(ProcessTrailingBase):
 
         price = self.price
 
-        # 初回TRAILING初期化
-        if trade.runtime.stop_price is None:
-            self.init_trailing(trade, price)
-
         Log.debug(
             f"TRAILING CHECK id={trade.id} price={price} "
             f"highest={trade.runtime.trailing_highest_price} stop={trade.runtime.stop_price}"
         )
 
-        #
         # トレーリング更新
-        #
         self.update_trailing_stop_price(trade, price)
 
-        #
         # 時間決済
-        #
         if self.is_time_exit(trade):
-            Log.event(f"TIME EXIT id={trade.id}")
-            trade.add_timeline(type="EXIT", message=f"TIME EXIT limit={trade.param.time_limit_minutes}min")
             return True
 
-        #
+        # 指定時刻決済
+        if self.is_close_time_exit(trade):
+            return True
+
         # 初期STOP待機
-        #
         if self.is_initial_stop_delay(trade):
             return False
 
-        #
         # STOP判定
-        #
         return self.is_stop_hit(trade, price)
 
 
@@ -92,9 +82,7 @@ class ProcessTrailingLong(ProcessTrailingBase):
         ):
             trade.runtime.trailing_highest_price = price
 
-            new_stop = (
-                trade.runtime.trailing_highest_price - trade.param.atr * trade.param.trail_atr_multiplier
-            )
+            new_stop = trade.runtime.trailing_highest_price - trade.param.atr * trade.param.trail_atr_multiplier
 
             if new_stop > trade.runtime.stop_price:
                 trade.runtime.stop_price = new_stop
@@ -110,6 +98,9 @@ class ProcessTrailingLong(ProcessTrailingBase):
         if price <= trade.runtime.stop_price:
             Log.event(f"STOP HIT LONG id={trade.id} price={price}")
             trade.add_timeline(type="EXIT", message=f"STOP HIT price={price}")
+
+            trade.runtime.exit_execution_price = price
+
             return True
 
         return False

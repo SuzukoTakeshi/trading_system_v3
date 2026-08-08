@@ -10,9 +10,11 @@
 
 from core.logger import Log
 
+from market.order_enums import OrderResultStatus
 from market.rakuten.client import RakutenClient
 
 from models.order.order_result_model import OrderResultModel
+
 
 class MarketService:
 
@@ -91,13 +93,15 @@ class MarketService:
 
         order_result = OrderResultModel(
             order_no=data["order_no"],
-            status=data["status"],
+            status=OrderResultStatus(
+                data["status"]
+            ),
             order_datetime=data["order_datetime"],
             quantity=data["quantity"],
             price=data["price"],
         )
 
-        if order_result.status == "約定":
+        if order_result.status == OrderResultStatus.FILLED:
             return True, order_result
 
         else:
