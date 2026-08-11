@@ -28,6 +28,9 @@ class TradeParam:
         time_limit_minutes,
         close_enabled,
         close_time,
+
+        # チャートデータ保存間隔
+        chart_interval_seconds,
     ):
 
         # 銘柄
@@ -58,6 +61,8 @@ class TradeParam:
         self.close_enabled = close_enabled
         self.close_time = close_time
 
+        self.chart_interval_seconds = chart_interval_seconds
+
 
     def to_dict(self):
 
@@ -78,6 +83,8 @@ class TradeParam:
             "time_limit_minutes": self.time_limit_minutes,
             "close_enabled": self.close_enabled,
             "close_time": self.close_time,
+
+            "chart_interval_seconds": self.chart_interval_seconds,
         }
 
 
@@ -106,4 +113,8 @@ class TradeParam:
             time_limit_minutes=(data.get("time_limit_minutes", 0)),
             close_enabled=(data.get("close_enabled", False)),
             close_time=(data.get("close_time", "15:15")),
+
+            chart_interval_seconds=(
+                data.get("chart_interval_seconds", 5)
+            ),
         )

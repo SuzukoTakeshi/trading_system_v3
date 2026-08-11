@@ -1,0 +1,343 @@
+#
+# trade/engine_api.py
+#
+# Trade Engine API
+#
+# 役割:
+# ・外部からTrade Engineを操作する
+# ・Tradeの作成、取得、操作
+#
+
+from core.logger import Log
+from core.exception import StrategySideDisabledError
+
+from config.strategy_config_loader import StrategyConfig
+
+from trade.trade_enums import (
+    TradeState,
+    SideType,
+    TradeType,
+    StrategyType,
+)
+
+from models.trade.trade_model import TradeModel
+
+
+class TradeEngineAPI:
+
+    def __init__(self, engine):
+        self.engine = engine
+
+        self.context = engine.context
+
+
+    def create_trade(self, req):
+        """
+        TradeModel作成
+        """
+
+        side = SideType(req.side)
+        strategy = StrategyType(req.strategy)
+
+        # Strategy Side Check
+        #
+        # strategy_config.json
+        #
+        strategy_cfg = StrategyConfig.instance().get_strategy(strategy.value)
+
+        side_cfg = strategy_cfg["side"]
+
+        if not side_cfg[side.value]:
+            Log.error(f"TRADE CREATE REJECT strategy={strategy.value} side={side.value}")
+
+            raise StrategySideDisabledError(
+                message=(f"SIDE DISABLED strategy={strategy.value} side={side.value}"),
+                code="SIDE_DISABLED",
+            )
+
+
+        trade = TradeModel(
+            symbol=req.symbol,
+            price=req.price,
+            quantity=req.quantity,
+            atr=req.atr,
+            trade_type=TradeType(req.trade_type),
+            side=side,
+            strategy=strategy,
+
+            initial_stop_delay_seconds=(
+                strategy_cfg["exit"]["initial_stop_delay_seconds"]
+            ),
+            stop_atr_multiplier=(
+                strategy_cfg["exit"]["stop"]["atr_multiplier"]
+            ),
+            trail_atr_multiplier=(
+                strategy_cfg["exit"]["trail"]["atr_multiplier"]
+            ),
+            time_enabled=(
+                strategy_cfg["exit"]["time"]["enabled"]
+            ),
+            time_limit_minutes=(
+                strategy_cfg["exit"]["time"]["limit_minutes"]
+            ),
+            close_enabled=(
+                strategy_cfg["exit"]["close"]["enabled"]
+            ),
+            close_time=(
+                strategy_cfg["exit"]["close"]["time"]
+            ),
+            chart_interval_seconds=(
+                strategy_cfg["chart"]["interval_seconds"]
+            ),
+        )
+
+        self.context.trades[trade.id] = trade
+
+        trade.add_timeline(
+            type = "ENGINE",
+            message = (
+                f"CREATE "
+                f"price={trade.param.price} "
+                f"quantity={trade.param.quantity} "
+                f"atr={trade.param.atr} "
+                f"type={trade.param.trade_type.value} "
+                f"side={trade.param.side.value} "
+                f"strategy={trade.param.strategy.value}"
+            )
+        )
+
+        self.engine._save_trade(trade)
+
+        Log.event(f"CREATE TRADE {trade.id} {trade.param.symbol}")
+
+        Log.event(
+            f"TRADE PARAM "
+            f"id={trade.id} "
+            f"symbol={trade.param.symbol} "
+            f"price={trade.param.price} "
+            f"quantity={trade.param.quantity} "
+            f"atr={trade.param.atr} "
+            f"type={trade.param.trade_type.value} "
+            f"side={trade.param.side.value} "
+            f"strategy={trade.param.strategy.value} "
+
+            f"initial_stop_delay={trade.param.initial_stop_delay_seconds}s "
+            f"stop_atr={trade.param.stop_atr_multiplier} "
+            f"trail_atr={trade.param.trail_atr_multiplier} "
+            f"time_enabled={trade.param.time_enabled} "
+            f"time_limit={trade.param.time_limit_minutes}min "
+            f"close_enabled={trade.param.close_enabled} "
+            f"close_time={trade.param.close_time} "
+            f"chart_interval={trade.param.chart_interval_seconds}s "
+        )
+
+        Log.event(
+            f"STRATEGY CONFIG "
+            f"id={trade.id} "
+            f"symbol={trade.param.symbol} "
+            f"strategy={trade.param.strategy.value} "
+            f"pullback_atr={strategy_cfg['entry']['pullback_atr_multiplier']} "
+            f"reversal_count={strategy_cfg['entry']['reversal_confirm_count']} "
+            f"entry_atr={strategy_cfg['entry']['atr']['enabled']} "
+            f"atr_min={strategy_cfg['entry']['atr']['min']} "
+            f"atr_max={strategy_cfg['entry']['atr']['max']} "
+
+            f"initial_stop_delay={strategy_cfg['exit']['initial_stop_delay_seconds']}s "
+            f"stop_atr={strategy_cfg['exit']['stop']['atr_multiplier']} "
+            f"trail_atr={strategy_cfg['exit']['trail']['atr_multiplier']} "
+            f"time_enabled={strategy_cfg['exit']['time']['enabled']} "
+            f"time_limit={strategy_cfg['exit']['time']['limit_minutes']}min "
+            f"close_enabled={strategy_cfg['exit']['close']['enabled']} "
+            f"close_time={strategy_cfg['exit']['close']['time']} "
+            f"chart_interval={strategy_cfg['chart']['interval_seconds']}s"
+        )
+
+        return trade.id
+
+
+    def get_trades(self):
+        """
+        Trade一覧取得
+        """
+        return [
+            trade.to_dict()
+            for trade in self.context.trades.values()
+        ]
+
+
+    def get_trade_ids(self):
+        return list(self.context.trades.keys())
+
+
+    def status(self):
+        """
+        状態取得
+        """
+
+        return {
+            "running": self.engine.running,
+            "state": self.engine.state.value,
+            "trade_count": len(self.context.trades),
+            "last_error": self.engine.last_error,
+            "last_message": self.engine.last_message
+        }
+
+    def pause_trade(self, trade_id):
+        """
+        Trade一時停止
+        """
+        trade = self.context.trades.get(trade_id)
+
+        if trade is None:
+            return False
+
+        if trade.state not in [
+            TradeState.ENTRY_WAIT,
+            TradeState.ENTRY_PULLBACK,
+            TradeState.ENTRY_REVERSAL,
+            TradeState.TRAILING,
+        ]:
+            return False
+
+        Log.event(f"PAUSE TRADE {trade_id}")
+
+        # 一時停止
+        trade.pause_flag = True
+
+        self.engine._save_trade(trade)
+
+        return True
+
+    def pause_trades(self, trade_ids):
+        """
+        全Trade一時停止
+        """
+        count = 0
+        for trade_id in trade_ids:
+            if self.pause_trade(trade_id):
+                count += 1
+
+        return count
+
+    def resume_trade(self, trade_id):
+        """
+        Trade再開
+        """
+
+        trade = self.context.trades.get(trade_id)
+
+        if trade is None:
+            return False
+
+        if not trade.pause_flag:
+            return False
+
+        # クリア
+        trade.pause_flag = False
+
+        self.engine._save_trade(trade)
+
+        return True
+
+    def resume_trades(self, trade_ids):
+        """
+        全Trade再開
+        """
+        count = 0
+        for trade_id in trade_ids:
+            if self.resume_trade(trade_id):
+                count += 1
+
+        return count
+
+    def cancel_trade(self, trade_id):
+        """
+        Trade取消
+        """
+        trade = self.context.trades.get(trade_id)
+
+        if trade is None:
+            return False
+
+        #
+        # 完了済みは取消不可
+        #
+        if trade.state in [
+            TradeState.CANCELED,
+            TradeState.COMPLETED,
+        ]:
+            return False
+
+        Log.event(f"CANCEL TRADE {trade_id}")
+
+        # 取消
+        trade.change_state(TradeState.CANCELED)
+
+        self.engine._save_trade(trade)
+
+        return True
+
+    def cancel_trades(self, trade_ids):
+        """
+        全Trade取消
+        """
+        count = 0
+        for trade_id in trade_ids:
+            if self.cancel_trade(trade_id):
+                count += 1
+
+        return count
+
+    def delete_canceled_trade(self, trade_id):
+        """
+        Trade削除
+        """
+        trade = self.context.trades.get(trade_id)
+
+        if trade is None:
+            return False
+
+        # 取消済みのみ削除可能
+        if trade.state != TradeState.CANCELED:
+            return False
+
+        self.engine._delete_trade(trade)
+
+        return True
+
+    def delete_canceled_trades(self, trade_ids):
+        """
+        指定した取消済みTrade一括削除
+        """
+        count = 0
+        for trade_id in trade_ids:
+
+            trade = self.context.trades.get(trade_id)
+
+            if trade is None:
+                continue
+
+            # CANCELEDのみ削除可能
+            if trade.state != TradeState.CANCELED:
+                continue
+
+            self.engine._delete_trade(trade)
+
+            count += 1
+
+        return count
+
+
+    def get_trade_chart_datas(self, trade_id):
+        """
+        Trade Chart Data取得
+        """
+        trade_chart_datas = self.context.cache.trade_chart_datas.get(
+            trade_id,
+            []
+        )
+
+        return [
+            trade_chart_data.to_dict()
+            for trade_chart_data in trade_chart_datas
+        ]

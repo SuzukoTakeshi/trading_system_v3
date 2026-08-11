@@ -65,6 +65,10 @@
                     "enabled": true,
                     "time": "15:15"
                 }
+            },
+
+            "chart": {
+                "interval_seconds": 0.5
             }
         },
 
@@ -104,6 +108,10 @@
                     "enabled": false,
                     "time": "15:20"
                 }
+            },
+
+            "chart": {
+                "interval_seconds": 5
             }
         },
 
@@ -143,7 +151,11 @@
                     "enabled": false,
                     "time": "15:15"
                 }
+            },
+
+            "chart": {
+                "interval_seconds": 60
             }
-        }
+       }
     }
 }

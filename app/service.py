@@ -115,7 +115,7 @@ class AppService:
         """
 
         return {
-            "trade_engine": self.trade_engine.status(),
+            "trade_engine": self.trade_engine.api.status(),
             "market": self.market_status.get()
         }
 
@@ -206,7 +206,7 @@ class AppService:
             #
             # Trade登録
             #
-            trade_id = self.trade_engine.create_trade(req)
+            trade_id = self.trade_engine.api.create_trade(req)
 
             #
             # 履歴保存
@@ -247,7 +247,7 @@ class AppService:
         """
         result = []
 
-        for trade in self.trade_engine.get_trades():
+        for trade in self.trade_engine.api.get_trades():
 
             symbol = self.symbol_store.get(trade["symbol"])
 
@@ -280,14 +280,14 @@ class AppService:
         """
         Trade一時停止
         """
-        return self.trade_engine.pause_trade(trade_id)
+        return self.trade_engine.api.pause_trade(trade_id)
 
     def pause_trades(self, trade_ids):
-        return self.trade_engine.pause_trades(trade_ids)
+        return self.trade_engine.api.pause_trades(trade_ids)
 
     def pause_all_trades(self):
         return self.pause_trades(
-            self.trade_engine.get_trade_ids()
+            self.trade_engine.api.get_trade_ids()
         )
 
 
@@ -295,14 +295,14 @@ class AppService:
         """
         Trade再開
         """
-        return self.trade_engine.resume_trade(trade_id)
+        return self.trade_engine.api.resume_trade(trade_id)
 
     def resume_trades(self, trade_ids):
-        return self.trade_engine.resume_trades(trade_ids)
+        return self.trade_engine.api.resume_trades(trade_ids)
 
     def resume_all_trades(self):
         return self.resume_trades(
-            self.trade_engine.get_trade_ids()
+            self.trade_engine.api.get_trade_ids()
         )
 
 
@@ -310,17 +310,17 @@ class AppService:
         """
         Trade取消
         """
-        return self.trade_engine.cancel_trade(trade_id)
+        return self.trade_engine.api.cancel_trade(trade_id)
 
     def cancel_trades(self, trade_ids):
         """
         選択Trade取消
         """
-        return self.trade_engine.cancel_trades(trade_ids)
+        return self.trade_engine.api.cancel_trades(trade_ids)
 
     def cancel_all_trades(self):
         return self.cancel_trades(
-            self.trade_engine.get_trade_ids()
+            self.trade_engine.api.get_trade_ids()
         )
 
 
@@ -328,17 +328,17 @@ class AppService:
         """
         CANCELED Trade削除
         """
-        return self.trade_engine.delete_canceled_trade(trade_id)
+        return self.trade_engine.api.delete_canceled_trade(trade_id)
 
     def delete_canceled_trades(self, trade_ids):
         """
         CANCELED Trade選択削除
         """
-        return self.trade_engine.delete_canceled_trades(trade_ids)
-    
+        return self.trade_engine.api.delete_canceled_trades(trade_ids)
+
     def delete_canceled_all_trades(self):
         return self.delete_canceled_trades(
-            self.trade_engine.get_trade_ids()
+            self.trade_engine.api.get_trade_ids()
         )
 
 
@@ -351,7 +351,7 @@ class AppService:
 
         for trade_id in trade_ids:
 
-            result[trade_id] = self.trade_engine.get_trade_chart_datas(
+            result[trade_id] = self.trade_engine.api.get_trade_chart_datas(
                 trade_id
             )
 

@@ -59,6 +59,7 @@ class TradeModel(BaseEntity):
         time_limit_minutes,
         close_enabled,
         close_time,
+        chart_interval_seconds,
 
         generate_id=True,
     ):
@@ -93,6 +94,7 @@ class TradeModel(BaseEntity):
             time_limit_minutes=time_limit_minutes,
             close_enabled=close_enabled,
             close_time=close_time,
+            chart_interval_seconds=chart_interval_seconds,
         )
 
         # Trade実行中データ
