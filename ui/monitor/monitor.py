@@ -55,6 +55,10 @@ from ui.monitor.components.trail_card import (
     render_trail_card,
 )
 
+from ui.monitor.components.trail_chart import (
+    render_trail_chart,
+)
+
 
 # --------------------------------------
 # API
@@ -63,6 +67,7 @@ from ui.monitor.components.trail_card import (
 from ui.api.client import (
     get_status,
     get_trades,
+    get_trade_chart_datas,
 )
 
 
@@ -154,29 +159,30 @@ render_header(
     state
 )
 
+
 # --------------------------------------
 # URL Parameters
 # --------------------------------------
 
 params = st.query_params
 
-symbols_param = params.get(
-    "symbols",
+trade_ids_param = params.get(
+    "trade_ids",
     ""
 )
 
 
-if symbols_param:
+if trade_ids_param:
 
-    symbols = [
-        symbol.strip()
-        for symbol in symbols_param.split(",")
-        if symbol.strip()
+    trade_ids = [
+        int(trade_id.strip())
+        for trade_id in trade_ids_param.split(",")
+        if trade_id.strip()
     ]
 
 else:
 
-    symbols = []
+    trade_ids = []
 
 
 # --------------------------------------
@@ -186,77 +192,76 @@ else:
 trades = get_trades()
 
 
+chart_datas = get_trade_chart_datas(
+    trade_ids
+)
+
+
 # --------------------------------------
 # Display
 # --------------------------------------
 
-if not symbols:
+if not trade_ids:
 
     st.info(
-        "監視対象銘柄が指定されていません"
+        "監視対象Tradeが指定されていません"
     )
+
 
 else:
 
-    # V1.4方式
     card_columns = 3
+
 
     for i in range(
         0,
-        len(symbols),
+        len(trade_ids),
         card_columns
     ):
 
-        row_symbols = symbols[
-            i:i + card_columns
-        ]
 
-        cols = st.columns(
-            card_columns
-        )
+        row_trade_ids = trade_ids[i:i + card_columns]
+        cols = st.columns(card_columns)
 
-        for col, symbol in zip(
-            cols,
-            row_symbols
-        ):
-
+        for col, trade_id in zip(cols, row_trade_ids):
             with col:
-
                 target = None
 
                 # -------------------------
                 # Trade検索
                 # -------------------------
-
                 for trade in trades:
-
-                    if str(
-                        trade.get(
-                            "symbol",
-                            ""
-                        )
-                    ) == symbol:
-
+                    if trade.get("trade_id") == trade_id:
                         target = trade.copy()
 
+
+                        target["chart_datas"] = (
+                            chart_datas.get(str(trade_id), [])
+                        )
                         break
+
 
                 # -------------------------
                 # Tradeなし
                 # -------------------------
 
                 if target is None:
-
                     target = {
-                        "symbol": symbol,
-                        "symbol_name": "",
+                        "trade_id": trade_id,
+                        "symbol": "",
+                        "name": "",
                         "state": "NOT FOUND",
+                        "chart_datas": [],
                     }
+
 
                 # -------------------------
                 # Card
                 # -------------------------
 
-                render_trail_card(
-                    target
+                render_trail_card(target)
+
+                render_trail_chart(
+                    target.get("chart_datas", []),
+                    target.get("symbol", "")
                 )

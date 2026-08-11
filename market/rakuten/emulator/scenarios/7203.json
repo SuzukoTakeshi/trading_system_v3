@@ -10,7 +10,7 @@
 
     "market": {
         "mode": "scenario",
-        "interval": 1.0,
+        "interval": 2.0,
         "scenario": [
             {
                 "comment": [

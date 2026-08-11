@@ -51,7 +51,6 @@ class MarketService:
 
     def sync_market(self, symbols):
         self.client.sync_quotes(symbols)
-        return self.client.get_quotes()
 
 
     def get_quote(self, symbol):

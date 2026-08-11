@@ -142,13 +142,16 @@ class QuoteSheet(BaseSheet):
                 f"=RssMarket({symbol_cell},{item_cell})"
             )
 
+        elif self.is_emulator():
+            self.ws.Cells(row, price_col).Value = ""
+
         elif self.is_debug():
 
             price = self.debug.get("quote_price")
             if price is None:
                 raise Exception("debug.quote_price が設定されていません")
-
-            self.ws.Cells(row, price_col).Value = price
+            elif price > 0:
+                self.ws.Cells(row, price_col).Value = price
 
         else:
             raise Exception(f"未対応mode: {self.mode}")

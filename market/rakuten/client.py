@@ -146,15 +146,7 @@ class RakutenClient:
 
 
     def get_quote(self, symbol):
-        quote = self.quote_sheet.get_quote(symbol)
-        if quote is None:
-            Log.event(f"QUOTE ADD SYMBOL : {symbol}")
-            self.quote_sheet.add_symbol(symbol)
-            # RSSの取得がすぐされないので、ここの取得はなし。
-            # quote = self.quote_sheet.get_quote(symbol)
-            return None
-
-        return quote
+        return self.quote_sheet.get_quote(symbol)
 
 
     def request_order(self, request_order_dto):

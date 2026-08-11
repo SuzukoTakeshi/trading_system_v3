@@ -342,16 +342,16 @@ class AppService:
         )
 
 
-    def get_trail_histories(self, trade_ids):
+    def get_trade_chart_datas(self, trade_ids):
         """
-        複数TradeのTrail History取得
+        複数TradeのChart Data取得
         """
 
         result = {}
 
         for trade_id in trade_ids:
 
-            result[trade_id] = self.trade_engine.get_trail_history(
+            result[trade_id] = self.trade_engine.get_trade_chart_datas(
                 trade_id
             )
 

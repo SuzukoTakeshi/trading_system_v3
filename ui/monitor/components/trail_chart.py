@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib import rcParams
 
+
 rcParams["font.family"] = "Meiryo"
 
 
@@ -20,7 +21,6 @@ def render_trail_chart(
     symbol: str = ""
 ):
 
-
     if not trail_history:
 
         st.info(
@@ -28,7 +28,6 @@ def render_trail_chart(
         )
 
         return
-
 
 
     df = pd.DataFrame(
@@ -43,7 +42,6 @@ def render_trail_chart(
         )
 
         return
-
 
 
     # -------------------------
@@ -72,8 +70,6 @@ def render_trail_chart(
 
             df[c] = None
 
-
-
     # -------------------------
     # Date変換
     # -------------------------
@@ -87,17 +83,9 @@ def render_trail_chart(
         df[c] = (
             pd.to_datetime(
                 df[c],
-                utc=True,
                 errors="coerce"
             )
-            .dt.tz_convert(
-                "Asia/Tokyo"
-            )
-            .dt.tz_localize(
-                None
-            )
         )
-
 
 
     # -------------------------
@@ -121,7 +109,6 @@ def render_trail_chart(
         )
 
 
-
     side = None
 
 
@@ -133,25 +120,45 @@ def render_trail_chart(
             .iloc[0]
         )
 
+        side = str(side).upper()
 
 
     # -------------------------
     # Graph
     # -------------------------
 
+    # 元データを保持
+    plot_df = df.copy()
+
+    # EXIT後はグラフを描画しない
+    exit_df = df[
+        df["exit_time"].notna()
+    ]
+
+    if not exit_df.empty:
+
+        exit_time = exit_df.iloc[0]["exit_time"]
+
+        if pd.notna(exit_time):
+
+            plot_df = df[
+                df["time"] <= exit_time
+            ].copy()
+
+
     fig, ax = plt.subplots(
         figsize=(5, 2.5)
     )
 
 
-    t = df["time"]
+    t = plot_df["time"]
 
 
     # 現在値
 
     ax.plot(
         t,
-        df["price"],
+        plot_df["price"],
         label="PRICE",
         linewidth=1
     )
@@ -163,7 +170,7 @@ def render_trail_chart(
 
         ax.plot(
             t,
-            df["high_watermark"],
+            plot_df["high_watermark"],
             label="HIGH",
             linewidth=1
         )
@@ -173,22 +180,20 @@ def render_trail_chart(
 
         ax.plot(
             t,
-            df["low_watermark"],
+            plot_df["low_watermark"],
             label="LOW",
             linewidth=1
         )
-
 
 
     # Stop
 
     ax.plot(
         t,
-        df["stop_loss"],
+        plot_df["stop_loss"],
         label="STOP",
         linewidth=1
     )
-
 
 
     # -------------------------
@@ -206,6 +211,7 @@ def render_trail_chart(
 
         # グラフ開始位置をENTRYとして表示
         entry_time = df.iloc[0]["time"]
+
 
         if (
             pd.notna(entry_time)
@@ -233,26 +239,28 @@ def render_trail_chart(
 
     if not exit_df.empty:
 
-        for _, row in exit_df.iterrows():
+        row = exit_df.iloc[0]
 
-            if pd.notna(
-                row["exit_price"]
-            ):
 
-                ax.scatter(
+        if pd.notna(
+            row["exit_price"]
+        ):
 
-                    row["exit_time"],
+            ax.scatter(
 
-                    row["exit_price"],
+                row["exit_time"],
 
-                    marker="v",
+                row["exit_price"],
 
-                    s=40,
+                marker="v",
 
-                    label="EXIT",
+                s=40,
 
-                )
+                label="EXIT",
 
+                zorder=5,
+
+            )
 
 
     # -------------------------
@@ -289,7 +297,6 @@ def render_trail_chart(
 
 
     fig.autofmt_xdate()
-
 
 
     st.pyplot(

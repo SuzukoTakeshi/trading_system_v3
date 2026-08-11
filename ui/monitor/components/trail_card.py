@@ -7,15 +7,68 @@
 # - Monitor画面で1件のTradeを表示
 #
 # V3
+# - V1.4 Compact Card Layout
+# - Trade ID対応
 #
 
 import streamlit as st
+
+from ui.utils.ui_labels import (
+    STATE_EVENT_MAP,
+    EVENT_LABEL,
+    EVENT_LABEL_UNKNOWN,
+)
 
 
 def render_trail_card(trade: dict):
     """
     Trade Card
     """
+
+    # -------------------------
+    # Compact Card CSS
+    # -------------------------
+
+    st.markdown(
+        """
+        <style>
+
+        div[data-testid="stVerticalBlock"] {
+            gap: 0.6rem;
+        }
+
+        div[data-testid="stCaptionContainer"] {
+            margin-bottom: -6px;
+        }
+
+        p {
+            margin-bottom: 0.15rem;
+        }
+
+        .trail-item {
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .trail-label {
+            font-size: 0.8rem;
+            color: #999999;
+        }
+
+        .trail-value {
+            font-weight: bold;
+        }
+
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+    trade_id = trade.get(
+        "trade_id",
+        "-"
+    )
 
     symbol = trade.get(
         "symbol",
@@ -32,9 +85,28 @@ def render_trail_card(trade: dict):
         ""
     )
 
+    event = STATE_EVENT_MAP.get(
+        state
+    )
+
+    state_text = EVENT_LABEL.get(
+        event,
+        EVENT_LABEL_UNKNOWN
+    )
+
+    side = trade.get(
+        "side",
+        "-"
+    )
+
+    quantity = trade.get(
+        "quantity",
+        "-"
+    )
+
     price = trade.get(
         "price",
-        0
+        "-"
     )
 
     entry_price = trade.get(
@@ -49,208 +121,195 @@ def render_trail_card(trade: dict):
         "stop_price"
     )
 
-    quantity = trade.get(
-        "quantity",
-        0
-    )
 
-    side = trade.get(
-        "side",
-        ""
-    )
+    # -------------------------
+    # Price表示
+    # -------------------------
+
+    def price_text(value):
+
+        if value is None:
+            return "-"
+
+        if isinstance(value, (int, float)):
+            return f"{value:,.2f}"
+
+        return str(value)
 
 
-    entry_text = (
+    entry_text = price_text(
         entry_price
-        if entry_price is not None
-        else "-"
     )
 
-    current_text = (
+    current_text = price_text(
         current_price
-        if current_price is not None
-        else "-"
     )
 
-    stop_text = (
+    stop_text = price_text(
         stop_price
-        if stop_price is not None
-        else "-"
+    )
+
+    price_text_value = price_text(
+        price
     )
 
 
-    # ==================================================
+    # -------------------------
     # Card
-    # ==================================================
+    # -------------------------
 
-    st.markdown(
-        f"""
-        <style>
+    with st.container(border=True):
 
-        .trail-card{{
-            padding:14px 16px;
-            margin-bottom:12px;
+        # ---------------------
+        # Header
+        # ---------------------
 
-            border:1px solid #444;
-            border-radius:10px;
+        st.markdown(
+            f"**Trade {trade_id}　"
+            f"{side} / {quantity}株**"
+        )
 
-            background:#1f1f1f;
+        st.markdown(
+            f"""
+            <div style="
+                font-weight:bold;
+                margin-bottom:-8px;
+            ">
+                {symbol} {name}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-            box-shadow:
-                0 2px 6px rgba(0,0,0,.25);
-        }}
+        # st.divider()
+        st.markdown(
+            """
+            <hr style="
+                margin: 20px 0 20px 0;
+                border: none;
+                border-top: 1px solid #444;
+            ">
+            """,
+            unsafe_allow_html=True
+        )
 
+        # ---------------------
+        # Status
+        # ---------------------
 
-        .trail-card-header{{
-            display:flex;
-
-            align-items:center;
-
-            gap:10px;
-
-            margin-bottom:12px;
-        }}
-
-
-        .trail-symbol{{
-            font-size:18px;
-            font-weight:bold;
-        }}
-
-
-        .trail-name{{
-            font-size:13px;
-            color:#aaaaaa;
-        }}
-
-
-        .trail-state{{
-            margin-left:auto;
-
-            font-size:12px;
-            font-weight:bold;
-        }}
+        col1, col2 = st.columns(2)
 
 
-        .trail-grid{{
-            display:grid;
+        with col1:
 
-            grid-template-columns:
-                repeat(2, 1fr);
+            st.markdown(
+                f"""
+                <div class="trail-item">
+                    <div class="trail-label">
+                        状態
+                    </div>
+                    <div class="trail-value">
+                        {state_text}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
-            gap:10px 16px;
+        with col2:
 
-            font-size:13px;
-        }}
-
-
-        .trail-label{{
-            color:#999999;
-        }}
-
-
-        .trail-value{{
-            font-weight:bold;
-        }}
-
-        </style>
-
-
-        <div class="trail-card">
-
-
-        <div class="trail-card-header">
-
-        <div class="trail-symbol">
-        {symbol}
-        </div>
-
-
-        <div class="trail-name">
-        {name}
-        </div>
+            st.markdown(
+                f"""
+                <div class="trail-item">
+                    <div class="trail-label">
+                        現在値
+                    </div>
+                    <div class="trail-value">
+                        {current_text}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
 
-        <div class="trail-state">
-        {state}
-        </div>
+        # ---------------------
+        # Entry / Stop
+        # ---------------------
 
-        </div>
-
-
-        <div class="trail-grid">
+        col1, col2 = st.columns(2)
 
 
-        <div>
-        <span class="trail-label">
-        Side
-        </span><br>
+        with col1:
 
-        <span class="trail-value">
-        {side}
-        </span>
-        </div>
-
-
-        <div>
-        <span class="trail-label">
-        Quantity
-        </span><br>
-
-        <span class="trail-value">
-        {quantity}
-        </span>
-        </div>
+            st.markdown(
+                f"""
+                <div class="trail-item">
+                    <div class="trail-label">
+                        Entry
+                    </div>
+                    <div class="trail-value">
+                        {entry_text}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
 
-        <div>
-        <span class="trail-label">
-        Price
-        </span><br>
+        with col2:
 
-        <span class="trail-value">
-        {price}
-        </span>
-        </div>
-
-
-        <div>
-        <span class="trail-label">
-        Entry
-        </span><br>
-
-        <span class="trail-value">
-        {entry_text}
-        </span>
-        </div>
+            st.markdown(
+                f"""
+                <div class="trail-item">
+                    <div class="trail-label">
+                        損切ライン
+                    </div>
+                    <div class="trail-value">
+                        {stop_text}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
 
-        <div>
-        <span class="trail-label">
-        Current
-        </span><br>
+        # ---------------------
+        # Price
+        # ---------------------
 
-        <span class="trail-value">
-        {current_text}
-        </span>
-        </div>
+        col1, col2 = st.columns(2)
 
 
-        <div>
-        <span class="trail-label">
-        Stop
-        </span><br>
+        with col1:
 
-        <span class="trail-value">
-        {stop_text}
-        </span>
-        </div>
+            st.markdown(
+                f"""
+                <div class="trail-item">
+                    <div class="trail-label">
+                        Price
+                    </div>
+                    <div class="trail-value">
+                        {price_text_value}
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
 
-        </div>
+        with col2:
 
-
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+            st.markdown(
+                """
+                <div class="trail-item">
+                    <div class="trail-label">
+                        &nbsp;
+                    </div>
+                    <div class="trail-value">
+                        &nbsp;
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )

@@ -215,14 +215,16 @@ def delete_canceled_trades(
 @app.delete("/trade/delete_canceled/all")
 def delete_all_canceled_trades():
 
-    count = app_service.delete_all_canceled_trades()
+    count = app_service.delete_canceled_all_trades()
 
     return {
         "result": "OK",
         "count": count
     }
 
+@app.post("/trade/chart_datas")
+def trade_chart_datas(req: TradeIdsRequestDTO):
 
-@app.post("/trade/trail_histories")
-def trail_histories(req: TradeIdsRequestDTO):
-    return app_service.get_trail_histories(req.trade_ids)
+    return app_service.get_trade_chart_datas(
+        req.trade_ids
+    )

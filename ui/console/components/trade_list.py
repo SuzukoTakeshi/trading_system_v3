@@ -224,28 +224,22 @@ def trade_list():
 
         selected_placeholder.markdown(f"選択 : {len(selected_ids)} 件")
 
+
         with monitor_col:
             if st.button(
                 "👁 Monitor",
                 width="stretch",
                 disabled=len(selected_ids) == 0,
             ):
-                selected_symbols = [
-                    trade["symbol"]
-                    for trade in edited
-                    if trade["select"]
-                    and trade["trade_id"] is not None
-                    and trade["symbol"]
-                ]
 
-                symbols = ",".join(
-                    selected_symbols
+                trade_ids = ",".join(
+                    str(trade_id)
+                    for trade_id in selected_ids
                 )
 
-                url = f"{MONITOR_URL}?symbols={symbols}"
+                url = f"{MONITOR_URL}?trade_ids={trade_ids}"
 
                 webbrowser.open_new_tab(url)
-
 
         with pause_col:
             if st.button(

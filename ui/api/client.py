@@ -72,18 +72,11 @@ def get_status():
 # ==================================================
 
 def start_system():
-
-    return post(
-        "/start"
-    )
-
+    return post("/start")
 
 
 def stop_system():
-
-    return post(
-        "/stop"
-    )
+    return post("/stop")
 
 
 # ==================================================
@@ -92,24 +85,17 @@ def stop_system():
 
 def get_trade_options():
 
-    return get(
-        "/trade/options"
-    )
+    return get("/trade/options")
 
 
 def register_trade(payload):
 
-    return post(
-        "/trade",
-        json=payload,
-    )
+    return post("/trade", json=payload)
 
 
 def get_trades():
 
-    return get(
-        "/trades"
-    )
+    return get("/trades")
 
 
 def pause_trade(trade_id):
@@ -117,10 +103,7 @@ def pause_trade(trade_id):
     Trade一時停止
     """
 
-    return post(
-        f"/trade/{trade_id}/pause"
-    )
-
+    return post(f"/trade/{trade_id}/pause")
 
 
 def resume_trade(trade_id):
@@ -128,10 +111,7 @@ def resume_trade(trade_id):
     Trade再開
     """
 
-    return post(
-        f"/trade/{trade_id}/resume"
-    )
-
+    return post(f"/trade/{trade_id}/resume")
 
 
 def cancel_trade(trade_id):
@@ -139,10 +119,7 @@ def cancel_trade(trade_id):
     Trade取消
     """
 
-    return post(
-        f"/trade/{trade_id}/cancel"
-    )
-
+    return post(f"/trade/{trade_id}/cancel")
 
 
 def delete_canceled_trade(trade_id):
@@ -150,11 +127,21 @@ def delete_canceled_trade(trade_id):
     CANCELED Trade削除
     """
 
-    response = requests.delete(
-        f"{BASE_URL}/trade/{trade_id}/delete_canceled",
-        timeout=API_TIMEOUT_SEC,
-    )
+    response = requests.delete(f"{BASE_URL}/trade/{trade_id}/delete_canceled", timeout=API_TIMEOUT_SEC)
 
     response.raise_for_status()
 
     return response.json()
+
+
+def get_trade_chart_datas(trade_ids):
+    """
+    複数TradeのChart Data取得
+    """
+
+    return post(
+        "/trade/chart_datas",
+        json={
+            "trade_ids": trade_ids
+        }
+    )

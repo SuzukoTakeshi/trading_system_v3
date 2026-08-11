@@ -6,13 +6,13 @@
     },
 
     "debug": {
-        "quote_price": 1000
+        "quote_price": 0
     },
 
     "description": {
         "mode": "rakuten=本番運用 emulator=仮想市場環境 debug=内部デバッグ",
         "emulator": "Emulator設定 interval=ループ間隔(秒)",
         "debug": "内部デバッグ設定",
-        "quote_price": "debugモード時に使用する固定現在値"
+        "quote_price": "debugモード時に使用する固定現在値 0=未設定"
     }
 }
