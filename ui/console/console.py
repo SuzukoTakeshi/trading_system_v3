@@ -1,21 +1,45 @@
 #
-# ui/console.py
+# ui/console/console.py
 #
 # Trading System Console
 #
 
-from datetime import datetime
-import streamlit as st
+import sys
+from pathlib import Path
 
+# --------------------------------------
+# Project Root
+# --------------------------------------
+
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
+
+from datetime import datetime
+
+import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
-from api.client import get_status
+from ui.utils.formatters import format_datetime_jp
 
-from context import UIContext
+# --------------------------------------
+# Config
+# --------------------------------------
 
-from header import header
-from body import body
-from footer import footer
+from ui.config.ui import (
+    CONSOLE_REFRESH_INTERVAL_MS,
+)
+
+# --------------------------------------
+# Components / API
+# --------------------------------------
+
+from ui.api.client import get_status
+from ui.console.components.context import UIContext
+from ui.console.components.header import header
+from ui.console.components.body import body
+from ui.console.components.footer import footer
 
 
 st.set_page_config(
@@ -74,7 +98,7 @@ def main():
     # Auto Refresh
     if st.session_state.auto_refresh:
         st_autorefresh(
-            interval=5000,
+            interval=CONSOLE_REFRESH_INTERVAL_MS,
             key="console_refresh",
         )
 
@@ -88,13 +112,7 @@ def system_header():
 
     now = datetime.now()
 
-    weekdays = ["月", "火", "水", "木", "金", "土", "日"]
-
-    datetime_text = (
-        f"{now:%Y/%m/%d}"
-        f"({weekdays[now.weekday()]}) "
-        f"{now:%H:%M:%S}"
-    )
+    datetime_text = format_datetime_jp(now)
 
     col_title, col_datetime = st.columns([6, 2])
 

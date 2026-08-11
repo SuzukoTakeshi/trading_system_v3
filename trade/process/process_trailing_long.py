@@ -10,6 +10,8 @@
 #   ・損切り/利確判定
 #
 
+from datetime import datetime
+
 from core.logger import Log
 
 from trade.process.process_trailing_base import ProcessTrailingBase
@@ -39,21 +41,26 @@ class ProcessTrailingLong(ProcessTrailingBase):
         # トレーリング更新
         self.update_trailing_stop_price(trade, price)
 
+        result = False
+
         # 時間決済
         if self.is_time_exit(trade):
-            return True
+            result = True
 
         # 指定時刻決済
-        if self.is_close_time_exit(trade):
-            return True
+        elif self.is_close_time_exit(trade):
+            result = True
 
         # 初期STOP待機
-        if self.is_initial_stop_delay(trade):
-            return False
+        elif self.is_initial_stop_delay(trade):
+            result = False
 
         # STOP判定
-        return self.is_stop_hit(trade, price)
+        else:
+            result = self.is_stop_hit(trade, price)
 
+
+        return result
 
     #
     # TRAILING初期化
@@ -99,7 +106,10 @@ class ProcessTrailingLong(ProcessTrailingBase):
             Log.event(f"STOP HIT LONG id={trade.id} price={price}")
             trade.add_timeline(type="EXIT", message=f"STOP HIT price={price}")
 
+            # EXIT実績
             trade.runtime.exit_execution_price = price
+            trade.runtime.exit_price = price
+            trade.runtime.exit_time = datetime.now()
 
             return True
 

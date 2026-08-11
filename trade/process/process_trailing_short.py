@@ -10,6 +10,8 @@
 #   ・損切り/利確判定
 #
 
+from datetime import datetime
+
 from core.logger import Log
 
 from trade.process.process_trailing_base import ProcessTrailingBase
@@ -34,26 +36,31 @@ class ProcessTrailingShort(ProcessTrailingBase):
 
         Log.debug(
             f"TRAILING CHECK id={trade.id} price={price} "
-            f"highest={trade.runtime.trailing_lowest_price} stop={trade.runtime.stop_price}"
+            f"lowest={trade.runtime.trailing_lowest_price} stop={trade.runtime.stop_price}"
         )
 
         # トレーリング更新
         self.update_trailing_stop_price(trade, price)
 
+        result = False
+
         # 時間決済
         if self.is_time_exit(trade):
-            return True
+            result = True
 
         # 指定時刻決済
-        if self.is_close_time_exit(trade):
-            return True
+        elif self.is_close_time_exit(trade):
+            result = True
 
         # 初期STOP待機
-        if self.is_initial_stop_delay(trade):
-            return False
+        elif self.is_initial_stop_delay(trade):
+            result = False
 
         # STOP判定
-        return self.is_stop_hit(trade, price)
+        else:
+            result = self.is_stop_hit(trade, price)
+
+        return result
 
 
     #
@@ -77,19 +84,19 @@ class ProcessTrailingShort(ProcessTrailingBase):
     # 安値更新
     #
     def update_trailing_stop_price(self, trade, price):
-            if (
-                trade.runtime.trailing_lowest_price is None
-                or price < trade.runtime.trailing_lowest_price
-            ):
-                trade.runtime.trailing_lowest_price = price
+        if (
+            trade.runtime.trailing_lowest_price is None
+            or price < trade.runtime.trailing_lowest_price
+        ):
+            trade.runtime.trailing_lowest_price = price
 
-                new_stop = trade.runtime.trailing_lowest_price + trade.param.atr * trade.param.trail_atr_multiplier
+            new_stop = trade.runtime.trailing_lowest_price + trade.param.atr * trade.param.trail_atr_multiplier
 
-                if new_stop < trade.runtime.stop_price:
-                    trade.runtime.stop_price = new_stop
+            if new_stop < trade.runtime.stop_price:
+                trade.runtime.stop_price = new_stop
 
-                    Log.event(f"TRAILING UPDATE SHORT id={trade.id} price={price} stop={trade.runtime.stop_price}")
-                    trade.add_timeline(type="TRAILING", message=f"UPDATE stop={trade.runtime.stop_price}")
+                Log.event(f"TRAILING UPDATE SHORT id={trade.id} price={price} stop={trade.runtime.stop_price}")
+                trade.add_timeline(type="TRAILING", message=f"UPDATE stop={trade.runtime.stop_price}")
 
 
     #
@@ -100,7 +107,10 @@ class ProcessTrailingShort(ProcessTrailingBase):
             Log.event(f"STOP HIT SHORT id={trade.id} price={price}")
             trade.add_timeline(type="EXIT", message=f"STOP HIT price={price}")
 
+            # EXIT実績
             trade.runtime.exit_execution_price = price
+            trade.runtime.exit_price = price
+            trade.runtime.exit_time = datetime.now()
 
             return True
 

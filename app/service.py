@@ -260,6 +260,11 @@ class AppService:
                     else ""
                 ),
                 "price": trade["price"],
+
+                "entry_price": trade["entry_price"],
+                "current_price": trade["current_price"],
+                "stop_price": trade["stop_price"],
+
                 "quantity": trade["quantity"],
                 "atr": trade["atr"],
                 "trade_type": trade["trade_type"],
@@ -335,3 +340,19 @@ class AppService:
         return self.delete_canceled_trades(
             self.trade_engine.get_trade_ids()
         )
+
+
+    def get_trail_histories(self, trade_ids):
+        """
+        複数TradeのTrail History取得
+        """
+
+        result = {}
+
+        for trade_id in trade_ids:
+
+            result[trade_id] = self.trade_engine.get_trail_history(
+                trade_id
+            )
+
+        return result

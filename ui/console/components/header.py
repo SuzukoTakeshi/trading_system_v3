@@ -6,10 +6,18 @@
 
 import streamlit as st
 
-from api.client import (
+from ui.api.client import (
     start_system,
     stop_system,
 )
+
+from ui.utils.ui_labels import (
+    MARKET_STATE_LABEL,
+    MARKET_STATE_UNKNOWN,
+    ENGINE_STATE_LABEL,
+    ENGINE_STATE_UNKNOWN,
+)
+
 
 def header(ctx):
 
@@ -42,13 +50,9 @@ def header(ctx):
 
         with col_market:
 
-            market_display = {
-                "OPEN": "🟢 OPEN",
-                "CLOSED": "⚪ CLOSED",
-                "HOLIDAY": "🟡 HOLIDAY",
-            }.get(
+            market_display = MARKET_STATE_LABEL.get(
                 market_state,
-                "🔴 UNKNOWN"
+                MARKET_STATE_UNKNOWN
             )
 
             st.markdown(
@@ -63,15 +67,10 @@ def header(ctx):
             )
 
         with col_engine:
-            engine_state_display = {
-                "running": "🟢 RUNNING",
-                "stopped": "⚪ STOPPED",
-                "starting": "🔵 STARTING",
-                "stopping": "🟠 STOPPING",
-                "error": "🔴 ERROR",
-            }.get(
+
+            engine_state_display = ENGINE_STATE_LABEL.get(
                 engine,
-                "🟡 UNKNOWN"
+                ENGINE_STATE_UNKNOWN
             )
 
             st.markdown(engine_state_display)

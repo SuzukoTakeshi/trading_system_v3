@@ -60,11 +60,13 @@ class TradeRuntime:
         self.entry_price = None
 
         # 約定時刻
-        #
-        # 保有時間管理
-        # 時間決済判定で使用
-        #
         self.entry_time = None
+
+        # 実際のEXIT約定価格
+        self.exit_price = None
+
+        # EXIT約定時刻
+        self.exit_time = None
 
 
         #
@@ -97,6 +99,8 @@ class TradeRuntime:
         #
         self.stop_price = None
 
+        # 現在価格
+        self.current_price = None
 
         # LONG:
         #   保有後最高値
@@ -120,6 +124,13 @@ class TradeRuntime:
                 else None
             ),
 
+            "exit_price": self.exit_price,
+            "exit_time": (
+                self.exit_time.isoformat()
+                if self.exit_time
+                else None
+            ),
+
             # ENTRY解析
             "entry_lowest_price": self.entry_lowest_price,
             "entry_highest_price": self.entry_highest_price,
@@ -128,6 +139,7 @@ class TradeRuntime:
 
             # TRAILING
             "stop_price": self.stop_price,
+            "current_price": self.current_price,
             "trailing_highest_price": self.trailing_highest_price,
             "trailing_lowest_price": self.trailing_lowest_price,
 
@@ -145,9 +157,18 @@ class TradeRuntime:
         runtime = cls()
 
         runtime.entry_price = data.get("entry_price")
+
         entry_time = data.get("entry_time")
         if entry_time:
             runtime.entry_time = datetime.fromisoformat(entry_time)
+
+
+        runtime.exit_price = data.get("exit_price")
+
+        exit_time = data.get("exit_time")
+        if exit_time:
+            runtime.exit_time = datetime.fromisoformat(exit_time)
+
 
         runtime.entry_lowest_price = data.get("entry_lowest_price")
         runtime.entry_highest_price = data.get("entry_highest_price")
@@ -155,6 +176,7 @@ class TradeRuntime:
         runtime.entry_reversal_count = data.get("entry_reversal_count", 0)
 
         runtime.stop_price = data.get("stop_price")
+        runtime.current_price = data.get("current_price")
         runtime.trailing_highest_price = data.get("trailing_highest_price")
         runtime.trailing_lowest_price = data.get("trailing_lowest_price")
 

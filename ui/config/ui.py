@@ -2,7 +2,7 @@
 # ui/config/ui.py
 #
 # ==========================================
-# Trading System V1.4 UI設定
+# Trading System V3 UI設定
 # ==========================================
 #
 # 役割：
@@ -25,10 +25,19 @@
 # =========================
 
 # FastAPI
+# localhostではなく127.0.0.1を使用すること。
+# localhostでは環境によって接続に約2秒かかる場合がある。
 BASE_URL = "http://127.0.0.1:8000"
 
 # Trail Monitor
 MONITOR_URL = "http://127.0.0.1:8502/"
+
+# =========================
+# API
+# =========================
+
+# API通信タイムアウト(秒)
+API_TIMEOUT_SEC = 3
 
 # =========================
 # 自動更新
@@ -36,7 +45,13 @@ MONITOR_URL = "http://127.0.0.1:8502/"
 
 # Streamlit自動リロード間隔(ms)
 # 1000 = 1秒
-REFRESH_INTERVAL_MS = 1000
+
+# Console
+CONSOLE_REFRESH_INTERVAL_MS = 500
+
+# Trail Monitor
+MONITOR_REFRESH_INTERVAL_MS = 500
+
 
 # =========================
 # Position Card

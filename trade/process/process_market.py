@@ -35,6 +35,9 @@ class ProcessMarket(ProcessBase):
 
         price = market_quote["price"]
 
+        # Trade現在価格更新
+        trade.runtime.current_price = price
+
         # cache更新
         quote = self.context.cache.quotes.get(symbol)
 

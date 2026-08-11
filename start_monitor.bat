@@ -17,7 +17,7 @@ rem （ブラウザで手動表示する場合）
 rem
 rem   --server.headless true
 
-set MONITOR_CMD=streamlit run ui/monitor_app.py --server.port 8502 --server.headless true
+set MONITOR_CMD=streamlit run ui\monitor\monitor.py --server.port 8502 --server.headless true
 
 rem ==========================================================
 rem プロジェクト移動

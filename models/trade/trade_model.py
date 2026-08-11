@@ -222,8 +222,11 @@ class TradeModel(BaseEntity):
             "trade_id": self.id,
             "symbol": self.param.symbol,
             "price": self.param.price,
+
             "entry_price": self.runtime.entry_price,
+            "current_price": self.runtime.current_price,
             "stop_price": self.runtime.stop_price,
+
             "quantity": self.param.quantity,
             "atr": self.param.atr,
             "trade_type": self.param.trade_type.value,

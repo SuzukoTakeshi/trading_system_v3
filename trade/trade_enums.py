@@ -83,6 +83,23 @@ class TradeState(str, Enum):
     # 異常
     ERROR = "error"
 
+    @classmethod
+    def is_trade_state(cls, state):
+        return state in [
+            cls.CREATED,
+            cls.ENTRY_WAIT,
+            cls.ENTRY_PULLBACK,
+            cls.ENTRY_REVERSAL,
+            cls.ORDER_REQUEST,
+            cls.ORDER_WAIT,
+            cls.TRAILING,
+            cls.EXIT_CREATE,
+            cls.EXIT_WAIT,
+            cls.COMPLETED,
+            cls.CANCELED,
+            cls.ERROR,
+        ]
+
 
 class SideType(str, Enum):
     LONG = "long"

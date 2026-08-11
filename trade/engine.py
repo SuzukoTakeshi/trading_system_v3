@@ -7,7 +7,7 @@
 #   ・Trade処理全体の制御
 #   ・Tradeライフサイクル管理
 #
-# V2設計:
+# 設計:
 #
 #   Trade中心設計
 #
@@ -18,6 +18,8 @@
 
 import threading
 import time
+
+from datetime import datetime
 
 from core.logger import Log
 from core.exception import (
@@ -41,7 +43,11 @@ from trade.trade_enums import (
 )
 
 from models.trade.trade_model import TradeModel
+
 from models.trade.trade_store import TradeStore
+
+from models.trade.trade_chart_data import TradeChartData
+from models.trade.trade_chart_data_store import TradeChartDataStore
 
 from trade.context import EngineContext
 
@@ -57,6 +63,7 @@ from trade.process.process_exit_wait import ProcessExitWait
 from trade.process.process_complated import ProcessComplated
 from trade.process.process_canceled import ProcessCanceled
 from trade.process.process_asset import ProcessAsset
+
 
 class TradeEngine:
 
@@ -96,6 +103,7 @@ class TradeEngine:
 
         # Store
         self.store = TradeStore()
+        self.trade_chart_data_store = TradeChartDataStore()
 
         # 復元
         self.restore()
@@ -262,6 +270,9 @@ class TradeEngine:
         1サイクル = 1ステップ進行 とする。
         """
 
+        self.context.cycle_time = datetime.now()
+
+
         for trade in self.context.trades.values():
             try:
 
@@ -413,11 +424,13 @@ class TradeEngine:
                 )
 
 
+        # Trade Chart Data
+        for trade in self.context.trades.values():
+            self.add_trade_chart_data(trade)
+
+
         # 永続化
-        if self.check_cycle(
-            "save",
-            self.SAVE_INTERVAL_SEC
-        ):
+        if self.check_cycle("save", self.SAVE_INTERVAL_SEC):
             self.save()
 
 
@@ -490,8 +503,13 @@ class TradeEngine:
 
     def save(self):
 
+        # Trade
         for trade in self.context.trades.values():
             self.store.save(trade)
+
+        # Trade Chart Data
+        for trade_id, chart_data_list in self.context.cache.trade_chart_datas.items():
+            self.trade_chart_data_store.save(trade_id, chart_data_list)
 
 
     def status(self):
@@ -639,6 +657,63 @@ class TradeEngine:
 
     def get_trade_ids(self):
         return list(self.context.trades.keys())
+
+
+    #
+    # Trade Chart Data記録
+    #
+    def add_trade_chart_data(self, trade):
+
+        state = trade.state
+
+        if not TradeState.is_trade_state(state):
+            return
+
+        # 終了状態は最後の1件だけ保存
+        final_states = [
+            TradeState.COMPLETED,
+            TradeState.CANCELED,
+            TradeState.ERROR,
+        ]
+
+        if state in final_states:
+
+            chart_data_list = self.context.cache.trade_chart_datas.get(
+                trade.id,
+                []
+            )
+
+            if chart_data_list:
+                last = chart_data_list[-1]
+
+                if last.state == state:
+                    return
+
+        trade_chart_data = TradeChartData(
+            time=self.context.cycle_time,
+
+            price=trade.runtime.current_price,
+
+            high_watermark=trade.runtime.trailing_highest_price,
+            low_watermark=trade.runtime.trailing_lowest_price,
+
+            stop_loss=trade.runtime.stop_price,
+
+            entry_time=trade.runtime.entry_time,
+            entry_price=trade.runtime.entry_price,
+
+            exit_time=trade.runtime.exit_time,
+            exit_price=trade.runtime.exit_price,
+
+            side=trade.param.side,
+
+            state=state,
+        )
+
+        self.context.cache.trade_chart_datas.setdefault(
+            trade.id,
+            []
+        ).append(trade_chart_data)
 
 
     def pause_trade(self, trade_id):
@@ -803,6 +878,15 @@ class TradeEngine:
 
         self.store.delete(trade.id)
 
+        self.trade_chart_data_store.delete_by_trade_id(
+            trade.id
+        )
+
+        self.context.cache.trade_chart_datas.pop(
+            trade.id,
+            None
+        )
+
         del self.context.trades[trade.id]
 
         Log.event(f"DELETE TRADE {trade.id}")
@@ -824,4 +908,28 @@ class TradeEngine:
         for trade in trades:
             self.context.trades[trade.id] = trade
 
+            chart_data_list = self.trade_chart_data_store.find_by_trade_id(
+                trade.id
+            )
+
+            if chart_data_list:
+                self.context.cache.trade_chart_datas[
+                    trade.id
+                ] = chart_data_list
+
         Log.event(f"RESTORE TRADES {len(trades)}")
+
+
+    def get_trade_chart_datas(self, trade_id):
+        """
+        Trade Chart Data取得
+        """
+        trade_chart_datas = self.context.cache.trade_chart_datas.get(
+            trade_id,
+            []
+        )
+
+        return [
+            trade_chart_data.to_dict()
+            for trade_chart_data in trade_chart_datas
+        ]

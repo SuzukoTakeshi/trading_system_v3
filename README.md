@@ -1,4 +1,4 @@
-(venv) C:\StockProjects\trading_system_v2>pip list
+(venv) C:\StockProjects\trading_system_v3>pip list
 Package                   Version
 ------------------------- -----------
 altair                    6.2.2
@@ -11,7 +11,10 @@ certifi                   2026.7.22
 charset-normalizer        3.4.9
 click                     8.4.2
 colorama                  0.4.6
+contourpy                 1.3.3
+cycler                    0.12.1
 fastapi                   0.139.2
+fonttools                 4.63.0
 gitdb                     4.0.12
 GitPython                 3.1.54
 h11                       0.16.0
@@ -22,18 +25,21 @@ Jinja2                    3.1.6
 jpholiday                 1.0.3
 jsonschema                4.26.0
 jsonschema-specifications 2025.9.1
+kiwisolver                1.5.0
 MarkupSafe                3.0.3
+matplotlib                3.11.1
 narwhals                  2.24.0
 numpy                     2.5.1
 packaging                 26.2
 pandas                    3.0.3
 pillow                    12.3.0
-pip                       26.1.2
+pip                       26.1.1
 protobuf                  7.35.1
 pyarrow                   24.0.0
 pydantic                  2.13.4
 pydantic_core             2.46.4
 pydeck                    0.9.3
+pyparsing                 3.3.2
 python-dateutil           2.9.0.post0
 python-multipart          0.0.32
 pywin32                   312

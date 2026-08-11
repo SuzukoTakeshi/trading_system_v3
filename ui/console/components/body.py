@@ -4,8 +4,8 @@
 
 import streamlit as st
 
-from trade_list import trade_list
-from trade_panel import trade_panel
+from ui.console.components.trade_list import trade_list
+from ui.console.components.trade_panel import trade_panel
 
 
 def body(ctx):

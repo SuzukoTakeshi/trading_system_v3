@@ -31,6 +31,9 @@ class ProcessTrailingBase(ProcessBase):
 
         self.price = price = quote.price
 
+        # 現在価格
+        trade.runtime.current_price = price
+
         # 約定価格確認ガード
         if trade.runtime.entry_price is None:
             raise EntryPriceNotFoundError(
@@ -110,6 +113,8 @@ class ProcessTrailingBase(ProcessBase):
 
             Log.event(f"TIME EXIT id={trade.id}")
 
+            trade.runtime.exit_price = self.price
+            trade.runtime.exit_time = datetime.now()
             trade.runtime.exit_execution_price = self.price
 
             trade.add_timeline(
@@ -145,6 +150,8 @@ class ProcessTrailingBase(ProcessBase):
                 f"time={trade.param.close_time}"
             )
 
+            trade.runtime.exit_price = self.price
+            trade.runtime.exit_time = datetime.now()
             trade.runtime.exit_execution_price = self.price
 
             trade.add_timeline(

@@ -16,7 +16,7 @@ rem TradingSystem_Start.bat側でブラウザ配置を制御
 rem
 rem   --server.headless true
 
-set CONSOLE_CMD=streamlit run ui\console.py --server.port 8501 --server.headless true
+set CONSOLE_CMD=streamlit run ui\console\console.py --server.port 8501 --server.headless true
 
 rem ==========================================================
 rem プロジェクト移動

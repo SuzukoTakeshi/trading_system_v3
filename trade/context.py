@@ -36,11 +36,24 @@ class EngineCache:
         #
         self.orders = {}
 
+        #
+        # Trade chart data cache
+        #
+        # key:
+        #   trade_id
+        #
+        # value:
+        #   list[TradeChartData]
+        #
+        self.trade_chart_datas = {}
+
 
 
 class EngineContext:
 
     def __init__(self):
+
+        self.cycle_time = None
 
         #
         # 管理中Trade

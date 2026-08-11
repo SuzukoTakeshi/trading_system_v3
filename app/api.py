@@ -221,3 +221,8 @@ def delete_all_canceled_trades():
         "result": "OK",
         "count": count
     }
+
+
+@app.post("/trade/trail_histories")
+def trail_histories(req: TradeIdsRequestDTO):
+    return app_service.get_trail_histories(req.trade_ids)

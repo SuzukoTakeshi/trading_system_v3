@@ -11,13 +11,10 @@
 
 import requests
 
-
-# ==================================================
-# API設定
-# ==================================================
-
-API_URL = "http://localhost:8000"
-
+from ui.config.ui import (
+    BASE_URL,
+    API_TIMEOUT_SEC,
+)
 
 # ==================================================
 # 共通GET
@@ -26,14 +23,13 @@ API_URL = "http://localhost:8000"
 def get(path):
 
     response = requests.get(
-        f"{API_URL}{path}",
-        timeout=3,
+        f"{BASE_URL}{path}",
+        timeout=API_TIMEOUT_SEC,
     )
 
     response.raise_for_status()
 
     return response.json()
-
 
 
 # ==================================================
@@ -43,9 +39,9 @@ def get(path):
 def post(path, json=None):
 
     response = requests.post(
-        f"{API_URL}{path}",
+        f"{BASE_URL}{path}",
         json=json,
-        timeout=3,
+        timeout=API_TIMEOUT_SEC,
     )
 
     response.raise_for_status()
@@ -155,8 +151,8 @@ def delete_canceled_trade(trade_id):
     """
 
     response = requests.delete(
-        f"{API_URL}/trade/{trade_id}/delete_canceled",
-        timeout=3,
+        f"{BASE_URL}/trade/{trade_id}/delete_canceled",
+        timeout=API_TIMEOUT_SEC,
     )
 
     response.raise_for_status()

@@ -6,7 +6,7 @@
 
 import streamlit as st
 
-from api.client import (
+from ui.api.client import (
     get_trade_options,
     register_trade,
 )

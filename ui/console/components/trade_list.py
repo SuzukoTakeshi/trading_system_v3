@@ -5,29 +5,30 @@
 #
 
 import streamlit as st
+import webbrowser
 
-from api.client import (
+from ui.config.ui import MONITOR_URL
+
+from ui.utils.formatters import (
+    fmt_dt,
+)
+
+from ui.utils.ui_labels import (
+    SIDE_LABEL,
+    TRADE_TYPE_LABEL,
+    TRADE_TYPE_UNKNOWN,
+    STATE_EVENT_MAP,
+    EVENT_LABEL,
+    EVENT_LABEL_UNKNOWN,
+)
+
+from ui.api.client import (
     get_trades,
     pause_trade,
     resume_trade,
     cancel_trade,
     delete_canceled_trade,
 )
-
-STATE_NAME = {
-    "created": "作成",
-    "entry_wait": "ENTRY待機",
-    "entry_pullback": "押し込み確認",
-    "entry_reversal": "反転確認",
-    "order_request": "注文中",
-    "order_wait": "約定待ち",
-    "trailing": "保有管理",
-    "exit_create": "決済注文",
-    "exit_wait": "決済待ち",
-    "completed": "完了",
-    "canceled": "取消",
-    "error": "異常",
-}
 
 def trade_list():
 
@@ -58,18 +59,44 @@ def trade_list():
 
         trades = get_trades()
 
-        columns = [
-            "trade_id",
-            "symbol",
-            "name",
-            "price",
-            "quantity",
-            "atr",
-            "trade_type",
-            "side",
-            "state",
-            "created_at",
-        ]
+        display_trades = []
+
+        for trade in trades:
+
+            row = trade.copy()
+
+            # 売買方向
+            row["side"] = SIDE_LABEL.get(
+                row.get("side", ""),
+                row.get("side", "")
+            )
+
+            # 取引区分
+            row["trade_type"] = TRADE_TYPE_LABEL.get(
+                row.get("trade_type", ""),
+                TRADE_TYPE_UNKNOWN
+            )
+
+            # Trade State → UI Event
+            state = row.get("state", "")
+
+            event = STATE_EVENT_MAP.get(
+                state
+            )
+
+            row["state"] = EVENT_LABEL.get(
+                event,
+                EVENT_LABEL_UNKNOWN
+            )
+
+            # 登録日時
+            row["created_at"] = fmt_dt(
+                row.get("created_at")
+            )
+
+            display_trades.append(row)
+
+        trades = display_trades
 
         if not trades:
             trades = [
@@ -138,7 +165,7 @@ def trade_list():
                 "price": st.column_config.NumberColumn(
                     "指値",
                     width="small",
-                    format="%,d",
+                    format="%,.2f",
                 ),
                 "quantity": st.column_config.NumberColumn(
                     "数量",
@@ -185,7 +212,6 @@ def trade_list():
             ],
         )
 
-
         #
         # 選択Trade ID取得
         #
@@ -204,9 +230,22 @@ def trade_list():
                 width="stretch",
                 disabled=len(selected_ids) == 0,
             ):
-                st.info(
-                    f"Monitor対象 Trade : {selected_ids}"
+                selected_symbols = [
+                    trade["symbol"]
+                    for trade in edited
+                    if trade["select"]
+                    and trade["trade_id"] is not None
+                    and trade["symbol"]
+                ]
+
+                symbols = ",".join(
+                    selected_symbols
                 )
+
+                url = f"{MONITOR_URL}?symbols={symbols}"
+
+                webbrowser.open_new_tab(url)
+
 
         with pause_col:
             if st.button(
