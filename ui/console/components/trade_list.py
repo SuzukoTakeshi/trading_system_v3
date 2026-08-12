@@ -78,16 +78,21 @@ def trade_list():
             )
 
             # Trade State → UI Event
-            state = row.get("state", "")
+            pause_flag = row.get("pause_flag", False)
 
-            event = STATE_EVENT_MAP.get(
-                state
-            )
+            if pause_flag:
+                row["state"] = "⏸ PAUSE"
+            else:
+                state = row.get("state", "")
 
-            row["state"] = EVENT_LABEL.get(
-                event,
-                EVENT_LABEL_UNKNOWN
-            )
+                event = STATE_EVENT_MAP.get(
+                    state
+                )
+
+                row["state"] = EVENT_LABEL.get(
+                    event,
+                    EVENT_LABEL_UNKNOWN
+                )
 
             # 登録日時
             row["created_at"] = fmt_dt(

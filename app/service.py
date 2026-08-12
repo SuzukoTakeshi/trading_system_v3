@@ -269,8 +269,14 @@ class AppService:
                 "atr": trade["atr"],
                 "trade_type": trade["trade_type"],
                 "side": trade["side"],
+                "strategy": trade["strategy"],
                 "state": trade["state"],
+
+                "pause_flag": trade["pause_flag"],
+
                 "created_at": trade["created_at"],
+                "entry_time": trade["entry_time"],
+                "exit_time": trade["exit_time"],
             })
 
         return result

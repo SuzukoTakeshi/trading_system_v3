@@ -38,8 +38,7 @@ class ProcessEntryWait(ProcessBase):
         trade.runtime.entry_previous_price = quote.price
 
         Log.event(
-            f"ENTRY WAIT COMPLETE "
-            f"id={trade.id} "
+            f"ENTRY WAIT COMPLETE (#{trade.id}) "
             f"symbol={trade.param.symbol} "
             f"price={quote.price}"
         )

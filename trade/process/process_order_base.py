@@ -69,9 +69,8 @@ class ProcessOrderBase(ProcessBase):
         self.context.cache.orders[order.id] = order
 
         Log.event(
-            f"CREATE ORDER "
+            f"CREATE ORDER (#{trade.id}) "
             f"{order.id} "
-            f"trade={trade.id} "
             f"{trade.param.symbol} "
             f"{order_action.value}"
         )
@@ -105,7 +104,7 @@ class ProcessOrderBase(ProcessBase):
 
         result = self.market.request_order(request)
 
-        Log.event(f"REQUEST ORDER {order.id} {order.symbol} result={result}")
+        Log.event(f"REQUEST ORDER (#{trade.id}) {order.id} {order.symbol} result={result}")
 
         trade.add_timeline(
             type="ORDER",
@@ -115,6 +114,6 @@ class ProcessOrderBase(ProcessBase):
         if not result:
             order.change_state(OrderState.ERROR)
 
-            raise Exception(f"ORDER REQUEST FAILED order={order.id}")
+            raise Exception(f"ORDER REQUEST FAILED (#{trade.id}) order={order.id}")
 
         return result

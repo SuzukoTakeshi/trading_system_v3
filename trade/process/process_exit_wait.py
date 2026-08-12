@@ -33,7 +33,7 @@ class ProcessExitWait(ProcessBase):
 
         if order is None:
             raise OrderNotFoundError(
-                message=f"ORDER NOT FOUND trade={trade.id}",
+                message=f"ORDER NOT FOUND (#{trade.id})",
                 code="ORDER_NOT_FOUND",
             )
 
@@ -43,7 +43,7 @@ class ProcessExitWait(ProcessBase):
         #
         if order.state == OrderState.REQUESTED:
 
-            Log.debug(f"EXIT WAIT order_id={order.id} state={order.state.name}")
+            Log.debug(f"EXIT WAIT (#{trade.id}) order_id={order.id} state={order.state.name}")
 
             result, result_dto = self.market.get_order_result(order.order_no)
 
@@ -57,9 +57,8 @@ class ProcessExitWait(ProcessBase):
                 order.change_state(OrderState.FILLED)
 
                 Log.event(
-                    f"EXIT ORDER FILLED "
+                    f"EXIT ORDER FILLED (#{trade.id}) "
                     f"id={order.id} "
-                    f"trade={trade.id} "
                     f"{order.symbol} "
                     f"order_no={order.order_no} "
                     f"price={result_dto.price}"
@@ -67,11 +66,7 @@ class ProcessExitWait(ProcessBase):
 
                 trade.add_timeline(
                     type="EXIT",
-                    message=(
-                        f"FILLED id={order.id} "
-                        f"order_no={order.order_no} "
-                        f"price={result_dto.price}"
-                    ),
+                    message=f"FILLED id={order.id} order_no={order.order_no} price={result_dto.price}"
                 )
 
                 return True

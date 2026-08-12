@@ -46,17 +46,17 @@ class ProcessAsset(ProcessBase):
     #
     def process(self, trade):
 
-        Log.event(f"ASSET PROCESS START trade={trade.id}")
+        Log.event(f"ASSET PROCESS START (#{trade.id})")
 
         order = self.find_order(trade)
 
         if order is None:
             raise OrderNotFoundError(
-                message=f"ORDER NOT FOUND trade={trade.id}",
+                message=f"ORDER NOT FOUND (#{trade.id})",
                 code="ORDER_NOT_FOUND",
             )
 
-        Log.event(f"ASSET ORDER id={order.id} state={order.state.value}")
+        Log.event(f"ASSET ORDER (#{trade.id}) id={order.id} state={order.state.value}")
 
         asset = self.store.load()
 
@@ -69,8 +69,8 @@ class ProcessAsset(ProcessBase):
             asset.profit_loss += profit_loss
 
             Log.event(
-                f"ASSET PROFIT LOSS order={order.id} "
-                f"trade={trade.id} profit_loss={profit_loss} "
+                f"ASSET PROFIT LOSS (#{trade.id}) order={order.id} "
+                f"profit_loss={profit_loss} "
                 f"total={asset.profit_loss}"
             )
 
@@ -114,7 +114,7 @@ class ProcessAsset(ProcessBase):
 
         order.change_state(OrderState.CLOSED)
 
-        Log.event(f"ASSET UPDATE order={order.id} trade={trade.id}")
+        Log.event(f"ASSET UPDATE (#{trade.id}) order={order.id}")
 
         return True
 
@@ -125,13 +125,13 @@ class ProcessAsset(ProcessBase):
 
     def update_asset(self, asset, order):
 
-        Log.event(f"ASSET UPDATE order={order.id} result={order.result}")
+        Log.event(f"ASSET UPDATE (#{order.trade.id}) order={order.id} result={order.result}")
 
         result = order.result
 
         if result is None:
             raise AssetOrderResultNotFoundError(
-                message=f"FILLED ORDER RESULT NOT FOUND order={order.id}",
+                message=f"FILLED ORDER RESULT NOT FOUND (#{order.trade.id}) order={order.id}",
                 code="ASSET_ORDER_RESULT_NOT_FOUND",
             )
 
@@ -144,7 +144,7 @@ class ProcessAsset(ProcessBase):
 
         else:
             raise InvalidOrderActionError(
-                message=f"INVALID ORDER ACTION order={order.id} action={order.order_action}",
+                message=f"INVALID ORDER ACTION (#{order.trade.id}) order={order.id} action={order.order_action}",
                 code="INVALID_ORDER_ACTION",
             )
 
@@ -158,7 +158,7 @@ class ProcessAsset(ProcessBase):
 
         if order.result is None:
             raise AssetOrderResultNotFoundError(
-                message=f"FILLED ORDER RESULT NOT FOUND order={order.id}",
+                message=f"FILLED ORDER RESULT NOT FOUND (#{order.trade.id}) order={order.id}",
                 code="ASSET_ORDER_RESULT_NOT_FOUND",
             )
 
@@ -223,7 +223,7 @@ class ProcessAsset(ProcessBase):
 
         else:
             raise InvalidOrderActionError(
-                message=f"INVALID ORDER PAIR "
+                message=f"INVALID ORDER PAIR (#{order.trade.id}) "
                         f"order={order.id} "
                         f"other={opposite_order.id}",
                 code="INVALID_ORDER_ACTION",

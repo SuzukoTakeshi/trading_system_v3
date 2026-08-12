@@ -1,0 +1,14 @@
+{
+    "morning": {
+        "text": "おはよう❤",
+        "voice": ""
+    },
+    "system_ok": {
+        "text": "システムは正常に稼働しています。",
+        "voice": ""
+    },
+    "auditor": {
+        "text": "監査中... ",
+        "voice": ""
+    }
+}

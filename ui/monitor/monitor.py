@@ -110,7 +110,6 @@ header {
 # --------------------------------------
 # Auto Refresh
 # --------------------------------------
-
 st_autorefresh(
     interval=MONITOR_REFRESH_INTERVAL_MS,
     key="trade_monitor_refresh"
@@ -120,44 +119,24 @@ st_autorefresh(
 # --------------------------------------
 # Engine Data
 # --------------------------------------
-
 status = get_status()
 
 
 # --------------------------------------
 # Header
 # --------------------------------------
-
 state = {
-    "running": status.get(
-        "trade_engine", {}
-    ).get(
-        "running",
-        False
-    ),
+    "running": status.get("trade_engine", {}).get("running", False),
 
-    "trades": status.get(
-        "trade_engine", {}
-    ).get(
-        "trade_count",
-        0
-    ),
+    "trades": status.get("trade_engine", {}).get("trade_count", 0),
 
     # Cashは保留
     "cash": 0,
 
-    "server_time": status.get(
-        "market", {}
-    ).get(
-        "updated",
-        "--:--:--"
-    ),
+    "server_time": status.get("market", {}).get("updated", "--:--:--"),
 }
 
-
-render_header(
-    state
-)
+render_header(state)
 
 
 # --------------------------------------
@@ -166,14 +145,9 @@ render_header(
 
 params = st.query_params
 
-trade_ids_param = params.get(
-    "trade_ids",
-    ""
-)
-
+trade_ids_param = params.get("trade_ids", "")
 
 if trade_ids_param:
-
     trade_ids = [
         int(trade_id.strip())
         for trade_id in trade_ids_param.split(",")
@@ -181,20 +155,15 @@ if trade_ids_param:
     ]
 
 else:
-
     trade_ids = []
 
 
 # --------------------------------------
 # Trade Data
 # --------------------------------------
-
 trades = get_trades()
 
-
-chart_datas = get_trade_chart_datas(
-    trade_ids
-)
+chart_datas = get_trade_chart_datas(trade_ids)
 
 
 # --------------------------------------
@@ -202,24 +171,12 @@ chart_datas = get_trade_chart_datas(
 # --------------------------------------
 
 if not trade_ids:
-
-    st.info(
-        "監視対象Tradeが指定されていません"
-    )
-
+    st.info("監視対象Tradeが指定されていません")
 
 else:
+    card_columns = 4    
 
-    card_columns = 3
-
-
-    for i in range(
-        0,
-        len(trade_ids),
-        card_columns
-    ):
-
-
+    for i in range(0, len(trade_ids), card_columns):
         row_trade_ids = trade_ids[i:i + card_columns]
         cols = st.columns(card_columns)
 
@@ -234,17 +191,12 @@ else:
                     if trade.get("trade_id") == trade_id:
                         target = trade.copy()
 
-
-                        target["chart_datas"] = (
-                            chart_datas.get(str(trade_id), [])
-                        )
+                        target["chart_datas"] = (chart_datas.get(str(trade_id), []))
                         break
-
 
                 # -------------------------
                 # Tradeなし
                 # -------------------------
-
                 if target is None:
                     target = {
                         "trade_id": trade_id,
@@ -254,11 +206,9 @@ else:
                         "chart_datas": [],
                     }
 
-
                 # -------------------------
                 # Card
                 # -------------------------
-
                 render_trail_card(target)
 
                 render_trail_chart(

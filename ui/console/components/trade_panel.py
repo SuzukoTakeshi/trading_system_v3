@@ -148,13 +148,13 @@ def trade_panel():
             )
 
             strategy_labels = {
-                "scalping": "スキャルピング",
+                "scalping": "スキャル",
                 "daytrade": "デイトレ",
                 "swing": "スウィング",
             }
 
             strategy = st.radio(
-                "Strategy",
+                "戦略",
                 strategy_options,
                 index=strategy_index,
                 format_func=lambda x: strategy_labels.get(x, x),

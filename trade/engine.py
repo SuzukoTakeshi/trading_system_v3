@@ -271,20 +271,17 @@ class TradeEngine:
 
 
         for trade in self.context.trades.values():
+
+            if trade.pause_flag:
+                continue
+
+
             try:
 
                 # Trade状態ログ
                 # ここはログ出力なのでcycle_processedはチェックしない
-                if self.check_cycle(
-                    "state_log",
-                    self.PROC_STATE_LOG_INTERVAL_SEC
-                ):
-                    Log.info(
-                        "TRADE STATE",
-                        f"id={trade.id} "
-                        f"{trade.param.symbol} "
-                        f"state={trade.state.name}"
-                    )
+                if self.check_cycle(f"state_log_{trade.id}", self.PROC_STATE_LOG_INTERVAL_SEC):
+                    Log.debug(f"TRADE STATE (#{trade.id}) symbol={trade.param.symbol} state={trade.state.name}")
 
                 match trade.state:
 
@@ -517,7 +514,7 @@ class TradeEngine:
         self.trade_chart_data_store.delete_by_trade_id(trade.id)
         self.context.cache.trade_chart_datas.pop(trade.id, None)
         del self.context.trades[trade.id]
-        Log.event(f"DELETE TRADE {trade.id}")
+        Log.event(f"_DELETE TRADE (#{trade.id})")
 
 
     def restore(self):

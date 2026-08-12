@@ -35,7 +35,7 @@ class ProcessOrderWait(ProcessBase):
 
         if order is None:
             raise OrderNotFoundError(
-                message=f"ORDER NOT FOUND trade={trade.id}",
+                message=f"ORDER NOT FOUND (#{trade.id})",
                 code="ORDER_NOT_FOUND",
             )
 
@@ -44,7 +44,7 @@ class ProcessOrderWait(ProcessBase):
         # 注文受付済み
         #
         if order.state == OrderState.REQUESTED:
-            Log.debug(f"ORDER WAIT order_id={order.id} state={order.state.name}")
+            Log.debug(f"ORDER WAIT (#{trade.id}) order_id={order.id} state={order.state.name}")
 
             result, result_dto = self.market.get_order_result(order.order_no)
 
@@ -61,7 +61,7 @@ class ProcessOrderWait(ProcessBase):
                 trade.runtime.entry_time = datetime.now()
 
                 Log.event(
-                    f"ORDER FILLED id={order.id} trade={trade.id} {order.symbol} "
+                    f"ORDER FILLED (#{trade.id}) id={order.id} symbol={order.symbol} "
                     f"order_no={order.order_no} price={result_dto.price}"
                 )
 

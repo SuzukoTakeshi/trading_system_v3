@@ -65,14 +65,8 @@ class ProcessEntryReversalLong(ProcessEntryBase):
             trade.runtime.entry_reversal_count = 0
 
         if previous_count != trade.runtime.entry_reversal_count:
-            Log.debug(
-                f"REVERSAL ENTRY LONG "
-                f"id={trade.id} "
-                f"count={trade.runtime.entry_reversal_count}"
-            )
-            self.add_entry_timeline(
-                f"REVERSAL ENTRY LONG count={trade.runtime.entry_reversal_count}"
-            )
+            Log.debug(f"REVERSAL ENTRY LONG (#{trade.id}) count={trade.runtime.entry_reversal_count}")
+            self.add_entry_timeline(f"REVERSAL ENTRY LONG count={trade.runtime.entry_reversal_count}")
 
         #
         # 前回価格更新
@@ -93,8 +87,7 @@ class ProcessEntryReversalLong(ProcessEntryBase):
             trade.runtime.entry_execution_price = price
 
             Log.event(
-                f"REVERSAL COMPLETE LONG "
-                f"id={trade.id} "
+                f"REVERSAL COMPLETE LONG (#{trade.id}) "
                 f"{trade.param.symbol} "
                 f"price={price}"
             )

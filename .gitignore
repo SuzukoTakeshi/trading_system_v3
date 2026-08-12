@@ -42,4 +42,5 @@ dist/
 
 # runtime storage
 storage/json/*.json
+storage/json/trade_chart_data/*.json
 storage/logs/*.log

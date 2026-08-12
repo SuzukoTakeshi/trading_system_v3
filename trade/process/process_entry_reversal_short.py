@@ -71,7 +71,7 @@ class ProcessEntryReversalShort(ProcessEntryBase):
             trade.runtime.entry_reversal_count = 0
 
         if previous_count != trade.runtime.entry_reversal_count:
-            Log.debug(f"REVERSAL ENTRY SHORT id={trade.id} count={trade.runtime.entry_reversal_count}")
+            Log.debug(f"REVERSAL ENTRY SHORT (#{trade.id}) count={trade.runtime.entry_reversal_count}")
             self.add_entry_timeline(f"REVERSAL ENTRY SHORT count={trade.runtime.entry_reversal_count}")
 
         #
@@ -90,8 +90,7 @@ class ProcessEntryReversalShort(ProcessEntryBase):
         ):
 
             Log.event(
-                f"REVERSAL COMPLETE SHORT "
-                f"id={trade.id} "
+                f"REVERSAL COMPLETE SHORT (#{trade.id}) "
                 f"{trade.param.symbol} "
                 f"price={price}"
             )

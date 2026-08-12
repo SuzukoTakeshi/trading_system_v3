@@ -35,7 +35,7 @@ class ProcessTrailingShort(ProcessTrailingBase):
         price = self.price
 
         Log.debug(
-            f"TRAILING CHECK id={trade.id} price={price} "
+            f"TRAILING CHECK (#{trade.id}) price={price} "
             f"lowest={trade.runtime.trailing_lowest_price} stop={trade.runtime.stop_price}"
         )
 
@@ -104,7 +104,7 @@ class ProcessTrailingShort(ProcessTrailingBase):
     #
     def is_stop_hit(self, trade, price):
         if price >= trade.runtime.stop_price:
-            Log.event(f"STOP HIT SHORT id={trade.id} price={price}")
+            Log.event(f"STOP HIT SHORT (#{trade.id}) price={price}")
             trade.add_timeline(type="EXIT", message=f"STOP HIT price={price}")
 
             # EXIT実績

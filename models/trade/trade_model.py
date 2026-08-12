@@ -144,8 +144,7 @@ class TradeModel(BaseEntity):
         )
 
         Log.event(
-            f"STATE CHANGE "
-            f"{self.id} "
+            f"STATE CHANGE (#{self.id}) "
             f"{old_state.value} -> {new_state.value}"
         )
 
@@ -235,6 +234,20 @@ class TradeModel(BaseEntity):
             "side": self.param.side.value,
             "strategy": self.param.strategy.value,
             "state": self.state.value,
+
+            "pause_flag": self.pause_flag,
+
+            "entry_time": (
+                self.runtime.entry_time.isoformat()
+                if self.runtime.entry_time
+                else None
+            ),
+
+            "exit_time": (
+                self.runtime.exit_time.isoformat()
+                if self.runtime.exit_time
+                else None
+            ),
         })
 
         return data

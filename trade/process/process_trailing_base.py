@@ -47,7 +47,7 @@ class ProcessTrailingBase(ProcessBase):
             self.init_trailing(trade, price)
 
             Log.event(
-                f"INITIAL TRAILING id={trade.id} entry={trade.runtime.entry_price} stop={trade.runtime.stop_price}"
+                f"INITIAL TRAILING (#{trade.id}) entry={trade.runtime.entry_price} stop={trade.runtime.stop_price}"
             )
             trade.add_timeline(
                 type="TRAILING",
@@ -87,10 +87,7 @@ class ProcessTrailingBase(ProcessBase):
         )
 
         if datetime.now() < stop_delay_time:
-            Log.debug(
-                f"INITIAL STOP DELAY "
-                f"id={trade.id}"
-            )
+            Log.debug(f"INITIAL STOP DELAY (#{trade.id})")
             return True
 
         return False
@@ -111,7 +108,7 @@ class ProcessTrailingBase(ProcessBase):
 
         if datetime.now() >= limit_time:
 
-            Log.event(f"TIME EXIT id={trade.id}")
+            Log.event(f"TIME EXIT (#{trade.id})")
 
             trade.runtime.exit_price = self.price
             trade.runtime.exit_time = datetime.now()
@@ -145,8 +142,7 @@ class ProcessTrailingBase(ProcessBase):
         if now.time() >= close_time:
 
             Log.event(
-                f"CLOSE TIME EXIT "
-                f"id={trade.id} "
+                f"CLOSE TIME EXIT (#{trade.id}) "
                 f"time={trade.param.close_time}"
             )
 

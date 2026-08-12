@@ -108,11 +108,10 @@ class TradeEngineAPI:
 
         self.engine._save_trade(trade)
 
-        Log.event(f"CREATE TRADE {trade.id} {trade.param.symbol}")
+        Log.event(f"CREATE TRADE (#{trade.id}) {trade.param.symbol}")
 
         Log.event(
-            f"TRADE PARAM "
-            f"id={trade.id} "
+            f"TRADE PARAM (#{trade.id}) "
             f"symbol={trade.param.symbol} "
             f"price={trade.param.price} "
             f"quantity={trade.param.quantity} "
@@ -132,8 +131,7 @@ class TradeEngineAPI:
         )
 
         Log.event(
-            f"STRATEGY CONFIG "
-            f"id={trade.id} "
+            f"STRATEGY CONFIG (#{trade.id}) "
             f"symbol={trade.param.symbol} "
             f"strategy={trade.param.strategy.value} "
             f"pullback_atr={strategy_cfg['entry']['pullback_atr_multiplier']} "
@@ -199,7 +197,7 @@ class TradeEngineAPI:
         ]:
             return False
 
-        Log.event(f"PAUSE TRADE {trade_id}")
+        Log.event(f"PAUSE TRADE (#{trade_id})")
 
         # 一時停止
         trade.pause_flag = True
@@ -231,6 +229,8 @@ class TradeEngineAPI:
 
         if not trade.pause_flag:
             return False
+
+        Log.event(f"RESUME TRADE (#{trade_id})")
 
         # クリア
         trade.pause_flag = False
@@ -268,7 +268,7 @@ class TradeEngineAPI:
         ]:
             return False
 
-        Log.event(f"CANCEL TRADE {trade_id}")
+        Log.event(f"CANCEL TRADE (#{trade_id})")
 
         # 取消
         trade.change_state(TradeState.CANCELED)
@@ -301,6 +301,8 @@ class TradeEngineAPI:
         if trade.state != TradeState.CANCELED:
             return False
 
+        Log.event(f"DELETE TRADE (#{trade_id})")
+
         self.engine._delete_trade(trade)
 
         return True
@@ -320,6 +322,8 @@ class TradeEngineAPI:
             # CANCELEDのみ削除可能
             if trade.state != TradeState.CANCELED:
                 continue
+
+            Log.event(f"DELETE TRADE (#{trade_id})")
 
             self.engine._delete_trade(trade)
 

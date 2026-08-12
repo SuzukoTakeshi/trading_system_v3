@@ -45,11 +45,12 @@ class TradeParam:
         # ENTRY時ATR
         self.atr = atr
 
-        # 取引情報
+        # 取引情報 (現物/信用)
         self.trade_type = trade_type
+
         self.side = side
 
-        # 戦略
+        # 戦略 (スキャルピング/デイトレ/スウィング)
         self.strategy = strategy
 
         # EXIT設定

@@ -97,8 +97,7 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
 
 
                 Log.event(
-                    f"PULLBACK ENTRY SHORT "
-                    f"id={trade.id} "
+                    f"PULLBACK ENTRY SHORT (#{trade.id}) "
                     f"{trade.param.symbol} "
                     f"price={price}"
                 )
@@ -117,8 +116,7 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
         if price > trade.runtime.entry_highest_price:
 
             Log.debug(
-                f"PULLBACK UPDATE HIGH SHORT "
-                f"id={trade.id} "
+                f"PULLBACK UPDATE HIGH SHORT (#{trade.id}) "
                 f"{trade.param.symbol} "
                 f"{price}"
             )
@@ -145,8 +143,7 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
         ):
 
             Log.event(
-                f"PULLBACK END SHORT "
-                f"id={trade.id} "
+                f"PULLBACK END SHORT (#{trade.id}) "
                 f"{trade.param.symbol} "
                 f"price={price}"
             )

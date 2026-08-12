@@ -1,23 +1,43 @@
 #
 # ui/monitor/components/trail_card.py
 #
-# Trail Card
-#
-# 役割:
-# - Monitor画面で1件のTradeを表示
-#
-# V3
-# - V1.4 Compact Card Layout
-# - Trade ID対応
-#
+from datetime import datetime
 
 import streamlit as st
 
 from ui.utils.ui_labels import (
+    SIDE_LABEL,
+    STRATEGY_LABEL,
+    TRADE_TYPE_LABEL,
     STATE_EVENT_MAP,
     EVENT_LABEL,
     EVENT_LABEL_UNKNOWN,
 )
+
+from ui.utils.formatters import (
+	fmt_price,
+	fmt_dt,
+    fmt_duration,
+)
+
+
+def render_item(label, value):
+
+    if not label:
+        label = "&nbsp;"
+
+    if not value:
+        value = "&nbsp;"
+
+    st.markdown(
+        f"""
+        <div class="trail-item">
+            <div class="trail-label">{label}</div>
+            <div class="trail-value">{value}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 
 def render_trail_card(trade: dict):
@@ -25,138 +45,45 @@ def render_trail_card(trade: dict):
     Trade Card
     """
 
-    # -------------------------
-    # Compact Card CSS
-    # -------------------------
-
     st.markdown(
         """
         <style>
-
-        div[data-testid="stVerticalBlock"] {
-            gap: 0.6rem;
-        }
-
-        div[data-testid="stCaptionContainer"] {
-            margin-bottom: -6px;
-        }
-
-        p {
-            margin-bottom: 0.15rem;
-        }
-
         .trail-item {
             line-height: 1.1;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
-
         .trail-label {
             font-size: 0.8rem;
             color: #999999;
         }
-
         .trail-value {
             font-weight: bold;
         }
-
         </style>
         """,
         unsafe_allow_html=True
     )
 
 
-    trade_id = trade.get(
-        "trade_id",
-        "-"
-    )
+    entry_time = trade.get("entry_time")
+    exit_time = trade.get("exit_time")
 
-    symbol = trade.get(
-        "symbol",
-        ""
-    )
+    holding_seconds = None
 
-    name = trade.get(
-        "name",
-        ""
-    )
+    if entry_time:
+        entry_dt = datetime.fromisoformat(entry_time)
 
-    state = trade.get(
-        "state",
-        ""
-    )
+        if exit_time:
+            exit_dt = datetime.fromisoformat(exit_time)
+            holding_seconds = (
+                exit_dt - entry_dt
+            ).total_seconds()
 
-    event = STATE_EVENT_MAP.get(
-        state
-    )
+        else:
+            holding_seconds = (
+                datetime.now() - entry_dt
+            ).total_seconds()
 
-    state_text = EVENT_LABEL.get(
-        event,
-        EVENT_LABEL_UNKNOWN
-    )
-
-    side = trade.get(
-        "side",
-        "-"
-    )
-
-    quantity = trade.get(
-        "quantity",
-        "-"
-    )
-
-    price = trade.get(
-        "price",
-        "-"
-    )
-
-    entry_price = trade.get(
-        "entry_price"
-    )
-
-    current_price = trade.get(
-        "current_price"
-    )
-
-    stop_price = trade.get(
-        "stop_price"
-    )
-
-
-    # -------------------------
-    # Price表示
-    # -------------------------
-
-    def price_text(value):
-
-        if value is None:
-            return "-"
-
-        if isinstance(value, (int, float)):
-            return f"{value:,.2f}"
-
-        return str(value)
-
-
-    entry_text = price_text(
-        entry_price
-    )
-
-    current_text = price_text(
-        current_price
-    )
-
-    stop_text = price_text(
-        stop_price
-    )
-
-    price_text_value = price_text(
-        price
-    )
-
-
-    # -------------------------
-    # Card
-    # -------------------------
 
     with st.container(border=True):
 
@@ -164,28 +91,59 @@ def render_trail_card(trade: dict):
         # Header
         # ---------------------
 
-        st.markdown(
-            f"**Trade {trade_id}　"
-            f"{side} / {quantity}株**"
-        )
+        col1, col2 = st.columns([3, 2])
 
-        st.markdown(
-            f"""
-            <div style="
-                font-weight:bold;
-                margin-bottom:-8px;
-            ">
-                {symbol} {name}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        with col1:
+            trade_id = trade.get("trade_id", "-")
+            st.markdown(f"Trade {trade_id}")
 
-        # st.divider()
+        with col2:
+            side = trade.get("side", "-")
+            side_text = SIDE_LABEL.get(side, "")
+
+            st.markdown(
+                f"""
+                <div style="font-weight:bold; text-align:right;">
+                    {side_text}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        # ---------------------
+        # Symbol / State
+        # ---------------------
+
+        col1, col2 = st.columns([3, 1])
+
+        with col1:
+            symbol = trade.get("symbol", "")
+            name = trade.get("name", "")
+            st.markdown(f"**{symbol} {name}**")
+
+        with col2:
+            pause_flag = trade.get("pause_flag", False)
+
+            if pause_flag:
+                state_text = "⏸ PAUSE"
+            else:
+                state = trade.get("state", "")
+                event = STATE_EVENT_MAP.get(state)
+                state_text = EVENT_LABEL.get(event, "")
+
+            st.markdown(
+                f"""
+                <div style="font-weight:bold; text-align:right;">
+                    {state_text}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
         st.markdown(
             """
             <hr style="
-                margin: 20px 0 20px 0;
+                margin: 0px 0;
                 border: none;
                 border-top: 1px solid #444;
             ">
@@ -194,122 +152,64 @@ def render_trail_card(trade: dict):
         )
 
         # ---------------------
-        # Status
+        # Position
         # ---------------------
 
-        col1, col2 = st.columns(2)
-
+        col1, col2, col3, col4 = st.columns(4)
 
         with col1:
-
-            st.markdown(
-                f"""
-                <div class="trail-item">
-                    <div class="trail-label">
-                        状態
-                    </div>
-                    <div class="trail-value">
-                        {state_text}
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+            render_item("現在値", fmt_price(trade.get("current_price")))
 
         with col2:
+            render_item("取得価格", fmt_price(trade.get("entry_price")))
 
-            st.markdown(
-                f"""
-                <div class="trail-item">
-                    <div class="trail-label">
-                        現在値
-                    </div>
-                    <div class="trail-value">
-                        {current_text}
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+        with col3:
+            render_item("損切ライン", fmt_price(trade.get("stop_price")))
 
+        with col4:
+            render_item("ATR", fmt_price(trade.get("atr")))
 
         # ---------------------
-        # Entry / Stop
+        # Trade Info
         # ---------------------
 
-        col1, col2 = st.columns(2)
-
+        col1, col2, col3, col4 = st.columns(4)
 
         with col1:
-
-            st.markdown(
-                f"""
-                <div class="trail-item">
-                    <div class="trail-label">
-                        Entry
-                    </div>
-                    <div class="trail-value">
-                        {entry_text}
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
+            render_item("指値価格", fmt_price(trade.get("price")))
 
         with col2:
+            quantity = trade.get("quantity")
+            render_item("株数", f"{quantity}株" if quantity is not None else "")
 
-            st.markdown(
-                f"""
-                <div class="trail-item">
-                    <div class="trail-label">
-                        損切ライン
-                    </div>
-                    <div class="trail-value">
-                        {stop_text}
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+        with col3:
+            trade_type = trade.get("trade_type", "-")
+            trade_type_text = TRADE_TYPE_LABEL.get(trade_type, "")
+            render_item("取引", trade_type_text)
+
+        with col4:
+            strategy = trade.get("strategy", "")
+            strategy_text = STRATEGY_LABEL.get(strategy, "")
+            render_item("戦略", strategy_text)
 
 
         # ---------------------
-        # Price
+        # Time Info
         # ---------------------
 
-        col1, col2 = st.columns(2)
-
+        col1, col2, col3, col4 = st.columns(4)
 
         with col1:
-
-            st.markdown(
-                f"""
-                <div class="trail-item">
-                    <div class="trail-label">
-                        Price
-                    </div>
-                    <div class="trail-value">
-                        {price_text_value}
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
+            render_item("登録日時", fmt_dt(trade.get("created_at")))
 
         with col2:
+            render_item("取得日時", fmt_dt(trade.get("entry_time")))
 
-            st.markdown(
-                """
-                <div class="trail-item">
-                    <div class="trail-label">
-                        &nbsp;
-                    </div>
-                    <div class="trail-value">
-                        &nbsp;
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True
+        with col3:
+            render_item("決済日時", fmt_dt(trade.get("exit_time")))
+
+        with col4:
+            render_item(
+                "保有時間",
+                fmt_duration(holding_seconds)
             )
