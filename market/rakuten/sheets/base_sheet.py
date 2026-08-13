@@ -11,7 +11,6 @@
 #
 #
 
-from core.logger import Log
 from core.exception import ExcelArgumentError
 
 class BaseSheet:
@@ -21,7 +20,6 @@ class BaseSheet:
         client,
         ws,
         mode="rakuten",
-        debug=None,
         header_row=None,
         stopper="--------"
     ):
@@ -43,15 +41,12 @@ class BaseSheet:
 
         # 動作モード
         #
-        # rakuten : 本番RSS
-        # debug   : 固定値デバッグ
-        # emulator: 仮想環境
+        # rakuten   : 本番RSS
+        # simulator : RSS価格取得と仮想環境
+        # debug     : 固定値デバッグ
+        # emulator  : 仮想環境
         #
         self.mode = mode
-
-        # デバッグ設定
-        self.debug = debug or {}
-
 
         # 列タイトル辞書
         #
@@ -70,18 +65,14 @@ class BaseSheet:
     def is_rakuten(self):
         return self.mode == "rakuten"
 
+    def is_simulator(self):
+        return self.mode == "simulator"
+
     def is_emulator(self):
         return self.mode == "emulator"
 
     def is_debug(self):
         return self.mode == "debug"
-
-
-    def run_macro(self, name, *args):
-        """
-        VBAマクロ実行
-        """
-        return self.client.run_macro(name, *args)
 
 
     def validate_row(self, row):

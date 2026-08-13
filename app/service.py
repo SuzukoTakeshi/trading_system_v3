@@ -115,6 +115,7 @@ class AppService:
         """
 
         return {
+            "mode": self.trade_engine.mode,
             "trade_engine": self.trade_engine.api.status(),
             "market": self.market_status.get()
         }

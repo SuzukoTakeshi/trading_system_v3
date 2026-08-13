@@ -19,15 +19,16 @@ class QuoteSheet(BaseSheet):
     SYMBOL_COLUMN = "銘柄コード"
     PRICE_COLUMN = "現在値"
 
-    def __init__(self, client, ws, mode, debug):
+    def __init__(self, client, ws, mode):
         super().__init__(
             client,
             ws,
             mode=mode,
-            debug=debug,
             header_row=1,
             stopper=None,
         )
+
+        self.debug_quote_price = None
 
 
     def initialize(self):
@@ -40,6 +41,14 @@ class QuoteSheet(BaseSheet):
         （将来）
         """
         pass
+
+
+    def debug_set_quote(self, price):
+        """
+        DEBUG用現在値設定
+        """
+
+        self.debug_quote_price = price
 
 
     def get_quotes(self):
@@ -137,19 +146,18 @@ class QuoteSheet(BaseSheet):
         item_cell = f"{price_letter}${self.header_row}"
 
 
-        if self.is_rakuten():
+        if self.is_rakuten() or self.is_simulator():
             self.ws.Cells(row, price_col).Formula = (
                 f"=RssMarket({symbol_cell},{item_cell})"
             )
 
         elif self.is_emulator():
             self.ws.Cells(row, price_col).Value = ""
-
+    
         elif self.is_debug():
-
-            price = self.debug.get("quote_price")
+            price = self.debug_quote_price
             if price is None:
-                raise Exception("debug.quote_price が設定されていません")
+                raise Exception("debug quote price が設定されていません")
             elif price > 0:
                 self.ws.Cells(row, price_col).Value = price
 

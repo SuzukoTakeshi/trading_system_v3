@@ -12,8 +12,9 @@
 import pythoncom
 import win32com.client
 
-from core.logger import Log
 from config.config_loader import Config
+
+from core.logger import Log
 
 from market.rakuten.config.config_loader import MarketConfig
 
@@ -25,13 +26,11 @@ from market.rakuten.sheets.order_list_sheet import OrderListSheet
 
 class RakutenClient:
 
-    def __init__(self):
+    def __init__(self, mode):
+        self.mode = mode
 
         system_config = Config.instance().data
-
-        self.mode = system_config["mode"]
-        self.debug = system_config.get("debug", {})
-
+        self.debug_settings = system_config.get("debug_settings", {})
 
         market_config = MarketConfig.instance().data
 
@@ -48,9 +47,6 @@ class RakutenClient:
         self.order_sheet = None
         self.order_id_list_sheet = None
         self.order_list_sheet = None
-
-
-        self.debug_order_no = {}
 
 
     def open(self):
@@ -81,30 +77,35 @@ class RakutenClient:
         self.quote_sheet = QuoteSheet(
             self,
             self.get_sheet(self.sheets["quote"]),
-            self.mode,
-            self.debug
+            self.mode
         )
 
         self.order_sheet = OrderSheet(
             self,
             self.get_sheet(self.sheets["order"]),
-            self.mode,
-            self.debug
+            self.mode
         )
 
         self.order_id_list_sheet = OrderIDListSheet(
             self,
             self.get_sheet(self.sheets["order_id_list"]),
-            self.mode,
-            self.debug
+            self.mode
         )
 
         self.order_list_sheet = OrderListSheet(
             self,
             self.get_sheet(self.sheets["order_list"]),
-            self.mode,
-            self.debug
+            self.mode
         )
+
+        if self.mode == "debug":
+            price = self.debug_settings.get("quote_price")
+
+            if price is None:
+                raise Exception("debug_settings.quote_price が設定されていません")
+
+            self.quote_sheet.debug_set_quote(price)
+
 
     def close(self):
         """
@@ -177,7 +178,8 @@ class RakutenClient:
 
         result = self.order_sheet.request_order(request)
 
-        if self.mode == "debug":
+
+        if self.mode in ("simulator", "debug"):
 
             order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
 

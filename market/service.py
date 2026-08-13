@@ -18,10 +18,11 @@ from models.order.order_result_model import OrderResultModel
 
 class MarketService:
 
-    def __init__(self):
+    def __init__(self, mode):
+        self.mode = mode
 
         # Client
-        self.client = RakutenClient()
+        self.client = RakutenClient(self.mode)
 
 
     def open(self):

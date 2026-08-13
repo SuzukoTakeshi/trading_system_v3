@@ -59,7 +59,7 @@ def get_status():
     try:
         return get("/status")
 
-    except Exception:
+    except requests.ConnectionError:
         return {
             "trade_engine": {
                 "state": "OFFLINE"

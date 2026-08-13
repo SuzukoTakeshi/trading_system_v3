@@ -52,12 +52,11 @@ class OrderListSheet(BaseSheet):
     ORDER_PRICE_COLUMN = "注文単価"         # 例) 150.5
 
 
-    def __init__(self, client, ws, mode, debug):
+    def __init__(self, client, ws, mode):
         super().__init__(
             client,
             ws,
             mode=mode,
-            debug=debug,
             header_row=2,
         )
 

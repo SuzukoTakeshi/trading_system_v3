@@ -25,59 +25,35 @@ class OrderIDListSheet(BaseSheet):
     ORDER_NO_COLUMN = "注文番号"
     ORDER_RESULT_COLUMN = "発注結果"    # 発注済み または　エラー[指値は、値幅制限値以内で指定してください。]
 
-    def __init__(self, client, ws, mode, debug):
-
-        super().__init__(
-            client,
-            ws,
-            mode=mode,
-            debug=debug,
-            header_row=2,
-        )
+    def __init__(self, client, ws, mode):
+        super().__init__(client, ws, mode=mode, header_row=2)
 
 
     def get_order_no(self, order_id):
         """
         注文番号取得
 
-        return:
-            (True, order_no)
-            (False, None)
+        return order_no
         """
 
         column = self.column_map[self.ORDER_ID_COLUMN]
         row = self.find_row(column, order_id)
-
         if row is None:
             return None
 
-
-        result = self.get_value(
-            row,
-            self.column_map[self.ORDER_RESULT_COLUMN]
-        )
+        result = self.get_value(row, self.column_map[self.ORDER_RESULT_COLUMN])
 
         Log.debug(f"ORDER RESULT={result}")
 
         if result != "発注済み":
             return None
 
-
-        order_no = self.get_value(
-            row,
-            self.column_map[self.ORDER_NO_COLUMN]
-        )
-
-        Log.debug(f"ORDER NO={order_no}")
+        order_no = self.get_value(row, self.column_map[self.ORDER_NO_COLUMN])
 
         if order_no is None:
             return None
 
-        Log.debug(
-            f"GET ORDER NO "
-            f"{order_id} "
-            f"{order_no}"
-        )
+        Log.debug(f"GET ORDER NO order_id={order_id} order_no={order_no}")
 
         return order_no
 

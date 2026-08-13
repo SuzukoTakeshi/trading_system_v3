@@ -27,7 +27,7 @@ from core.exception import (
     QuoteNotFoundError
 )
 
-from config.trade_config_loader import TradeConfig
+from config.config_loader import Config
 
 from market.service import MarketService
 
@@ -77,8 +77,12 @@ class TradeEngine:
 
     def __init__(self):
 
+        # System Mode
+        config = Config.instance().data
+        self.mode = config["mode"]
+
         # Market Service
-        self.market = MarketService()
+        self.market = MarketService(self.mode)
 
         # 稼働状態
         self.running = False
@@ -145,7 +149,7 @@ class TradeEngine:
         self.state = EngineState.STARTING
 
         # 設定読込
-        config = TradeConfig.instance().data
+        config = Config.instance().data
         self.interval = config["engine"]["interval_sec"]
 
         self.running = True

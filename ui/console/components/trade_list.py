@@ -119,11 +119,34 @@ def trade_list():
                 }
             ]
 
+
         #
-        # 選択チェック列追加
+        # 選択チェック列
         #
+
+        current_trade_ids = {
+            trade["trade_id"]
+            for trade in trades
+            if trade["trade_id"] is not None
+        }
+
+        selected_trade_ids = (
+            st.session_state.get(
+                "trade_list_selected_ids",
+                set()
+            )
+            & current_trade_ids
+        )
+
+        selected_trade_ids = st.session_state.get(
+            "trade_list_selected_ids",
+            set()
+        )
+
         for trade in trades:
-            trade["select"] = False
+            trade["select"] = (
+                trade["trade_id"] in selected_trade_ids
+            )
 
 
         #
@@ -223,9 +246,13 @@ def trade_list():
         selected_ids = [
             row["trade_id"]
             for row in edited
-            if row["select"]
+            if row.get("select", False)
             and row["trade_id"] is not None
         ]
+
+        st.session_state["trade_list_selected_ids"] = set(
+            selected_ids
+        )
 
         selected_placeholder.markdown(f"選択 : {len(selected_ids)} 件")
 

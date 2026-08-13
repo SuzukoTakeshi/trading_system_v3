@@ -27,13 +27,12 @@ class OrderSheet(BaseSheet):
     TIME_COLUMN = "時刻"
 
 
-    def __init__(self, client, ws, mode, debug):
+    def __init__(self, client, ws, mode):
 
         super().__init__(
             client,
             ws,
             mode=mode,
-            debug=debug,
             header_row=1,
             stopper=None,
         )
@@ -76,6 +75,9 @@ class OrderSheet(BaseSheet):
 
         if self.is_rakuten():
             result = self._submit_rss(request)
+
+        elif self.is_simulator():
+            result = self._submit_simulator(request)
 
         elif self.is_emulator():
             result = self._submit_emulator(request)
@@ -189,8 +191,7 @@ class OrderSheet(BaseSheet):
         # 21: セット注文期限 (YYYYMMDD) セット注文執行条件が「5：期間指定」の場合のみ必須。それ以外は省略
         set_order_expire = ""
 
-
-        return self.run_macro(
+        status = self.client.run_macro(
             "RssStockOrder_V",
             order_id,            # arg1
             symbol,              # arg2
@@ -214,6 +215,12 @@ class OrderSheet(BaseSheet):
             set_order_condition, # arg20
             set_order_expire,    # arg21
         )
+
+        return True
+
+
+    def _submit_simulator(self, request):
+        return True
 
     def _submit_emulator(self, request):
         return True

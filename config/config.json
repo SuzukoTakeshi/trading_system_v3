@@ -1,18 +1,25 @@
 {
-    "mode": "debug",
+  "mode": "debug",
+  "market": "rakuten",
 
-    "emulator": {
-        "interval": 1.0
-    },
+  "emulator_settings": {
+    "interval": 1.0
+  },
 
-    "debug": {
-        "quote_price": 0
-    },
+  "debug_settings": {
+    "quote_price": 0
+  },
 
-    "description": {
-        "mode": "rakuten=本番運用 emulator=仮想市場環境 debug=内部デバッグ",
-        "emulator": "Emulator設定 interval=ループ間隔(秒)",
-        "debug": "内部デバッグ設定",
-        "quote_price": "debugモード時に使用する固定現在値 0=未設定"
-    }
+  "engine": {
+    "interval_sec": 0.5
+  },
+
+  "description": {
+    "mode": "rakuten=本番運用 simulator=楽天RSS価格・仮想売買 emulator=仮想市場環境 debug=内部デバッグ",
+    "market": "デフォルトで使用するMarket",
+    "emulator_settings": "Emulator設定 interval=ループ間隔(秒)",
+    "debug_settings": "内部デバッグ設定",
+    "debug_settings.quote_price": "debugモード時に使用する固定現在値 0=未設定",
+    "engine.interval_sec": "Trade Engineのサイクル間隔（秒）"
+  }
 }

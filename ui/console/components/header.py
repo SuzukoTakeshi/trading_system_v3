@@ -29,7 +29,7 @@ def header(ctx):
     trade_engine = status.get("trade_engine", {})
     engine = trade_engine.get("state", "UNKNOWN")
     running = trade_engine.get("running", False)
-
+    mode = status.get("mode", "UNKNOWN")
 
     market = status.get("market", {})
     market_state = market.get("state", "UNKNOWN")
@@ -73,7 +73,15 @@ def header(ctx):
                 ENGINE_STATE_UNKNOWN
             )
 
-            st.markdown(engine_state_display)
+            st.markdown(
+                f"""
+                <div>
+                    <b>{engine_state_display}</b>
+                    <b style="margin-left:8px;">MODE: {mode.upper()}</b>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
             btn1, btn2 = st.columns(2)
 

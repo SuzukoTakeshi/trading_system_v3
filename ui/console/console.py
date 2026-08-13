@@ -79,7 +79,6 @@ def main():
 
     # API Status取得
     status = get_status()
-    # print(status)
 
     # UI Context生成
     ctx = UIContext(
@@ -102,6 +101,17 @@ def main():
             key="console_refresh",
         )
 
+    # Backend OFFLINE
+    if status.get(
+        "trade_engine",
+        {}
+    ).get("state") == "OFFLINE":
+
+        st.warning(
+            "Trading System 本体が起動していません。"
+        )
+
+        return
 
     body(ctx)
 
