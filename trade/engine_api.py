@@ -254,9 +254,12 @@ class TradeEngineAPI:
         """
         Trade取消
         """
+        print(f"cancel_trade trade_id={trade_id}")
+
         trade = self.context.trades.get(trade_id)
 
         if trade is None:
+            print(f"trade is None trade_id={trade_id}")
             return False
 
         #
@@ -266,6 +269,12 @@ class TradeEngineAPI:
             TradeState.CANCELED,
             TradeState.COMPLETED,
         ]:
+            print(f"trade TradeState.CANCELED or TradeState.COMPLETED trade_id={trade_id}")
+            print(
+                f"trade state={trade.state} "
+                f"name={trade.state.name} "
+                f"value={trade.state.value}"
+            )
             return False
 
         Log.event(f"CANCEL TRADE (#{trade_id})")
@@ -288,7 +297,7 @@ class TradeEngineAPI:
 
         return count
 
-    def delete_canceled_trade(self, trade_id):
+    def delete_trade(self, trade_id):
         """
         Trade削除
         """
@@ -297,8 +306,10 @@ class TradeEngineAPI:
         if trade is None:
             return False
 
-        # 取消済みのみ削除可能
-        if trade.state != TradeState.CANCELED:
+        if trade.state not in [
+            TradeState.CANCELED,
+            TradeState.COMPLETED,
+        ]:
             return False
 
         Log.event(f"DELETE TRADE (#{trade_id})")
@@ -307,21 +318,22 @@ class TradeEngineAPI:
 
         return True
 
-    def delete_canceled_trades(self, trade_ids):
+    def delete_trades(self, trade_ids):
         """
         指定した取消済みTrade一括削除
         """
         count = 0
         for trade_id in trade_ids:
-
             trade = self.context.trades.get(trade_id)
 
             if trade is None:
                 continue
 
-            # CANCELEDのみ削除可能
-            if trade.state != TradeState.CANCELED:
-                continue
+            if trade.state not in [
+                TradeState.CANCELED,
+                TradeState.COMPLETED,
+            ]:
+                return False
 
             Log.event(f"DELETE TRADE (#{trade_id})")
 
@@ -336,10 +348,7 @@ class TradeEngineAPI:
         """
         Trade Chart Data取得
         """
-        trade_chart_datas = self.context.cache.trade_chart_datas.get(
-            trade_id,
-            []
-        )
+        trade_chart_datas = self.context.cache.trade_chart_datas.get(trade_id, [])
 
         return [
             trade_chart_data.to_dict()

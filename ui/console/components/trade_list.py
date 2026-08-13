@@ -27,7 +27,7 @@ from ui.api.client import (
     pause_trade,
     resume_trade,
     cancel_trade,
-    delete_canceled_trade,
+    delete_trade,
 )
 
 def trade_list():
@@ -313,6 +313,6 @@ def trade_list():
                 disabled=len(selected_ids) == 0,
             ):
                 for trade_id in selected_ids:
-                    delete_canceled_trade(trade_id)
+                    delete_trade(trade_id)
 
                 st.rerun()

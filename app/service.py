@@ -54,6 +54,7 @@ class AppService:
                 message:
                     エラー内容
         """
+        Log.debug("APP SERVICE START")
 
         try:
 
@@ -65,7 +66,6 @@ class AppService:
             }
 
         except Exception as e:
-
             Log.error(f"APP START ERROR : {e}")
 
             return {
@@ -87,9 +87,9 @@ class AppService:
                 message:
                     エラー内容
         """
+        Log.debug("APP SERVICE STOP")
 
         try:
-
             self.trade_engine.stop()
 
             return {
@@ -98,7 +98,6 @@ class AppService:
             }
 
         except Exception as e:
-
             Log.error(f"APP STOP ERROR : {e}")
 
             return {
@@ -130,7 +129,6 @@ class AppService:
 
         result = {}
 
-
         #
         # Trade Symbols
         #
@@ -145,9 +143,7 @@ class AppService:
             #
             if symbol is None:
 
-                Log.warn(
-                    f"TRADE SYMBOL NOT FOUND : {item['code']}"
-                )
+                Log.warn(f"TRADE SYMBOL NOT FOUND : {item['code']}")
 
                 continue
 
@@ -188,9 +184,9 @@ class AppService:
         """
         Trade登録
         """
+        Log.debug(f"APP SERVICE REGISTER TRADE symbol={req.symbol}")
 
         try:
-
             #
             # 銘柄存在確認
             #
@@ -231,9 +227,7 @@ class AppService:
         #
         except Exception as e:
 
-            Log.error(
-                f"REGISTER TRADE ERROR : {e}"
-            )
+            Log.error(f"REGISTER TRADE ERROR : {e}")
 
             return {
                 "result": "TRADE_ERROR",
@@ -246,6 +240,7 @@ class AppService:
         """
         Trade一覧取得
         """
+
         result = []
 
         for trade in self.trade_engine.api.get_trades():
@@ -287,12 +282,18 @@ class AppService:
         """
         Trade一時停止
         """
+        Log.debug(f"APP SERVICE PAUSE TRADE (#{trade_id})")
+
         return self.trade_engine.api.pause_trade(trade_id)
 
     def pause_trades(self, trade_ids):
+        Log.debug("APP SERVICE PAUSE TRADES")
+
         return self.trade_engine.api.pause_trades(trade_ids)
 
     def pause_all_trades(self):
+        Log.debug("APP SERVICE PAUSE ALL TRADES")
+
         return self.pause_trades(
             self.trade_engine.api.get_trade_ids()
         )
@@ -302,12 +303,18 @@ class AppService:
         """
         Trade再開
         """
+        Log.debug(f"APP SERVICE RESUME TRADE (#{trade_id})")
+
         return self.trade_engine.api.resume_trade(trade_id)
 
     def resume_trades(self, trade_ids):
+        Log.debug("APP SERVICE RESUME TRADES")
+
         return self.trade_engine.api.resume_trades(trade_ids)
 
     def resume_all_trades(self):
+        Log.debug("APP SERVICE RESUME ALL TRADES")
+
         return self.resume_trades(
             self.trade_engine.api.get_trade_ids()
         )
@@ -317,34 +324,46 @@ class AppService:
         """
         Trade取消
         """
+        Log.debug(f"APP SERVICE CANCEL TRADE (#{trade_id})")
+
         return self.trade_engine.api.cancel_trade(trade_id)
 
     def cancel_trades(self, trade_ids):
         """
         選択Trade取消
         """
+        Log.debug("APP SERVICE CANCEL TRADES")
+
         return self.trade_engine.api.cancel_trades(trade_ids)
 
     def cancel_all_trades(self):
+        Log.debug("APP SERVICE CANCEL ALL TRADES")
+
         return self.cancel_trades(
             self.trade_engine.api.get_trade_ids()
         )
 
 
-    def delete_canceled_trade(self, trade_id):
+    def delete_trade(self, trade_id):
         """
         CANCELED Trade削除
         """
-        return self.trade_engine.api.delete_canceled_trade(trade_id)
+        Log.debug(f"APP SERVICE DELETE CANCELED TRADE (#{trade_id})")
 
-    def delete_canceled_trades(self, trade_ids):
+        return self.trade_engine.api.delete_trade(trade_id)
+
+    def delete_trades(self, trade_ids):
         """
         CANCELED Trade選択削除
         """
-        return self.trade_engine.api.delete_canceled_trades(trade_ids)
+        Log.debug("APP SERVICE DELETE CANCELED TRADES")
 
-    def delete_canceled_all_trades(self):
-        return self.delete_canceled_trades(
+        return self.trade_engine.api.delete_trades(trade_ids)
+
+    def delete_all_trades(self):
+        Log.debug("APP SERVICE DELETE CANCELED ALL TRADES")
+
+        return self.delete_trades(
             self.trade_engine.api.get_trade_ids()
         )
 
@@ -357,9 +376,6 @@ class AppService:
         result = {}
 
         for trade_id in trade_ids:
-
-            result[trade_id] = self.trade_engine.api.get_trade_chart_datas(
-                trade_id
-            )
+            result[trade_id] = self.trade_engine.api.get_trade_chart_datas(trade_id)
 
         return result

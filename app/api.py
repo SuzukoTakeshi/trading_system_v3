@@ -159,30 +159,30 @@ def cancel_all_trades():
     }
 
 
-@app.delete("/trade/{trade_id}/delete_canceled")
-def delete_canceled_trade(trade_id: int):
+@app.delete("/trade/{trade_id}/delete")
+def delete_trade(trade_id: int):
 
-    result = app_service.delete_canceled_trade(trade_id)
+    result = app_service.delete_trade(trade_id)
 
     return {
         "result": "OK" if result else "NG",
         "trade_id": trade_id,
     }
 
-@app.delete("/trade/delete_canceled")
-def delete_canceled_trades(req: TradeIdsRequestDTO):
+@app.delete("/trade/delete")
+def delete_trades(req: TradeIdsRequestDTO):
 
-    count = app_service.delete_canceled_trades(req.trade_ids)
+    count = app_service.delete_trades(req.trade_ids)
 
     return {
         "result": "OK",
         "count": count,
     }
 
-@app.delete("/trade/delete_canceled/all")
-def delete_all_canceled_trades():
+@app.delete("/trade/delete/all")
+def delete_all_trades():
 
-    count = app_service.delete_canceled_all_trades()
+    count = app_service.delete_all_trades()
 
     return {
         "result": "OK",

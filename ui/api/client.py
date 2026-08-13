@@ -122,12 +122,12 @@ def cancel_trade(trade_id):
     return post(f"/trade/{trade_id}/cancel")
 
 
-def delete_canceled_trade(trade_id):
+def delete_trade(trade_id):
     """
     CANCELED Trade削除
     """
 
-    response = requests.delete(f"{BASE_URL}/trade/{trade_id}/delete_canceled", timeout=API_TIMEOUT_SEC)
+    response = requests.delete(f"{BASE_URL}/trade/{trade_id}/delete", timeout=API_TIMEOUT_SEC)
 
     response.raise_for_status()
 

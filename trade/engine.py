@@ -52,7 +52,6 @@ from trade.process.process_trailing import ProcessTrailing
 from trade.process.process_exit_create import ProcessExitCreate
 from trade.process.process_exit_wait import ProcessExitWait
 from trade.process.process_complated import ProcessComplated
-from trade.process.process_canceled import ProcessCanceled
 from trade.process.process_asset import ProcessAsset
 
 from trade.engine_api import TradeEngineAPI
@@ -117,7 +116,6 @@ class TradeEngine:
         self.process_exit_create = ProcessExitCreate(self.context, self.market)
         self.process_exit_wait = ProcessExitWait(self.context, self.market)
         self.process_complated = ProcessComplated(self.context, self.market)
-        self.process_canceled = ProcessCanceled(self.context, self.market)
         self.process_asset = ProcessAsset(self.context, self.market)
 
         # External API
@@ -405,15 +403,6 @@ class TradeEngine:
                     # ==========================================
                     case TradeState.COMPLETED:
                         self.process_complated.process(trade)
-
-
-                    # ==========================================
-                    # Trade取消
-                    #
-                    # ・取消後処理
-                    # ==========================================
-                    case TradeState.CANCELED:
-                        self.process_canceled.process(trade)
 
             # 後で検討　★★★★★★
             except Exception as e:
