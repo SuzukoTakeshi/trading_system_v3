@@ -8,9 +8,58 @@
 #   ・memory log保持（UI表示用）
 #   ・logging.jsonによるログ制御
 #   ・log_writer連携
-#   ・beep制御
+#   ・_beep制御
 #
+# Log関数：
+#   [汎用]
+#   ・event()      ：システムイベント
+#   ・info()       ：一般情報
+#   ・warn()       ：警告
+#   ・error()      ：エラー
+#   ・debug()      ：デバッグ情報
+#   ・trace()      ：開発・調査用ログ（log_idで個別制御）
 #
+#   [機能別]
+#   ・emulator()   ：Emulator関連
+#   ・state()      ：状態変更
+#   ・asset()      ：資産処理
+
+
+#   ・flow()       ：処理経路確認
+#   ・check()      ：判定・条件確認
+#   ・trade()      ：売買情報
+#   ・order()      ：注文処理
+#   ・execution()  ：約定処理
+#   ・trail()      ：Trailing Stop情報
+#   ・breakeven()  ：BreakEven情報
+#   ・rss_price()  ：楽天RSS価格更新
+#
+#   ・get_logs()   ：memory log取得
+#
+# ログレベル：
+#   [汎用]
+#   ・EVENT       ：重要なシステムイベント
+#   ・INFO        ：一般情報
+#   ・WARN        ：警告
+#   ・ERROR       ：エラー
+#   ・DEBUG       ：デバッグ情報
+#   ・trace()指定 ：開発・調査用
+#
+#   [機能別]
+#   ・EMULATOR    ：Emulator専用
+#   ・STATE       ：状態変更
+
+#   ・FLOW        ：処理経路確認
+#   ・CHECK       ：判定確認
+#   ・TRADE       ：売買情報
+#   ・ORDER       ：注文処理
+#   ・EXECUTION   ：約定処理
+#   ・TRAIL       ：Trailing Stop
+#   ・BREAKEVEN   ：BreakEven
+#   ・RSS PRICE   ：楽天RSS価格
+#
+# ========================
+
 
 from colorama import Fore, Style, init
 import winsound
@@ -33,17 +82,40 @@ class Log:
     # 設定
     # ========================
 
+    FILE_PATH = Path("config/logging.json")
+
     SOUND = True
 
     LOG_CONFIG = {}
 
+    # Console Log Color
+    LOG_COLORS = {
+        "EVENT": Fore.CYAN,
+        "INFO": Fore.WHITE,
+        "WARN": Fore.YELLOW,
+        "ERROR": Fore.RED,
+        "DEBUG": Fore.LIGHTBLACK_EX,
+
+        "STATE": Fore.BLUE,
+        "ASSET": Fore.MAGENTA,
+
+        "EMULATOR": Fore.MAGENTA,
+
+        "FLOW": Fore.CYAN,
+        "CHECK": Fore.YELLOW,
+        "TRADE": Fore.GREEN,
+        "ORDER": Fore.MAGENTA,
+        "EXECUTION": Fore.GREEN,
+        "TRAIL": Fore.BLUE,
+        "BREAKEVEN": Fore.MAGENTA,
+        "RSS PRICE": Fore.LIGHTBLUE_EX,
+    }
 
     # ========================
     # memory log
     #
     # UI表示用
     # ========================
-
     _logs = deque(maxlen=200)
 
 
@@ -53,11 +125,8 @@ class Log:
 
     @classmethod
     def load_config(cls):
-
-        path = Path("config/logging.json")
-
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(cls.FILE_PATH, "r", encoding="utf-8") as f:
                 cls.LOG_CONFIG = json.load(f)
 
         except Exception:
@@ -73,10 +142,8 @@ class Log:
     # logging.jsonで確認
     #
     # ========================
-
     @classmethod
-    def enabled(cls, log_id):
-
+    def _enabled(cls, log_id):
         return cls.LOG_CONFIG.get(log_id, True)
 
 
@@ -86,10 +153,8 @@ class Log:
     # ミリ秒付き
     #
     # ========================
-
     @staticmethod
-    def now():
-
+    def _now_msstr():
         return datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
 
 
@@ -107,12 +172,12 @@ class Log:
     @classmethod
     def _write_log(cls, log_id, *args):
 
-        if not cls.enabled(log_id):
+        if not cls._enabled(log_id):
             return False
 
 
         record = {
-            "time": cls.now(),
+            "time": cls._now_msstr(),
             "level": log_id,
             "message": " ".join(
                 map(str, args)
@@ -126,9 +191,14 @@ class Log:
         LogWriter.write(record)
 
         # console
+        color = cls.LOG_COLORS.get(
+            log_id,
+            Fore.WHITE
+        )
+
         print(
             f"{record['time']} "
-            f"[{log_id}] "
+            f"{color}[{log_id}]{Style.RESET_ALL} "
             f"{record['message']}"
         )
 
@@ -149,17 +219,17 @@ class Log:
             return
 
         if ExitReason.STOP_LOSS.value in msg:
-            cls.beep(500, 500)
+            cls._beep(500, 500)
 
         elif ExitReason.BREAKEVEN_EXIT.value in msg:
-            cls.beep(900, 120)
+            cls._beep(900, 120)
 
         elif ExitReason.TRAIL_EXIT.value in msg:
-            cls.beep(1200, 80)
-            cls.beep(1600, 100)
+            cls._beep(1200, 80)
+            cls._beep(1600, 100)
 
         else:
-            cls.beep(1000, 120)
+            cls._beep(1000, 120)
 
     # ========================
     # INFO
@@ -183,7 +253,7 @@ class Log:
         if not cls._write_log("ERROR", *args):
             return
 
-        cls.beep(400, 700)
+        cls._beep(400, 700)
 
     # ========================
     # DEBUG
@@ -191,6 +261,48 @@ class Log:
     @classmethod
     def debug(cls, *args):
         cls._write_log("DEBUG", *args)
+
+    # ========================
+    # STATE
+    #
+    # 状態変更
+    # ========================
+    @classmethod
+    def state(cls, trade_id, old, new):
+        cls._write_log("STATE", f"(#{trade_id}) {old} -> {new}")
+
+    # ========================
+    # ASSET
+    #
+    # 資産処理
+    # ========================
+    @classmethod
+    def asset(cls, trade_id, *args):
+        cls._write_log("ASSET", f"(#{trade_id})", *args)
+
+
+    # ========================
+    # trace
+    #
+    # 開発・調査用ログ
+    #
+    # log_idは
+    # logging.json制御用
+    #
+    # 例：
+    #
+    # Log.trace(
+    #     "RSS_PRICE",
+    #     symbol,
+    #     price
+    # )
+    #
+    # ========================
+
+    @classmethod
+    def trace(cls, log_id, *args):
+
+        return cls._write_log(log_id, *args)
 
     # ========================
     # EMULATOR
@@ -218,15 +330,6 @@ class Log:
         cls._write_log("CHECK", *args)
 
     # ========================
-    # STATE
-    #
-    # 状態変更
-    # ========================
-    @classmethod
-    def state(cls, symbol, old, new):
-        cls._write_log("STATE", symbol, f"{old.name} -> {new.name}")
-
-    # ========================
     # TRADE
     #
     # 売買ログ
@@ -246,11 +349,11 @@ class Log:
             return
 
         if side == "BUY":
-            cls.beep(1000, 120)
+            cls._beep(1000, 120)
 
         else:
-            cls.beep(1200, 100)
-            cls.beep(1600, 150)
+            cls._beep(1200, 100)
+            cls._beep(1600, 150)
 
     # ========================
     # ORDER
@@ -293,55 +396,6 @@ class Log:
     def rss_price(cls, *args):
         cls._write_log("RSS PRICE", *args)
 
-    # ========================
-    # PRICE WAIT
-    #
-    # 価格監視待機
-    # ========================
-    @classmethod
-    def price_wait(cls, *args):
-        cls._write_log("PRICE WAIT", *args)
-
-    # ========================
-    # trace
-    #
-    # 開発・調査用ログ
-    #
-    # log_idは
-    # logging.json制御用
-    #
-    # 例：
-    #
-    # Log.trace(
-    #     "RSS_PRICE",
-    #     symbol,
-    #     price
-    # )
-    #
-    # ========================
-
-    @classmethod
-    def trace(cls, log_id, *args):
-
-        return cls._write_log(log_id, *args)
-
-
-    # ========================
-    # beep
-    # ========================
-
-    @classmethod
-    def beep(cls, freq, duration):
-
-        if not cls.SOUND:
-            return
-
-        try:
-            winsound.Beep(freq, duration)
-
-        except:
-            pass
-
 
     # ========================
     # memory log取得
@@ -352,31 +406,35 @@ class Log:
 
         return list(cls._logs)
 
+    # ========================
+    # 最終 INFO / ERROR メッセージ取得
+    # ========================
 
+    @classmethod
+    def get_last_message(cls):
 
+        for record in reversed(cls._logs):
 
+            if record["level"] in ("ERROR", "INFO"):
+                return record
 
+        return None
 
+    # ========================
+    # _beep
+    # ========================
 
+    @classmethod
+    def _beep(cls, freq, duration):
 
+        if not cls.SOUND:
+            return
 
+        try:
+            winsound.Beep(freq, duration)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        except:
+            pass
 
 
 # ========================

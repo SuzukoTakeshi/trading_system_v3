@@ -14,6 +14,8 @@ from core.logger import Log
 
 from trade.process.process_base import ProcessBase
 
+from trade.trade_enums import TradeState
+
 from market.order_enums import (
 	OrderType,
 	OrderState,
@@ -102,18 +104,34 @@ class ProcessOrderBase(ProcessBase):
             order_type=order.order_type,
         )
 
-        result = self.market.request_order(request)
+        result, error_message = self.market.request_order(request)
 
-        Log.event(f"REQUEST ORDER (#{trade.id}) {order.id} {order.symbol} result={result}")
-
-        trade.add_timeline(
-            type="ORDER",
-            message=f"REQUEST id={order.id} result={result}"
+        Log.event(
+            f"REQUEST ORDER (#{trade.id}) (@{order.id}) "
+            f"symbol={order.symbol} "
+            f"result={result} "
+            f"error={error_message}"
         )
 
-        if not result:
+        if result:
+            trade.add_timeline(
+                type="ORDER",
+                message=f"(@{order.id}) ORDER REQUEST SUCCESS"
+            )
+
+        else:
             order.change_state(OrderState.ERROR)
 
-            raise Exception(f"ORDER REQUEST FAILED (#{trade.id}) order={order.id}")
+            trade.change_state(TradeState.ERROR)
+
+            trade.add_timeline(
+                type="ERROR",
+                message=(
+                    f"(@{order.id}) ORDER REQUEST FAILED "
+                    f"error={error_message}"
+                )
+            )
+
+            return False
 
         return result

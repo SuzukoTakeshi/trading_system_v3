@@ -11,6 +11,8 @@
 
 from datetime import datetime
 
+from core.logger import Log
+
 from market.rakuten.sheets.base_sheet import BaseSheet
 
 
@@ -64,7 +66,10 @@ class QuoteSheet(BaseSheet):
         if price_col is None:
             return result
 
+
         max_row = self.ws.UsedRange.Rows.Count
+
+        # Log.debug("====== get_quotes")
 
         updated = datetime.now()
 
@@ -106,7 +111,13 @@ class QuoteSheet(BaseSheet):
 
         quotes = self.get_quotes()
 
-        return quotes.get(symbol)
+        quote = quotes.get(symbol)
+        # if quote:
+        #     Log.debug(f"====== get_quote symbol={symbol} price={quote["price"]}")
+        # else:
+        #     Log.debug(f"====== get_quote symbol={symbol} price=None")
+
+        return quote
 
 
     def reset(self):
@@ -146,7 +157,7 @@ class QuoteSheet(BaseSheet):
         item_cell = f"{price_letter}${self.header_row}"
 
 
-        if self.is_rakuten() or self.is_simulator():
+        if self.is_real() or self.is_simulator():
             self.ws.Cells(row, price_col).Formula = (
                 f"=RssMarket({symbol_cell},{item_cell})"
             )

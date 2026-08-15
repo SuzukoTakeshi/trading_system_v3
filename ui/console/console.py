@@ -3,6 +3,29 @@
 #
 # Trading System Console
 #
+# 役割:
+#   ・Trading System Console UI
+#   ・Backend Status表示
+#   ・System Message表示
+#   ・Auto Refresh
+#   ・refresh_onceによる1回限りの再描画
+#
+# refresh_once:
+#   ・状態変更後などに、追加の再描画を1回だけ行うためのフラグ
+#   ・処理側で以下を設定する
+#
+#       st.session_state.refresh_once = True
+#
+#   ・main()の次回実行時にフラグを検出し、
+#     フラグをFalseに戻してからst.rerun()する
+#
+#       if st.session_state.get("refresh_once", False):
+#           st.session_state.refresh_once = False
+#           st.rerun()
+#
+#   ・st.rerun()による無限再実行を防ぐため、
+#     必ずFalseに戻してからst.rerun()する
+#
 
 import sys
 from pathlib import Path
@@ -72,45 +95,30 @@ header[data-testid="stHeader"] {
 
 def main():
 
-    system_header()
+    # API Status取得
+    status = get_status()
+
+    system_header(status)
 
     if "auto_refresh" not in st.session_state:
         st.session_state.auto_refresh = False
 
-    # API Status取得
-    status = get_status()
-
     # UI Context生成
-    ctx = UIContext(
-        status=status
-    )
+    ctx = UIContext(status=status)
 
     header(ctx)
 
-    if st.session_state.get(
-        "refresh_once",
-        False
-    ):
+    if st.session_state.get("refresh_once", False):
         st.session_state.refresh_once = False
         st.rerun()
 
     # Auto Refresh
     if st.session_state.auto_refresh:
-        st_autorefresh(
-            interval=CONSOLE_REFRESH_INTERVAL_MS,
-            key="console_refresh",
-        )
+        st_autorefresh(interval=CONSOLE_REFRESH_INTERVAL_MS, key="console_refresh")
 
     # Backend OFFLINE
-    if status.get(
-        "trade_engine",
-        {}
-    ).get("state") == "OFFLINE":
-
-        st.warning(
-            "Trading System 本体が起動していません。"
-        )
-
+    if status.get("trade_engine", {}).get("state") == "OFFLINE":
+        st.warning("Trading System 本体が起動していません。")
         return
 
     body(ctx)
@@ -118,16 +126,61 @@ def main():
     footer(ctx)
 
 
-def system_header():
-
+def system_header(status):
     now = datetime.now()
 
     datetime_text = format_datetime_jp(now)
 
-    col_title, col_datetime = st.columns([6, 2])
+    # UI一時メッセージ
+    # 1回表示したら削除する
+    system_message = st.session_state.pop(
+        "ui_message_once",
+        None
+    )
+
+    # UIメッセージを優先
+    if not system_message:
+        system_message = status.get("message")
+
+    message_level = None
+    message_text = None
+
+    if system_message:
+        message_level = system_message.get("level")
+        message_text = system_message.get("message")
+
+    col_title, col_message, col_datetime = st.columns([4, 4, 2])
 
     with col_title:
         st.caption("📈 Trading System V3 Console")
+
+    with col_message:
+
+        if message_text:
+
+            if message_level == "ERROR":
+                icon = "⚠"
+                color = "#ff4b4b"
+
+            else:
+                icon = "✓"
+                color = "inherit"
+
+            st.markdown(
+                f"""
+                <div style="
+                    color:{color};
+                    font-weight:bold;
+                    padding-top:0.35rem;
+                    white-space:nowrap;
+                    overflow:hidden;
+                    text-overflow:ellipsis;
+                ">
+                    {icon} {message_text}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
     with col_datetime:
         st.markdown(

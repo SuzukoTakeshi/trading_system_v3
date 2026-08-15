@@ -39,7 +39,10 @@ class ProcessOrderRequest(ProcessOrderBase):
         else:
             match order.state:
                 case OrderState.CREATED:
-                    self.request_order(trade, order)
+                    result = self.request_order(trade, order)
+                    if not result:
+                        return False
+
                     order.change_state(OrderState.SUBMITTED)
 
                 case OrderState.SUBMITTED:

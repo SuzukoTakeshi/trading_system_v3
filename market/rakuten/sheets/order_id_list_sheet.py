@@ -41,6 +41,9 @@ class OrderIDListSheet(BaseSheet):
         if row is None:
             return None
 
+        # 調査用：取得したExcel行をそのまま記録
+        Log.debug(f"ORDER ID LIST : {self.get_row_log(row)}")
+
         result = self.get_value(row, self.column_map[self.ORDER_RESULT_COLUMN])
 
         Log.debug(f"ORDER RESULT={result}")

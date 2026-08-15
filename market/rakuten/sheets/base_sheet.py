@@ -19,7 +19,7 @@ class BaseSheet:
         self,
         client,
         ws,
-        mode="rakuten",
+        mode="real",
         header_row=None,
         stopper="--------"
     ):
@@ -41,7 +41,7 @@ class BaseSheet:
 
         # 動作モード
         #
-        # rakuten   : 本番RSS
+        # real      : 本番運用
         # simulator : RSS価格取得と仮想環境
         # debug     : 固定値デバッグ
         # emulator  : 仮想環境
@@ -62,8 +62,8 @@ class BaseSheet:
             self.load_columns()
 
 
-    def is_rakuten(self):
-        return self.mode == "rakuten"
+    def is_real(self):
+        return self.mode == "real"
 
     def is_simulator(self):
         return self.mode == "simulator"
@@ -315,4 +315,35 @@ class BaseSheet:
         value = self.ws.Cells(row, column).Value
 
         return self.normalize_value(value)
-    
+
+
+    def get_row_log(self, row):
+        """
+        指定行を調査用ログ文字列として取得
+
+        return:
+            カンマ区切り文字列
+        """
+
+        self.validate_row(row)
+
+        max_column = self.ws.UsedRange.Columns.Count
+
+        values = []
+
+        for column in range(1, max_column + 1):
+
+            value = self.ws.Cells(
+                row,
+                column
+            ).Value
+
+            value = self.normalize_value(value)
+
+            values.append(value)
+
+
+        return ",".join(
+            "" if value is None else str(value)
+            for value in values
+        )

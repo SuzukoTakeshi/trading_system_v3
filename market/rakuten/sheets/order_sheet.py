@@ -72,42 +72,70 @@ class OrderSheet(BaseSheet):
 
         self.ws.Cells(row, self.column_map[self.TIME_COLUMN]).Value = datetime.now()
 
+        # 調査用
+        Log.debug(f"ORDER SHEET : {self.get_row_log(row)}")
 
-        if self.is_rakuten():
-            result = self._submit_rss(request)
+        if self.is_real():
+            result, rss_result = self._submit_real(request)
 
         elif self.is_simulator():
-            result = self._submit_simulator(request)
+            result, rss_result = self._submit_simulator(request)
 
         elif self.is_emulator():
-            result = self._submit_emulator(request)
+            result, rss_result = self._submit_emulator(request)
+
 
         elif self.is_debug():
-            result = self._submit_debug(request)
+
+            if self.client.debug_settings.get("order_enabled", False):
+                result, rss_result = self._submit_real(request)
+            else:
+                result, rss_result = self._submit_debug(request)
 
         else:
             raise Exception(f"未対応mode: {self.mode}")
 
-        Log.event(
-            f"ORDER REQUEST "
-            f"{self.mode} "
-            f"{request["order_id"]} "
-            f"{request["symbol"]} "
-            f"{result}"
-        )
+        if result:
+            Log.event(f"ORDER REQUEST OK (@{request["order_id"]} "
+                f"symbol={request["symbol"]} mode{self.mode}"
+            )
+        else:
+            Log.event(f"ORDER REQUEST NG (@{request["order_id"]} "
+                f"rss_result={rss_result} "
+                f"symbol={request["symbol"]} mode{self.mode}"
+            )
 
-        return result
+        return result, rss_result
 
 
-    def _submit_rss(self, request):
+    def _submit_real(self, request):
         """
         楽天RSS発注
         """
-
         # ------------------------------------------
         # RssStockOrder_V 引数
         # 参考) MARKETSPEEDII RSSオンラインヘルプ
         #   https://marketspeed.jp/ms2_rss/onlinehelp/ohm_002/ohm_002_06.html
+        #
+        # 1  発注ID
+        # 2  銘柄コード
+        # 3  売買区分
+        # 4  注文区分
+        # 5  SOR区分
+        # 6  注文数量
+        # 7  価格区分
+        # 8  注文価格
+        # 9  執行条件
+        # 10 注文期限
+        # 11 口座区分
+        # 12 逆指値条件価格
+        # 13 逆指値条件区分
+        # 14 逆指値価格区分
+        # 15 逆指値価格
+        # 16 セット注文区分
+        # 17 セット注文価格
+        # 18 セット注文執行条件
+        # 19 セット注文期限
         # ------------------------------------------
 
         # 1:発注ID
@@ -126,22 +154,18 @@ class OrderSheet(BaseSheet):
         trade_type = 0
 
         # 5: SOR区分 (0：通常注文 1：SOR注文)
-        sor = 0
+        sor = 1
 
-        # 6: 信用区分
-        #  (1：制度信用（6ヶ月） 2：一般信用（無制限） 3：一般信用（14日） 4：一般信用（いちにち）)
-        margin_type = ""
-
-        # 7: 注文数量
+        # 6: 注文数量
         quantity = request["quantity"]
 
-        # 8: 価格区分（0：成行 1：指値）「0：通常注文」、「1：逆指値付通常注文」の時必須。
+        # 7: 価格区分（0：成行 1：指値）「0：通常注文」、「1：逆指値付通常注文」の時必須。
         if request["order_type"] == "market":
             price_type = 0
         else:
             price_type = 1
 
-        # 9: 注文価格
+        # 8: 注文価格
         #  「0：通常注文」、「1：逆指値付通常注文」の時必須。
         #  価格区分が「1：指値」の時必須。成行の場合は省略
         if request["order_type"] == "market":
@@ -149,81 +173,96 @@ class OrderSheet(BaseSheet):
         else:
             price = request["price"]
 
-        # 10: 執行条件
+        # 9: 執行条件
         # (1：本日中 2：今週中 3：寄付 4：引け 5：期間指定 6：大引不成 7：不成)
         # SOR区分が「1：SOR注文」時、3：寄付　4：引けの選択は不可
         condition = 1
 
-        # 11: 注文期限 (YYYYMMDD) 執行条件が「5：期間指定」の場合のみ必須。それ以外は省略
+        # 10: 注文期限 (YYYYMMDD) 執行条件が「5：期間指定」の場合のみ必須。それ以外は省略
         expire = ""
 
-        # 12: 口座区分 (0：特定 1：一般)
+        # 11: 口座区分 (0：特定 1：一般 2：NISA 3：旧NISA)
         account = 0
 
-        # 13: 逆指値条件価格 「1：逆指値付通常注文」、「２：逆指値注文」の時必須。
+        # 12: 逆指値条件価格 「1：逆指値付通常注文」、「２：逆指値注文」の時必須。
         trigger_price = ""
 
-        # 14: 逆指値条件区分 (0：成行 1：指値) 「1：逆指値付通常注文」、「２：逆指値注文」の時必須。
+        # 13: 逆指値条件区分 (0：成行 1：指値) 「1：逆指値付通常注文」、「２：逆指値注文」の時必須。
         trigger_type = ""
 
-        # 15: 逆指値価格区分 (0：成行 1：指値) 「1：逆指値付通常注文」、「２：逆指値注文」の時必須。
+        # 14: 逆指値価格区分 (0：成行 1：指値) 「1：逆指値付通常注文」、「２：逆指値注文」の時必須。
         trigger_price_type = ""
 
-        # 16: 逆指値価格 逆指値価格区分が成行の場合は省略
+        # 15: 逆指値価格 逆指値価格区分が成行の場合は省略
         #   「1：逆指値付通常注文」、「２：逆指値注文」の時必須。
         trigger_order_price = ""
 
-        # 17: セット注文区分 (0：通常（予約しない) 1：セット注文(予約する) 未入力の場合は、通常(予約しない)と同意)
-        set_order_type = 0
+        # 16: セット注文区分 (0：通常（予約しない) 1：セット注文(予約する) 未入力の場合は、通常(予約しない)と同意)
+        set_order_type = ""
 
-        # 18: セット注文価格区分 (1:指値 2:値幅指定) セット注文区分が「1：セット注文（予約する）」の時必須
-        set_order_price_type = ""
-
-        # 19: セット注文価格 セット注文区分が「1：セット注文（予約する）」の時必須、それ以外は省略。
+        # 17: セット注文価格 セット注文区分が「1：セット注文（予約する）」の時必須、それ以外は省略。
         set_order_price = ""
 
-        # 20: セット注文執行条件
+        # 18: セット注文執行条件
         #   (1：本日中 2：今週中 3：寄付 4：引け 5：期間指定 6：大引不成 7：不成
         #   セット注文区分が「1：セット注文（予約する）」の時必須、それ以外は省略
         #   SOR区分が「1：SOR注文」時、3：寄付　4：引けの選択は不可)
         set_order_condition = ""
 
-        # 21: セット注文期限 (YYYYMMDD) セット注文執行条件が「5：期間指定」の場合のみ必須。それ以外は省略
+        # 19: セット注文期限 (YYYYMMDD) セット注文執行条件が「5：期間指定」の場合のみ必須。それ以外は省略
         set_order_expire = ""
 
-        status = self.client.run_macro(
+        order_result = self.client.run_macro(
             "RssStockOrder_V",
-            order_id,            # arg1
-            symbol,              # arg2
-            action,              # arg3
-            trade_type,          # arg4
-            sor,                 # arg5
-            margin_type,         # arg6
-            quantity,            # arg7
-            price_type,          # arg8
-            price,               # arg9
-            condition,           # arg10
-            expire,              # arg11
-            account,             # arg12
-            trigger_price,       # arg13
-            trigger_type,        # arg14
-            trigger_price_type,  # arg15
-            trigger_order_price, # arg16
-            set_order_type,      # arg17
-            set_order_price_type,# arg18
-            set_order_price,     # arg19
-            set_order_condition, # arg20
-            set_order_expire,    # arg21
+            order_id,            #  1 発注ID
+            symbol,              #  2 銘柄コード
+            action,              #  3 売買区分
+            trade_type,          #  4 注文区分
+            sor,                 #  5 SOR区分
+            quantity,            #  6 注文数量
+            price_type,          #  7 価格区分
+            price,               #  8 注文価格
+            condition,           #  9 執行条件
+            expire,              # 10 注文期限
+            account,             # 11 口座区分
+            trigger_price,       # 12 逆指値条件価格
+            trigger_type,        # 13 逆指値条件区分
+            trigger_price_type,  # 14 逆指値価格区分
+            trigger_order_price, # 15 逆指値価格
+            set_order_type,      # 16 セット注文区分
+            set_order_price,     # 17 セット注文価格
+            set_order_condition, # 18 セット注文執行条件
+            set_order_expire,    # 19 セット注文期限
         )
 
-        return True
+        Log.debug(f"RssStockOrder_V RESULT (@{order_id}) symbol={symbol} status={order_result}")
+
+        # マーケットスピードII 発注不可
+        # order_result : 発注ロック中(発注を行うには発注機能を有効にしてください)
+        #
+        # 注文ID=345 は既に使用済み
+        # order_result : 注文ID=345 は既に使用済みです。
+        #
+        # order_result : 手数料ゼロコースでは、SORを有効にして、再度注文してください。
+        #
+        # 正常パターン
+        # order_result :
+
+        if order_result == "":
+            result = True
+        else:
+            result = False
+
+        return result, order_result
 
 
     def _submit_simulator(self, request):
-        return True
+        return True, ""
 
     def _submit_emulator(self, request):
-        return True
+        return True, ""
 
     def _submit_debug(self, request):
-        return True
+        return True, ""
+        # エラー確認用
+        #return False, "_submit_debug return=False"

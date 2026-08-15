@@ -7,6 +7,7 @@
 import streamlit as st
 
 from ui.api.client import (
+    get_error_message,
     start_system,
     stop_system,
 )
@@ -83,31 +84,62 @@ def header(ctx):
                 unsafe_allow_html=True
             )
 
-            btn1, btn2 = st.columns(2)
 
-            with btn1:
+            btn_start, btn_stop = st.columns(2)
+
+            with btn_start:
+
                 if st.button(
                     "▶",
                     use_container_width=True,
                     disabled=running,
                 ):
+
                     try:
                         start_system()
-                        st.session_state.refresh_once = True
+
+                        # UI一時メッセージをクリア
+                        st.session_state.pop(
+                            "ui_message_once",
+                            None
+                        )
+
+                        st.rerun()
 
                     except Exception as e:
-                        st.error(f"START ERROR : {e}")
+
+                        st.session_state.ui_message_once = {
+                            "level": "ERROR",
+                            "message": f"START ERROR : {get_error_message(e)}",
+                        }
+
+                        st.rerun()
 
 
-            with btn2:
+            with btn_stop:
+
                 if st.button(
                     "■",
                     use_container_width=True,
                     disabled=not running,
                 ):
+
                     try:
                         stop_system()
-                        st.session_state.refresh_once = True
+
+                        # UI一時メッセージをクリア
+                        st.session_state.pop(
+                            "ui_message_once",
+                            None
+                        )
+
+                        st.rerun()
 
                     except Exception as e:
-                        st.error(f"STOP ERROR : {e}")
+
+                        st.session_state.ui_message_once = {
+                            "level": "ERROR",
+                            "message": f"STOP ERROR : {get_error_message(e)}",
+                        }
+
+                        st.rerun()

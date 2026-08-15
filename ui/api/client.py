@@ -16,6 +16,19 @@ from ui.config.ui import (
     API_TIMEOUT_SEC,
 )
 
+def get_error_message(e):
+    if isinstance(e, requests.ConnectionError):
+        return "Trading System本体に接続できません。"
+
+    if isinstance(e, requests.Timeout):
+        return "Trading System本体からの応答がありません。"
+
+    if isinstance(e, requests.HTTPError):
+        return "Trading System本体でエラーが発生しました。"
+
+    return "システムエラーが発生しました。"
+
+
 # ==================================================
 # 共通GET
 # ==================================================
@@ -47,7 +60,6 @@ def post(path, json=None):
     response.raise_for_status()
 
     return response.json()
-
 
 
 # ==================================================

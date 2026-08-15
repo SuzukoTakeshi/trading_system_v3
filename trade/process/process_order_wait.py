@@ -44,7 +44,7 @@ class ProcessOrderWait(ProcessBase):
         # 注文受付済み
         #
         if order.state == OrderState.REQUESTED:
-            Log.debug(f"ORDER WAIT (#{trade.id}) order_id={order.id} state={order.state.name}")
+            Log.trace("ORDER_WAIT", f"(#{trade.id}) order_id={order.id} state={order.state.name}")
 
             result, result_dto = self.market.get_order_result(order.order_no)
 

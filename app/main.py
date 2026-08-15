@@ -26,10 +26,10 @@ def confirm_mode():
     print("========================================")
     print()
 
-    if mode != "rakuten":
+    if mode != "real":
         return True
 
-    print("  ⚠ 本番RSS接続モードです。")
+    print("  ⚠ 本番運用モードです。")
     print("  実際の注文が発注される可能性があります。")
     print()
 

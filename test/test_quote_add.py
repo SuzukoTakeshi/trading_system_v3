@@ -3,15 +3,16 @@
 #
 # QuoteSheet Add Test
 #
+# python -m test.test_quote_add
 #
 
 from market.rakuten.client import RakutenClient
-from market.rakuten.quote_sheet import QuoteSheet
+from market.rakuten.sheets.quote_sheet import QuoteSheet
 
 
 def main():
 
-    client = RakutenClient()
+    client = RakutenClient("debug")
 
     try:
         # Excel接続
@@ -21,7 +22,9 @@ def main():
         ws = client.get_sheet("Quotes")
 
         # QuoteSheet
-        sheet = QuoteSheet(ws)
+        sheet = QuoteSheet(client, ws, "debug")
+
+        sheet.debug_set_quote(3000)
 
         # 銘柄追加
         row = sheet.add_symbol("7203")

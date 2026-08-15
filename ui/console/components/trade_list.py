@@ -23,6 +23,7 @@ from ui.utils.ui_labels import (
 )
 
 from ui.api.client import (
+    get_error_message,
     get_trades,
     pause_trade,
     resume_trade,
@@ -30,11 +31,47 @@ from ui.api.client import (
     delete_trade,
 )
 
+
+def list_button_action(
+    action,
+    trade_ids,
+    success_message,
+):
+    """
+    Trade List ボタン共通処理
+
+    ・選択TradeへAction実行
+    ・成功時にINFOメッセージ設定
+    ・Exception時にERRORメッセージ設定
+    ・処理後に画面再描画
+    """
+
+    try:
+
+        for trade_id in trade_ids:
+            action(trade_id)
+
+        st.session_state.ui_message_once = {
+            "level": "INFO",
+            "message": success_message,
+        }
+
+    except Exception as e:
+
+        st.session_state.ui_message_once = {
+            "level": "ERROR",
+            "message": get_error_message(e),
+        }
+
+    st.rerun()
+
+
 def trade_list():
 
     with st.container(border=True):
 
-        # リストの右上に出る操作（検索・コピー・ダウンロード・列設定などのツールバー）を消す
+        # リストの右上に出る操作
+        # （検索・コピー・ダウンロード・列設定などのツールバー）を消す
         st.markdown(
             """
             <style>
@@ -45,7 +82,6 @@ def trade_list():
             """,
             unsafe_allow_html=True
         )
-
 
         title_col, select_col, monitor_col, pause_col, resume_col, cancel_col, delete_col = st.columns(
             [4, 1, 1, 1, 1, 1, 1]
@@ -82,6 +118,7 @@ def trade_list():
 
             if pause_flag:
                 row["state"] = "⏸ PAUSE"
+
             else:
                 state = row.get("state", "")
 
@@ -119,7 +156,6 @@ def trade_list():
                 }
             ]
 
-
         #
         # 選択チェック列
         #
@@ -138,20 +174,15 @@ def trade_list():
             & current_trade_ids
         )
 
-        selected_trade_ids = st.session_state.get(
-            "trade_list_selected_ids",
-            set()
-        )
-
         for trade in trades:
             trade["select"] = (
                 trade["trade_id"] in selected_trade_ids
             )
 
-
         #
         # Trade一覧
         #
+
         edited = st.data_editor(
             trades,
             width="stretch",
@@ -171,7 +202,6 @@ def trade_list():
                 "state",
                 "created_at",
             ],
-
 
             column_config={
                 "select": st.column_config.CheckboxColumn(
@@ -226,6 +256,7 @@ def trade_list():
             #
             # 編集禁止
             #
+
             disabled=[
                 "trade_id",
                 "symbol",
@@ -243,6 +274,7 @@ def trade_list():
         #
         # 選択Trade ID取得
         #
+
         selected_ids = [
             row["trade_id"]
             for row in edited
@@ -254,10 +286,16 @@ def trade_list():
             selected_ids
         )
 
-        selected_placeholder.markdown(f"選択 : {len(selected_ids)} 件")
+        selected_placeholder.markdown(
+            f"選択 : {len(selected_ids)} 件"
+        )
 
+        #
+        # Monitor
+        #
 
         with monitor_col:
+
             if st.button(
                 "👁 Monitor",
                 width="stretch",
@@ -273,46 +311,74 @@ def trade_list():
 
                 webbrowser.open_new_tab(url)
 
+        #
+        # Pause
+        #
+
         with pause_col:
+
             if st.button(
                 "⏸ Pause",
                 width="stretch",
                 disabled=len(selected_ids) == 0,
             ):
-                for trade_id in selected_ids:
-                    pause_trade(trade_id)
 
-                st.rerun()
+                list_button_action(
+                    pause_trade,
+                    selected_ids,
+                    f"PAUSE 完了",
+                )
+
+        #
+        # Resume
+        #
 
         with resume_col:
+
             if st.button(
                 "▶ Resume",
                 width="stretch",
                 disabled=len(selected_ids) == 0,
             ):
-                for trade_id in selected_ids:
-                    resume_trade(trade_id)
 
-                st.rerun()
+                list_button_action(
+                    resume_trade,
+                    selected_ids,
+                    f"RESUME 完了",
+                )
+
+        #
+        # Cancel
+        #
 
         with cancel_col:
+
             if st.button(
                 "❌ Cancel",
                 width="stretch",
                 disabled=len(selected_ids) == 0,
             ):
-                for trade_id in selected_ids:
-                    cancel_trade(trade_id)
 
-                st.rerun()
+                list_button_action(
+                    cancel_trade,
+                    selected_ids,
+                    f"CANCEL 完了",
+                )
+
+        #
+        # Delete
+        #
 
         with delete_col:
+
             if st.button(
                 "🗑 Delete",
                 width="stretch",
                 disabled=len(selected_ids) == 0,
             ):
-                for trade_id in selected_ids:
-                    delete_trade(trade_id)
 
-                st.rerun()
+                list_button_action(
+                    delete_trade,
+                    selected_ids,
+                    f"DELETE 完了",
+                )

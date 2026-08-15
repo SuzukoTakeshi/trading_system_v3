@@ -19,8 +19,10 @@
     "TRAIL": true,
     "BREAKEVEN": true,
 
-    "RSS PRICE": true,
+    "RSS PRICE": false,
     "PRICE WAIT": false,
+
+    "ORDER_WAIT": false,
 
     "description": {
         "EVENT": "重要イベント（起動・停止・状態遷移など）",
@@ -44,6 +46,8 @@
         "BREAKEVEN": "建値ストップ",
 
         "RSS PRICE": "楽天RSS価格更新",
-        "PRICE WAIT": "価格監視待機"
+        "PRICE WAIT": "価格監視待機",
+
+        "ORDER_WAIT": "注文待機中の定周期監視"
     }
 }

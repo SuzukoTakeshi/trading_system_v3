@@ -46,17 +46,21 @@ class ProcessAsset(ProcessBase):
     #
     def process(self, trade):
 
-        Log.event(f"ASSET PROCESS START (#{trade.id})")
+        Log.asset(trade.id, "PROCESS START")
 
         order = self.find_order(trade)
 
         if order is None:
             raise OrderNotFoundError(
-                message=f"ORDER NOT FOUND (#{trade.id})",
+                message=(
+                    f"ORDER NOT FOUND (#{trade.id}) "
+                    f"symbol={trade.param.symbol} "
+                    f"process=ProcessAsset.process"
+                ),
                 code="ORDER_NOT_FOUND",
             )
 
-        Log.event(f"ASSET ORDER (#{trade.id}) id={order.id} state={order.state.value}")
+        Log.asset(trade.id, f"ORDER id={order.id} state={order.state.value}")
 
         asset = self.store.load()
 
@@ -68,8 +72,8 @@ class ProcessAsset(ProcessBase):
         if profit_loss is not None:
             asset.profit_loss += profit_loss
 
-            Log.event(
-                f"ASSET PROFIT LOSS (#{trade.id}) order={order.id} "
+            Log.asset(trade.id,
+                f"PROFIT LOSS (@{order.id}) "
                 f"profit_loss={profit_loss} "
                 f"total={asset.profit_loss}"
             )
@@ -114,8 +118,6 @@ class ProcessAsset(ProcessBase):
 
         order.change_state(OrderState.CLOSED)
 
-        Log.event(f"ASSET UPDATE (#{trade.id}) order={order.id}")
-
         return True
 
 
@@ -124,9 +126,6 @@ class ProcessAsset(ProcessBase):
     #
 
     def update_asset(self, asset, order):
-
-        Log.event(f"ASSET UPDATE (#{order.trade.id}) order={order.id} result={order.result}")
-
         result = order.result
 
         if result is None:

@@ -74,6 +74,9 @@ class OrderListSheet(BaseSheet):
         if row is None:
             return None
 
+        # 調査用：Excelから取得した行をそのまま記録
+        Log.debug(f"ORDER LIST : {self.get_row_log(row)}")
+
         data = {
             "order_no": self.get_value(row, self.column_map[self.ORDER_NO_COLUMN]),
             "status": self.get_value(row, self.column_map[self.ORDER_STATUS_COLUMN]),

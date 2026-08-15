@@ -72,7 +72,7 @@ class TradeEngine:
     # persistence
     SAVE_INTERVAL_SEC = 0.5
 
-    PROC_STATE_LOG_INTERVAL_SEC = 10   # 10秒
+    PROC_STATE_LOG_INTERVAL_SEC = 0   # 0=無効
 
     def __init__(self):
 
@@ -159,6 +159,26 @@ class TradeEngine:
 
         self.thread.start()
 
+        # 起動判定完了待ち
+        start_time = time.time()
+
+        while self.state == EngineState.STARTING:
+
+            if time.time() - start_time >= 10.0:
+                self.running = False
+                self.state = EngineState.ERROR
+
+                self.last_error = "ENGINE_START_TIMEOUT"
+                self.last_message = "Trade Engineの起動がタイムアウトしました。"
+
+                Log.error(
+                    "TRADE ENGINE START TIMEOUT"
+                )
+
+                break
+
+            time.sleep(0.1)
+
 
     def stop(self):
         """
@@ -183,6 +203,9 @@ class TradeEngine:
         # 停止完了
         self.state = EngineState.STOPPED
 
+        self.last_message = "Trade Engineの停止が完了しました。"
+        Log.info("TRADE ENGINE STOPPED")
+
 
     def run(self):
         """
@@ -199,13 +222,15 @@ class TradeEngine:
                 for trade in self.context.trades.values()
             }
 
-            if symbols:
-                Log.event("MARKET SYNC")
-                self.market.sync_market(list(symbols))
+            Log.event("MARKET SYNC")
+            self.market.sync_market(list(symbols))
 
 
             # 稼働状態
             self.state = EngineState.RUNNING
+
+            self.last_message = "Trade Engineの起動が完了しました。"
+            Log.info("TRADE ENGINE STARTED")
 
             Log.event(f"TRADE ENGINE START (interval={self.interval}s)")
 
@@ -427,6 +452,8 @@ class TradeEngine:
         name単位で最終実行時間を管理し、
         指定間隔経過時のみTrueを返す。
         """
+        if interval <= 0:
+            return False
 
         now = time.time()
         last = self.cycle_times.get(name, 0)

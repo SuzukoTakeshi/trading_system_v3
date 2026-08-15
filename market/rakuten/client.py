@@ -26,7 +26,7 @@ from market.rakuten.sheets.order_list_sheet import OrderListSheet
 
 class RakutenClient:
 
-    def __init__(self, mode):
+    def __init__(self, mode="debug"):
         self.mode = mode
 
         system_config = Config.instance().data
@@ -176,16 +176,58 @@ class RakutenClient:
             "order_type": request_order_dto.order_type.value,
         }
 
-        result = self.order_sheet.request_order(request)
+        result, rss_result = self.order_sheet.request_order(request)
+        if not result:
+            return result, rss_result
 
-
-        if self.mode in ("simulator", "debug"):
-
-            order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
+        #
+        # 仮想注文結果の作成
+        #
+        # simulator:
+        #   常にDEBUG注文番号を作成
+        #
+        # debug:
+        #   order_enabled=false の場合だけ作成
+        #
+        if self.mode == "simulator":
+            order_no = self.order_id_list_sheet.debug_add_order(
+                request_order_dto.order_id
+            )
 
             self.order_list_sheet.debug_add_order(order_no, request)
 
+        elif (
+            self.mode == "debug"
+            and not self.debug_settings.get("order_enabled", False)
+        ):
+            order_no = self.order_id_list_sheet.debug_add_order(
+                request_order_dto.order_id
+            )
+
+            self.order_list_sheet.debug_add_order(order_no, request)
+
+        return True, ""
+
+
+    def run_macro(self, macro_name, *args):
+        """
+        Excel VBAマクロ実行
+
+        macro_name:
+            VBAマクロ名
+
+        args:
+            VBAマクロ引数
+        """
+
+        Log.debug(f"RUN MACRO name={macro_name} args={args}")
+
+        result = self.app.Run(macro_name, *args)
+
+        Log.debug(f"RUN MACRO RESULT name={macro_name} result={result}")
+
         return result
+
 
     #
     # 注文番号取得

@@ -37,12 +37,7 @@ class SymbolStore:
         if not self.FILE_PATH.exists():
             return
 
-        with open(
-            self.FILE_PATH,
-            "r",
-            encoding="utf-8",
-        ) as f:
-
+        with open(self.FILE_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
 
 
@@ -51,7 +46,6 @@ class SymbolStore:
         # codeをkeyにした辞書形式
         #
         for code, symbol in data.items():
-
             self.symbols[code] = symbol
 
     def get(self, code):

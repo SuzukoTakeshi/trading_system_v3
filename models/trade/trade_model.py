@@ -143,10 +143,7 @@ class TradeModel(BaseEntity):
             state=self.state.value,
         )
 
-        Log.event(
-            f"STATE CHANGE (#{self.id}) "
-            f"{old_state.value} -> {new_state.value}"
-        )
+        Log.state(self.id, old_state.value, new_state.value)
 
         return True
 

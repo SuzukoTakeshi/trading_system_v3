@@ -29,9 +29,12 @@ from core.logger import Log
 
 class Scenario:
 
-    def __init__(self, symbol=None):
+    def __init__(
+        self,
+        scenario_file=None
+    ):
 
-        self.symbol = symbol
+        self.scenario_file = scenario_file
 
         # Trade情報
         self.trade = None
@@ -54,142 +57,286 @@ class Scenario:
         self._load()
 
 
+    # ==================================================
     # JSON読込
+    # ==================================================
+
     def _load(self):
 
-        scenario_dir = Path(__file__).resolve().parent.parent / "scenarios"
+        scenario_dir = (
+            Path(__file__).resolve().parent.parent / "scenarios"
+        )
 
-        if self.symbol is not None:
-            path = scenario_dir / f"{self.symbol}.json"
+
+        # ------------------------------------------
+        # Scenarioファイル
+        # ------------------------------------------
+
+        if self.scenario_file:
+
+            path = scenario_dir / self.scenario_file
 
             if not path.exists():
-                raise FileNotFoundError(f"SCENARIO NOT FOUND : {path.name}")
+
+                raise FileNotFoundError(
+                    f"SCENARIO NOT FOUND : {path}"
+                )
 
         else:
+
             path = scenario_dir / "default.json"
 
             if not path.exists():
-                raise FileNotFoundError("SCENARIO NOT FOUND : default.json")
+
+                raise FileNotFoundError(
+                    f"SCENARIO NOT FOUND : {path}"
+                )
 
 
-        with open(path, "r", encoding="utf-8") as f:
+        # ------------------------------------------
+        # JSON読込
+        # ------------------------------------------
+
+        with open(
+            path,
+            "r",
+            encoding="utf-8"
+        ) as f:
+
             data = json.load(f)
 
 
+        # ------------------------------------------
         # Trade
+        # ------------------------------------------
+
         self.trade = data.get("trade")
 
 
+        # ------------------------------------------
         # Market
-        market = data.get("market", {})
+        # ------------------------------------------
 
-        self.mode = market.get("mode", "scenario")
-        self.interval = market.get("interval", 0.5)
+        market = data.get(
+            "market",
+            {}
+        )
 
+        self.mode = market.get(
+            "mode",
+            "scenario"
+        )
+
+        self.interval = market.get(
+            "interval",
+            0.5
+        )
+
+
+        # ------------------------------------------
+        # Scenario mode
+        # ------------------------------------------
 
         if self.mode == "scenario":
-            self.scenario = market.get("scenario", [])
+
+            self.scenario = market.get(
+                "scenario",
+                []
+            )
+
+
+        # ------------------------------------------
+        # Random mode
+        # ------------------------------------------
 
         elif self.mode == "random":
-            self.range = market.get("range")
+
+            self.range = market.get(
+                "range"
+            )
+
+            if not self.range:
+
+                raise ValueError(
+                    "RANDOM SCENARIO RANGE NOT FOUND"
+                )
+
+
+        # ------------------------------------------
+        # Unknown mode
+        # ------------------------------------------
 
         else:
-            raise ValueError(f"UNKNOWN SCENARIO MODE : {self.mode}")
 
+            raise ValueError(
+                f"UNKNOWN SCENARIO MODE : {self.mode}"
+            )
+
+
+        # ------------------------------------------
+        # 初期価格
+        # ------------------------------------------
 
         if self.trade:
-            self.current_price = self.trade["price"]
+
+            self.current_price = float(
+                self.trade["price"]
+            )
 
 
-        name = self.symbol if self.symbol is not None else "DEFAULT"
+        # ------------------------------------------
+        # Log
+        # ------------------------------------------
 
-        Log.emulator(f"SCENARIO LOAD {name} : {path.name}")
+        Log.emulator(
+            f"SCENARIO LOAD : {path.name}"
+        )
 
 
+    # ==================================================
     # Trade取得
+    # ==================================================
+
     def get_trade(self):
+
         return self.trade
 
 
+    # ==================================================
     # 価格取得
+    # ==================================================
+
     def get_price(self):
 
         if self.finished:
             return None
 
+
         if self.mode == "scenario":
+
             return self._get_scenario_price()
 
+
         if self.mode == "random":
+
             return self._get_random_price()
+
 
         return None
 
 
+    # ==================================================
     # Scenario command処理
+    # ==================================================
+
     def _get_scenario_price(self):
 
         while self.index < len(self.scenario):
 
             command = self.scenario[self.index]
+
             self.index += 1
 
 
+            # --------------------------------------
             # comment
+            # --------------------------------------
+
             if "comment" in command:
 
                 comment = command["comment"]
 
-                if isinstance(comment, list):
+
+                if isinstance(
+                    comment,
+                    list
+                ):
+
                     for line in comment:
-                        Log.emulator(f"SCENARIO : {line}")
+
+                        Log.emulator(
+                            f"SCENARIO : {line}"
+                        )
 
                 else:
-                    Log.emulator(f"SCENARIO : {comment}")
+
+                    Log.emulator(
+                        f"SCENARIO : {comment}"
+                    )
+
 
                 continue
 
 
+            # --------------------------------------
             # sleep
+            # --------------------------------------
+
             if "sleep" in command:
 
-                sec = float(command["sleep"])
+                sec = float(
+                    command["sleep"]
+                )
 
-                Log.emulator(f"SCENARIO SLEEP : {sec}s")
+                Log.emulator(
+                    f"SCENARIO SLEEP : {sec}s"
+                )
 
                 time.sleep(sec)
 
                 continue
 
 
+            # --------------------------------------
             # price
+            # --------------------------------------
+
             if "price" in command:
 
-                self.current_price = float(command["price"])
+                self.current_price = float(
+                    command["price"]
+                )
 
                 return self.current_price
 
 
+            # --------------------------------------
             # end
+            # --------------------------------------
+
             if "end" in command:
 
-                Log.emulator(f"SCENARIO END {self.symbol}")
+                Log.emulator(
+                    f"SCENARIO END : "
+                    f"{self.scenario_file}"
+                )
 
                 self.finished = True
 
                 return None
 
 
+        # ------------------------------------------
+        # Scenario command終了
+        # ------------------------------------------
+
         if not self.finished:
 
-            Log.emulator(f"SCENARIO END {self.symbol}")
+            Log.emulator(
+                f"SCENARIO END : "
+                f"{self.scenario_file}"
+            )
 
             self.finished = True
+
 
         return None
 
 
+    # ==================================================
     # Random価格生成
+    # ==================================================
+
     def _get_random_price(self):
 
         delta = random.uniform(
@@ -197,9 +344,13 @@ class Scenario:
             self.range["max"]
         )
 
+
         self.current_price = round(
             self.current_price + delta,
             2
         )
 
-        return float(self.current_price)
+
+        return float(
+            self.current_price
+        )
