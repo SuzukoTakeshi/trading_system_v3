@@ -61,6 +61,32 @@ class OrderListSheet(BaseSheet):
         )
 
 
+    def get_order_list_data(self, order_no):
+        """
+        注文番号に対応する注文一覧シートの
+        1行分の生データを取得
+
+        return:
+            1行分のデータ(tuple)
+            見つからない場合はNone
+        """
+
+        row = self.find_row(
+            self.column_map[self.ORDER_NO_COLUMN],
+            str(order_no)
+        )
+
+        if row is None:
+            return None
+
+        data = self.get_row_data(row)
+
+        # 調査用：取得したExcel行をそのまま記録
+        Log.debug(f"ORDER LIST : {self.get_row_log(data)}")
+
+        return data
+
+
     def get_order_result(self, order_no):
         """
         注文結果取得
@@ -73,9 +99,6 @@ class OrderListSheet(BaseSheet):
 
         if row is None:
             return None
-
-        # 調査用：Excelから取得した行をそのまま記録
-        Log.debug(f"ORDER LIST : {self.get_row_log(row)}")
 
         data = {
             "order_no": self.get_value(row, self.column_map[self.ORDER_NO_COLUMN]),

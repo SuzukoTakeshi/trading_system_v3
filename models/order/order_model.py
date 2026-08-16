@@ -60,7 +60,7 @@ class OrderModel(BaseEntity):
         #
         self.order_type = order_type
 
-        # 楽天注文番号
+        # 注文番号
         #
         # 発注後、OrderIDListから取得
         #
@@ -80,6 +80,25 @@ class OrderModel(BaseEntity):
         # OrderListから取得した結果
         #
         self.result: OrderResultModel | None = None
+
+
+        # 発注ID一覧シートの生データ
+        #
+        # RssOrderIDListから取得
+        #
+        self.order_id_sheet_data = None
+
+        # 注文一覧シートの生データ
+        #
+        # RssOrderListから取得
+        #
+        self.order_list_sheet_data = None
+
+        # 取消Order ID
+        #
+        # このOrderを取り消すために生成したOrderのID
+        #
+        self.cancel_order_id = None
 
 
     def change_state(self, new_state):
@@ -134,11 +153,15 @@ class OrderModel(BaseEntity):
                 else None
             ),
 
-            # 証券会社注文番号
+            # 注文番号
             "order_no": self.order_no,
 
             # 状態
             "state": self.state.value,
+
+            "order_id_sheet_data": self.order_id_sheet_data,
+            "order_list_sheet_data": self.order_list_sheet_data,
+            "cancel_order_id": self.cancel_order_id,
         })
 
         return data

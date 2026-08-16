@@ -73,7 +73,8 @@ class OrderSheet(BaseSheet):
         self.ws.Cells(row, self.column_map[self.TIME_COLUMN]).Value = datetime.now()
 
         # 調査用
-        Log.debug(f"ORDER SHEET : {self.get_row_log(row)}")
+        row_data = self.get_row_data(row)
+        Log.debug(f"ORDER SHEET : {self.get_row_log(row_data)}")
 
         if self.is_real():
             result, rss_result = self._submit_real(request)

@@ -87,7 +87,6 @@ class ProcessOrderBase(ProcessBase):
                 f"order_type={order.order_type.value}"
             )
         )
-
         return order
 
 
@@ -95,6 +94,7 @@ class ProcessOrderBase(ProcessBase):
     # 発注処理
     #
     def request_order(self, trade, order):
+
         request = OrderRequestDTO(
             order_id=order.id,
             symbol=order.symbol,

@@ -154,7 +154,6 @@ class RakutenMarket:
         """
         発注依頼
         """
-
         request = {
             "order_id": request_order_dto.order_id,
             "symbol": request_order_dto.symbol,
@@ -177,8 +176,10 @@ class RakutenMarket:
         }
 
         result, rss_result = self.order_sheet.request_order(request)
+
         if not result:
             return result, rss_result
+
 
         #
         # 仮想注文結果の作成
@@ -190,9 +191,7 @@ class RakutenMarket:
         #   order_enabled=false の場合だけ作成
         #
         if self.mode == "simulator":
-            order_no = self.order_id_list_sheet.debug_add_order(
-                request_order_dto.order_id
-            )
+            order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
 
             self.order_list_sheet.debug_add_order(order_no, request)
 
@@ -200,9 +199,7 @@ class RakutenMarket:
             self.mode == "debug"
             and not self.debug_settings.get("order_enabled", False)
         ):
-            order_no = self.order_id_list_sheet.debug_add_order(
-                request_order_dto.order_id
-            )
+            order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
 
             self.order_list_sheet.debug_add_order(order_no, request)
 
@@ -228,6 +225,16 @@ class RakutenMarket:
 
         return result
 
+    #
+    # 発注ID一覧データ取得
+    #
+    # return: 発注ID一覧の1行分データ
+    #
+    def get_order_id_data(self, order_id):
+        """
+        発注ID一覧データ取得
+        """
+        return self.order_id_list_sheet.get_order_id_data(order_id)
 
     #
     # 注文番号取得
@@ -238,8 +245,20 @@ class RakutenMarket:
         """
         注文番号取得
         """
-
         return self.order_id_list_sheet.get_order_no(order_id)
+
+
+    #
+    # 注文一覧データ取得
+    #
+    # return: 注文一覧の1行分データ
+    #
+    def get_order_list_data(self, order_no):
+        """
+        注文一覧データ取得
+        """
+        return self.order_list_sheet.get_order_list_data(order_no)
+
 
     #
     # 約定確認
@@ -250,5 +269,4 @@ class RakutenMarket:
         """
         注文結果取得
         """
-
         return self.order_list_sheet.get_order_result(order_no)

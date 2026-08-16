@@ -46,7 +46,13 @@ class ProcessOrderRequest(ProcessOrderBase):
                     order.change_state(OrderState.SUBMITTED)
 
                 case OrderState.SUBMITTED:
+                    order.order_id_sheet_data = self.market.get_order_id_data(order.id)
+                    if order.order_id_sheet_data is None:
+                        return False
+
                     order.order_no = self.market.get_order_no(order.id)
+                    if order.order_no is None:
+                        return False
 
                     order.change_state(OrderState.REQUESTED)
 

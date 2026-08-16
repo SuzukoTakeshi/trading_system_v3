@@ -29,6 +29,34 @@ class OrderIDListSheet(BaseSheet):
         super().__init__(client, ws, mode=mode, header_row=2)
 
 
+    def get_order_id_data(self, order_id):
+        """
+        発注IDに対応する発注ID一覧シートの
+        1行分の生データを取得
+
+        return:
+            1行分のデータ(tuple)
+            見つからない場合はNone
+        """
+
+        column = self.column_map[self.ORDER_ID_COLUMN]
+
+        row = self.find_row(
+            column,
+            order_id
+        )
+
+        if row is None:
+            return None
+
+        data = self.get_row_data(row)
+
+        # 調査用：取得したExcel行をそのまま記録
+        Log.debug(f"ORDER ID LIST : {self.get_row_log(data)}")
+
+        return data
+
+
     def get_order_no(self, order_id):
         """
         注文番号取得
@@ -40,9 +68,6 @@ class OrderIDListSheet(BaseSheet):
         row = self.find_row(column, order_id)
         if row is None:
             return None
-
-        # 調査用：取得したExcel行をそのまま記録
-        Log.debug(f"ORDER ID LIST : {self.get_row_log(row)}")
 
         result = self.get_value(row, self.column_map[self.ORDER_RESULT_COLUMN])
 

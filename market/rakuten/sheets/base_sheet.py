@@ -317,33 +317,54 @@ class BaseSheet:
         return self.normalize_value(value)
 
 
-    def get_row_log(self, row):
+    def get_row_data(self, row):
         """
-        指定行を調査用ログ文字列として取得
+        指定行を一括取得
 
         return:
-            カンマ区切り文字列
+            1行分のデータをtupleで返す
         """
 
         self.validate_row(row)
 
         max_column = self.ws.UsedRange.Columns.Count
 
-        values = []
+        start_cell = f"A{row}"
+        end_cell = f"{self.get_column_letter(max_column)}{row}"
 
-        for column in range(1, max_column + 1):
+        values = self.ws.Range(
+            start_cell,
+            end_cell
+        ).Value
 
-            value = self.ws.Cells(
-                row,
-                column
-            ).Value
+        if values is None:
+            return None
 
-            value = self.normalize_value(value)
+        # Range.Value は1行でも
+        # ((value1, value2, ...),)
+        # になるため、内側のtupleを返す
+        return tuple(
+            self.normalize_value(value)
+            for value in values[0]
+        )
 
-            values.append(value)
 
+    def get_row_log(self, row_data):
+        """
+        取得済みの1行データを
+        調査用ログ文字列へ変換
+
+        row_data:
+            get_row_data()で取得した1行分のデータ
+
+        return:
+            カンマ区切り文字列
+        """
+
+        if row_data is None:
+            return ""
 
         return ",".join(
             "" if value is None else str(value)
-            for value in values
+            for value in row_data
         )

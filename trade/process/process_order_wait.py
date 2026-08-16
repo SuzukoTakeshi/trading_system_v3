@@ -46,6 +46,11 @@ class ProcessOrderWait(ProcessBase):
         if order.state == OrderState.REQUESTED:
             Log.trace("ORDER_WAIT", f"(#{trade.id}) order_id={order.id} state={order.state.name}")
 
+            order.order_list_sheet_data = self.market.get_order_list_data(order.order_no)
+            if order.order_list_sheet_data is None:
+                return False
+
+
             result, result_dto = self.market.get_order_result(order.order_no)
 
             if result:

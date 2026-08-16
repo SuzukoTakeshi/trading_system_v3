@@ -42,6 +42,14 @@ class SystemError(Exception):
         self.message = message
         self.code = code
 
+
+class StoreError(SystemError):
+    """
+    Store関連エラー
+    """
+    pass
+
+
 # ==================================================
 # Excel Error
 # ==================================================
@@ -188,6 +196,21 @@ class OrderNotFoundError(OrderError):
 class AssetError(SystemError):
     """
     Asset関連エラー
+    """
+    pass
+
+class AssetSyncStoreError(AssetError):
+    """
+    Asset Sync Storeエラー
+
+    原因:
+        ・asset_sync.jsonのJSON形式不正
+        ・asset_sync.jsonのデータ型不正
+        ・Asset Sync保存データ不正
+
+    発生箇所:
+        AssetSyncStore.load()
+        AssetSyncStore.save()
     """
     pass
 
