@@ -9,7 +9,7 @@
 #   ・シート取得
 #
 # 注意：
-#   ・本体RakutenClientとは独立
+#   ・本体RakutenMarketとは独立
 #
 
 import os

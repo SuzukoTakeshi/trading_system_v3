@@ -20,7 +20,7 @@ class ProcessTrailingBase(ProcessBase):
     def __init__(self, context, market):
         super().__init__(context, market)
 
-        Log.debug("CREATE ProcessTrailingBase")
+        Log.create("ProcessTrailingBase")
 
     def process(self, trade):
 
@@ -46,9 +46,7 @@ class ProcessTrailingBase(ProcessBase):
 
             self.init_trailing(trade, price)
 
-            Log.event(
-                f"INITIAL TRAILING (#{trade.id}) entry={trade.runtime.entry_price} stop={trade.runtime.stop_price}"
-            )
+            Log.trailing(trade.id, f"INITIAL TRAILING entry={trade.runtime.entry_price} stop={trade.runtime.stop_price}")
             trade.add_timeline(
                 type="TRAILING",
                 message=f"INITIAL entry={trade.runtime.entry_price} stop={trade.runtime.stop_price}"
@@ -108,7 +106,7 @@ class ProcessTrailingBase(ProcessBase):
 
         if datetime.now() >= limit_time:
 
-            Log.event(f"TIME EXIT (#{trade.id})")
+            Log.trailing(trade.id, f"TIME EXIT")
 
             trade.runtime.exit_price = self.price
             trade.runtime.exit_time = datetime.now()
@@ -132,19 +130,13 @@ class ProcessTrailingBase(ProcessBase):
         if not trade.param.close_enabled:
             return False
 
-        close_time = datetime.strptime(
-            trade.param.close_time,
-            "%H:%M"
-        ).time()
+        close_time = datetime.strptime(trade.param.close_time, "%H:%M").time()
 
         now = datetime.now()
 
         if now.time() >= close_time:
 
-            Log.event(
-                f"CLOSE TIME EXIT (#{trade.id}) "
-                f"time={trade.param.close_time}"
-            )
+            Log.trailing(trade.id, f"CLOSE TIME EXIT time={trade.param.close_time}")
 
             trade.runtime.exit_price = self.price
             trade.runtime.exit_time = datetime.now()
@@ -152,9 +144,7 @@ class ProcessTrailingBase(ProcessBase):
 
             trade.add_timeline(
                 type="EXIT",
-                message=(
-                    f"CLOSE TIME {trade.param.close_time}"
-                )
+                message=f"CLOSE TIME {trade.param.close_time}"
             )
 
             return True

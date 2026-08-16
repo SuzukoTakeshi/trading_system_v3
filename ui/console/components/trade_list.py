@@ -32,11 +32,7 @@ from ui.api.client import (
 )
 
 
-def list_button_action(
-    action,
-    trade_ids,
-    success_message,
-):
+def list_button_action(action, trade_ids, success_message):
     """
     Trade List ボタン共通処理
 
@@ -47,7 +43,6 @@ def list_button_action(
     """
 
     try:
-
         for trade_id in trade_ids:
             action(trade_id)
 
@@ -131,6 +126,8 @@ def trade_list():
                     EVENT_LABEL_UNKNOWN
                 )
 
+            row["message"] = row.get("message", "")
+
             # 登録日時
             row["created_at"] = fmt_dt(
                 row.get("created_at")
@@ -152,6 +149,7 @@ def trade_list():
                     "trade_type": "",
                     "side": "",
                     "state": "",
+                    "message": "",
                     "created_at": "",
                 }
             ]
@@ -200,6 +198,7 @@ def trade_list():
                 "trade_type",
                 "side",
                 "state",
+                "message",
                 "created_at",
             ],
 
@@ -247,6 +246,10 @@ def trade_list():
                     "状態",
                     width="medium",
                 ),
+                "message": st.column_config.TextColumn(
+                    "メッセージ",
+                    width="large",
+                ),
                 "created_at": st.column_config.TextColumn(
                     "登録日時",
                     width="medium",
@@ -267,6 +270,7 @@ def trade_list():
                 "trade_type",
                 "side",
                 "state",
+                "message",
                 "created_at",
             ],
         )

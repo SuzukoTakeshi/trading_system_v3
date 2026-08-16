@@ -1,7 +1,7 @@
 #
-# market/rakuten/client.py
+# market/rakuten/market.py
 #
-# Rakuten RSS Client
+# Rakuten Market
 #
 # 役割:
 #   ・楽天RSS Excelへの接続
@@ -24,7 +24,7 @@ from market.rakuten.sheets.order_id_list_sheet import OrderIDListSheet
 from market.rakuten.sheets.order_list_sheet import OrderListSheet
 
 
-class RakutenClient:
+class RakutenMarket:
 
     def __init__(self, mode="debug"):
         self.mode = mode

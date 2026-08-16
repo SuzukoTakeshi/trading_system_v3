@@ -20,17 +20,18 @@
 #   ・trace()      ：開発・調査用ログ（log_idで個別制御）
 #
 #   [機能別]
-#   ・emulator()   ：Emulator関連
+#   ・create()     ：クラス生成
 #   ・state()      ：状態変更
+#   ・trailing()   ：Trailing情報
 #   ・asset()      ：資産処理
 
+#   ・emulator()   ：Emulator関連
 
 #   ・flow()       ：処理経路確認
 #   ・check()      ：判定・条件確認
 #   ・trade()      ：売買情報
 #   ・order()      ：注文処理
 #   ・execution()  ：約定処理
-#   ・trail()      ：Trailing Stop情報
 #   ・breakeven()  ：BreakEven情報
 #   ・rss_price()  ：楽天RSS価格更新
 #
@@ -46,15 +47,18 @@
 #   ・trace()指定 ：開発・調査用
 #
 #   [機能別]
-#   ・EMULATOR    ：Emulator専用
+#   ・CREATE      ：クラス生成
 #   ・STATE       ：状態変更
+#   ・TRAILING    ：Trailing
+#   ・ASSET       ：資産処理
+
+#   ・EMULATOR    ：Emulator専用
 
 #   ・FLOW        ：処理経路確認
 #   ・CHECK       ：判定確認
 #   ・TRADE       ：売買情報
 #   ・ORDER       ：注文処理
 #   ・EXECUTION   ：約定処理
-#   ・TRAIL       ：Trailing Stop
 #   ・BREAKEVEN   ：BreakEven
 #   ・RSS PRICE   ：楽天RSS価格
 #
@@ -96,7 +100,9 @@ class Log:
         "ERROR": Fore.RED,
         "DEBUG": Fore.LIGHTBLACK_EX,
 
-        "STATE": Fore.BLUE,
+        "CREATE": Fore.GREEN,
+        "STATE": Fore.YELLOW,
+        "TRAILING": Fore.BLUE,
         "ASSET": Fore.MAGENTA,
 
         "EMULATOR": Fore.MAGENTA,
@@ -106,7 +112,6 @@ class Log:
         "TRADE": Fore.GREEN,
         "ORDER": Fore.MAGENTA,
         "EXECUTION": Fore.GREEN,
-        "TRAIL": Fore.BLUE,
         "BREAKEVEN": Fore.MAGENTA,
         "RSS PRICE": Fore.LIGHTBLUE_EX,
     }
@@ -263,6 +268,13 @@ class Log:
         cls._write_log("DEBUG", *args)
 
     # ========================
+    # CREATE
+    # ========================
+    @classmethod
+    def create(cls, class_name, *args):
+        cls._write_log("CREATE", class_name, *args)
+
+    # ========================
     # STATE
     #
     # 状態変更
@@ -270,6 +282,15 @@ class Log:
     @classmethod
     def state(cls, trade_id, old, new):
         cls._write_log("STATE", f"(#{trade_id}) {old} -> {new}")
+
+    # ========================
+    # TRAILING
+    #
+    # Trailing情報
+    # ========================
+    @classmethod
+    def trailing(cls, trade_id, *args):
+        cls._write_log("TRAILING", f"(#{trade_id})", *args)
 
     # ========================
     # ASSET
@@ -372,13 +393,6 @@ class Log:
     @classmethod
     def execution(cls, *args):
         cls._write_log("EXECUTION", *args)
-
-    # ========================
-    # TRAIL
-    # ========================
-    @classmethod
-    def trail(cls, symbol, stop):
-        cls._write_log("TRAIL", symbol, f"stop={stop:.2f}")
 
     # ========================
     # BREAKEVEN

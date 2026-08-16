@@ -19,24 +19,16 @@ class ProcessEntryPullback(ProcessBase):
     def __init__(self, context, market):
         super().__init__(context, market)
 
-        self.long = ProcessEntryPullbackLong(
-            context,
-            market
-        )
+        Log.create("ProcessEntryPullback")
 
-        self.short = ProcessEntryPullbackShort(
-            context,
-            market
-        )
+        self.long = ProcessEntryPullbackLong(context, market)
 
-        Log.debug("CREATE ProcessEntryPullback")
+        self.short = ProcessEntryPullbackShort(context, market)
 
 
     def process(self, trade):
 
-        quote = self.context.cache.quotes.get(
-            trade.param.symbol
-        )
+        quote = self.context.cache.quotes.get(trade.param.symbol)
 
         if quote is None:
             return False

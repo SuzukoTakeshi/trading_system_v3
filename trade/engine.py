@@ -429,10 +429,15 @@ class TradeEngine:
                     case TradeState.COMPLETED:
                         self.process_complated.process(trade)
 
-            # 後で検討　★★★★★★
             except Exception as e:
+                trade.error_message = str(e)
+
+                trade.change_state(TradeState.ERROR)
+
                 Log.error(
-                    f"ProcessOrderRequest Exception: {type(e).__name__}: {e}"
+                    f"(#{trade.id}) "
+                    f"Trade Process Exception "
+                    f"{type(e).__name__}: {e}"
                 )
 
 

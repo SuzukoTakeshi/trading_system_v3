@@ -21,14 +21,12 @@ class ProcessEntryWait(ProcessBase):
     def __init__(self, context, market):
         super().__init__(context, market)
 
-        Log.debug("CREATE ProcessEntryWait")
+        Log.create("ProcessEntryWait")
 
 
     def process(self, trade):
 
-        quote = self.context.cache.quotes.get(
-            trade.param.symbol
-        )
+        quote = self.context.cache.quotes.get(trade.param.symbol)
 
         if quote is None:
             return False

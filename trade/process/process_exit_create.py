@@ -20,10 +20,9 @@ from trade.process.process_order_base import ProcessOrderBase
 class ProcessExitCreate(ProcessOrderBase):
 
     def __init__(self, context, market):
-
         super().__init__(context, market)
 
-        Log.debug("CREATE ProcessExitCreate")
+        Log.create("ProcessExitCreate")
 
 
     def process(self, trade):

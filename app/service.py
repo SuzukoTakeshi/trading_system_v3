@@ -268,6 +268,7 @@ class AppService:
                 "side": trade["side"],
                 "strategy": trade["strategy"],
                 "state": trade["state"],
+                "message": trade["message"],
 
                 "pause_flag": trade["pause_flag"],
 

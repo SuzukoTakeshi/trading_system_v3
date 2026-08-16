@@ -11,7 +11,7 @@
 from core.logger import Log
 
 from market.order_enums import OrderResultStatus
-from market.rakuten.client import RakutenClient
+from market.rakuten.market import RakutenMarket
 
 from models.order.order_result_model import OrderResultModel
 
@@ -21,8 +21,8 @@ class MarketService:
     def __init__(self, mode):
         self.mode = mode
 
-        # Client
-        self.client = RakutenClient(self.mode)
+        # Market
+        self.market = RakutenMarket(self.mode)
 
 
     def open(self):
@@ -35,7 +35,7 @@ class MarketService:
 
         Log.event("MARKET OPEN")
 
-        self.client.open()
+        self.market.open()
 
 
     def close(self):
@@ -47,15 +47,15 @@ class MarketService:
 
         Log.event("MARKET CLOSE")
 
-        self.client.close()
+        self.market.close()
 
 
     def sync_market(self, symbols):
-        self.client.sync_quotes(symbols)
+        self.market.sync_quotes(symbols)
 
 
     def get_quote(self, symbol):
-        return self.client.get_quote(symbol)
+        return self.market.get_quote(symbol)
 
 
     def request_order(self, request_dto):
@@ -66,7 +66,7 @@ class MarketService:
         ・Trade層とはDTOで分離
         """
 
-        return self.client.request_order(request_dto)
+        return self.market.request_order(request_dto)
 
 
     def get_order_no(self, order_id):
@@ -77,7 +77,7 @@ class MarketService:
         ・Trade層とはDTOで分離
         """
 
-        return self.client.get_order_no(order_id)
+        return self.market.get_order_no(order_id)
 
 
     def get_order_result(self, order_no):
@@ -85,7 +85,7 @@ class MarketService:
         注文結果取得
         """
 
-        data = self.client.get_order_result(order_no)
+        data = self.market.get_order_result(order_no)
         if data is None:
             raise Exception(
                 f"ORDER RESULT NOT FOUND order_no={order_no}"

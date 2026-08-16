@@ -23,7 +23,7 @@ class ProcessOrderRequest(ProcessOrderBase):
     def __init__(self, context, market):
         super().__init__(context, market)
 
-        Log.debug("CREATE ProcessOrderRequest")
+        Log.create("ProcessOrderRequest")
 
     def process(self, trade):
 

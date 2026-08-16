@@ -21,14 +21,9 @@ from trade.process.process_entry_base import ProcessEntryBase
 class ProcessEntryReversalLong(ProcessEntryBase):
 
     def __init__(self, context, market):
+        super().__init__(context, market)
 
-        super().__init__(
-            context,
-            market
-        )
-
-        Log.debug("CREATE ProcessEntryReversalLong")
-
+        Log.create("ProcessEntryReversalLong")
 
     #
     # Process入口
@@ -37,9 +32,7 @@ class ProcessEntryReversalLong(ProcessEntryBase):
     #
     def process(self, trade, quote):
 
-        #
         # 共通初期処理
-        #
         self.process_base(trade, quote)
 
         # 現在価格
@@ -68,22 +61,19 @@ class ProcessEntryReversalLong(ProcessEntryBase):
             Log.debug(f"REVERSAL ENTRY LONG (#{trade.id}) count={trade.runtime.entry_reversal_count}")
             self.add_entry_timeline(f"REVERSAL ENTRY LONG count={trade.runtime.entry_reversal_count}")
 
-        #
         # 前回価格更新
-        #
         trade.runtime.entry_previous_price = price
 
-
-        #
         # 反転確定確認
-        #
         if (
             trade.runtime.entry_reversal_count
             >=
             cfg["reversal_confirm_count"]
         ):
+            # 現在、約定価格が取得できていないので、現在価格を約定価格として格納している。
+            # ※約定価格をセットしないと、資産反映(ProcessAsset)でエラーｔろなる。
+            # [ERROR] (#373) Trade Process Exception TypeError: unsupported operand type(s) for *: 'NoneType' and 'int'
 
-            # Debug/約定予定価格
             trade.runtime.entry_execution_price = price
 
             Log.event(

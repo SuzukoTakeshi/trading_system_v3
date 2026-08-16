@@ -120,6 +120,8 @@ class ProcessOrderBase(ProcessBase):
             )
 
         else:
+            trade.message = error_message
+
             order.change_state(OrderState.ERROR)
 
             trade.change_state(TradeState.ERROR)

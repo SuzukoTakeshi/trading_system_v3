@@ -1,15 +1,15 @@
-from market.rakuten.client import RakutenClient
-from market.rakuten.quote_sheet import QuoteSheet
+from market.rakuten.market import RakutenMarket
+from market.rakuten.sheets.quote_sheet import QuoteSheet
 
 
 def main():
 
-    client = RakutenClient()
+    market = RakutenMarket()
 
     try:
-        client.open()
+        market.open()
 
-        ws = client.get_sheet("Quotes")
+        ws = market.get_sheet("Quotes")
 
         quote = QuoteSheet(ws)
 
@@ -19,7 +19,7 @@ def main():
             print(symbol, price)
 
     finally:
-        client.close()
+        market.close()
 
 
 if __name__ == "__main__":

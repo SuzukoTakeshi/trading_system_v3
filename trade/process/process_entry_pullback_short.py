@@ -24,13 +24,9 @@ from trade.process.process_entry_base import ProcessEntryBase
 class ProcessEntryPullbackShort(ProcessEntryBase):
 
     def __init__(self, context, market):
+        super().__init__(context, market)
 
-        super().__init__(
-            context,
-            market
-        )
-
-        Log.debug("CREATE ProcessEntryPullbackShort")
+        Log.create("ProcessEntryPullbackShort")
 
 
     #
@@ -40,13 +36,8 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
     #
     def process(self, trade, quote):
 
-        #
         # 共通初期処理
-        #
-        self.process_base(
-            trade,
-            quote
-        )
+        self.process_base(trade, quote)
 
         # 現在価格
         price = self.quote.price
@@ -54,47 +45,24 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
         # Entry設定
         cfg = self.get_entry_config()
 
-
-        #
         # 戻り幅計算
-        #
-        pullback_width = (
-            trade.param.atr
-            *
-            cfg["pullback_atr_multiplier"]
-        )
+        pullback_width = (trade.param.atr * cfg["pullback_atr_multiplier"])
 
-
-        #
         # 戻り判定ライン
-        #
-        pullback_price = (
-            trade.param.price
-            +
-            pullback_width
-        )
+        pullback_price = (trade.param.price + pullback_width)
 
-
-        #
         # 初回戻り確認
-        #
         if trade.runtime.entry_highest_price is None:
 
             if price >= pullback_price:
 
-                #
                 # 戻り開始情報保存
-                #
                 trade.runtime.entry_highest_price = price
 
                 trade.runtime.entry_previous_price = price
 
-
-                #
                 # Entry状態更新
-                #
                 trade.entry_state = EntryState.PULLBACK
-
 
                 Log.event(
                     f"PULLBACK ENTRY SHORT (#{trade.id}) "

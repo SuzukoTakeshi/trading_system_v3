@@ -24,13 +24,9 @@ from trade.process.process_entry_base import ProcessEntryBase
 class ProcessEntryPullbackLong(ProcessEntryBase):
 
     def __init__(self, context, market):
+        super().__init__(context, market)
 
-        super().__init__(
-            context,
-            market
-        )
-
-        Log.debug("CREATE ProcessEntryPullbackLong")
+        Log.create("ProcessEntryPullbackLong")
 
 
     #
@@ -40,13 +36,8 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
     #
     def process(self, trade, quote):
 
-        #
         # 共通初期処理
-        #
-        self.process_base(
-            trade,
-            quote
-        )
+        self.process_base(trade, quote)
 
         # 現在価格
         price = self.quote.price
@@ -54,56 +45,31 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
         # Entry設定
         cfg = self.get_entry_config()
 
-
-        #
         # 押し込み幅計算
-        #
-        pullback_width = (
-            trade.param.atr
-            *
-            cfg["pullback_atr_multiplier"]
-        )
+        pullback_width = (trade.param.atr * cfg["pullback_atr_multiplier"])
 
-
-        #
         # 押し込み判定ライン
-        #
-        pullback_price = (
-            trade.param.price
-            -
-            pullback_width
-        )
+        pullback_price = (trade.param.price - pullback_width)
 
-
-        #
         # 初回押し込み確認
-        #
         if trade.runtime.entry_lowest_price is None:
 
             if price <= pullback_price:
 
-                #
                 # 押し込み開始情報保存
-                #
                 trade.runtime.entry_lowest_price = price
 
                 trade.runtime.entry_previous_price = price
 
-
-                #
                 # Entry状態更新
-                #
                 trade.entry_state = EntryState.PULLBACK
-
 
                 Log.event(
                     f"PULLBACK ENTRY LONG (#{trade.id}) "
                     f"{trade.param.symbol} "
                     f"price={price}"
                 )
-                self.add_entry_timeline(
-                    f"PULLBACK ENTRY LONG price={price}"
-                )
+                self.add_entry_timeline(f"PULLBACK ENTRY LONG price={price}")
 
             return False
 
@@ -141,7 +107,6 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
             and
             price > trade.runtime.entry_previous_price
         ):
-
             Log.event(
                 f"PULLBACK END LONG (#{trade.id}) "
                 f"{trade.param.symbol} "

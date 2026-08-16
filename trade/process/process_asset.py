@@ -35,7 +35,7 @@ class ProcessAsset(ProcessBase):
     def __init__(self, context, market):
         super().__init__(context, market)
 
-        Log.debug("CREATE ProcessAsset")
+        Log.create("ProcessAsset")
 
         self.store = AssetStore()
         self.sync_store = AssetSyncStore()

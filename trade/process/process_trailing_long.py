@@ -22,7 +22,7 @@ class ProcessTrailingLong(ProcessTrailingBase):
     def __init__(self, context, market):
         super().__init__(context, market)
 
-        Log.debug("CREATE ProcessTrailingLong")
+        Log.create("ProcessTrailingLong")
 
     #
     # TradeState.TRAILINGで呼ばれる
@@ -33,8 +33,8 @@ class ProcessTrailingLong(ProcessTrailingBase):
 
         price = self.price
 
-        Log.debug(
-            f"TRAILING CHECK (#{trade.id}) price={price} "
+        Log.trailing(trade.id,
+            f"TRAILING CHECK price={price} "
             f"highest={trade.runtime.trailing_highest_price} stop={trade.runtime.stop_price}"
         )
 
@@ -94,7 +94,7 @@ class ProcessTrailingLong(ProcessTrailingBase):
             if new_stop > trade.runtime.stop_price:
                 trade.runtime.stop_price = new_stop
 
-                Log.event(f"TRAILING UPDATE LONG (#{trade.id}) price={price} stop={trade.runtime.stop_price}")
+                Log.trailing(trade.id, f"TRAILING UPDATE LONG price={price} stop={trade.runtime.stop_price}")
                 trade.add_timeline(type="TRAILING", message=f"UPDATE stop={trade.runtime.stop_price}")
 
 
@@ -103,7 +103,7 @@ class ProcessTrailingLong(ProcessTrailingBase):
     #
     def is_stop_hit(self, trade, price):
         if price <= trade.runtime.stop_price:
-            Log.event(f"STOP HIT LONG (#{trade.id}) price={price}")
+            Log.trailing(trade.id, f"STOP HIT LONG price={price}")
             trade.add_timeline(type="EXIT", message=f"STOP HIT price={price}")
 
             # EXIT実績

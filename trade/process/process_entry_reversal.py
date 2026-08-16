@@ -19,23 +19,15 @@ class ProcessEntryReversal(ProcessBase):
     def __init__(self, context, market):
         super().__init__(context, market)
 
-        self.long = ProcessEntryReversalLong(
-            context,
-            market
-        )
+        Log.create("ProcessEntryReversal")
 
-        self.short = ProcessEntryReversalShort(
-            context,
-            market
-        )
+        self.long = ProcessEntryReversalLong(context, market)
 
-        Log.debug("CREATE ProcessEntryReversal")
+        self.short = ProcessEntryReversalShort(context, market)
 
     def process(self, trade):
 
-        quote = self.context.cache.quotes.get(
-            trade.param.symbol
-        )
+        quote = self.context.cache.quotes.get(trade.param.symbol)
 
         if quote is None:
             return False

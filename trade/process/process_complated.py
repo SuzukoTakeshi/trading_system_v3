@@ -12,7 +12,7 @@ class ProcessComplated(ProcessBase):
     def __init__(self, context, market):
         super().__init__(context, market)
 
-        Log.debug("CREATE ProcessComplated")
+        Log.create("ProcessComplated")
 
     def process(self, trade):
 

@@ -21,7 +21,7 @@ class ProcessOrderWait(ProcessBase):
     def __init__(self, context, market):
         super().__init__(context, market)
 
-        Log.debug("CREATE ProcessOrderWait")
+        Log.create("ProcessOrderWait")
 
 
     #
@@ -49,10 +49,7 @@ class ProcessOrderWait(ProcessBase):
             result, result_dto = self.market.get_order_result(order.order_no)
 
             if result:
-
-                #
                 # 注文結果をOrderへ設定
-                #
                 order.result = result_dto
 
                 order.change_state(OrderState.FILLED)
@@ -88,4 +85,5 @@ class ProcessOrderWait(ProcessBase):
                         code="MULTIPLE_ORDER",
                     )
                 order = o
+                
         return order

@@ -26,7 +26,7 @@
 # 注意:
 #   ・本体コードは変更しない
 #   ・RssStockOrder_V は楽天RSS側の機能
-#   ・このテストでは RakutenClient.run_macro() を直接呼び出す
+#   ・このテストでは RakutenMarket.run_macro() を直接呼び出す
 #
 # 今回のテスト結果:
 #   ・結果:
@@ -37,18 +37,18 @@
 #
 
 
-from market.rakuten.client import RakutenClient
+from market.rakuten.market import RakutenMarket
 
 
 def main():
 
     # debug環境の楽天RSSクライアントを生成
-    client = RakutenClient("debug")
+    market = RakutenMarket("debug")
 
     try:
 
         # Excel接続
-        client.open()
+        market.open()
 
         #
         # RssStockOrder_V テスト
@@ -126,7 +126,7 @@ def main():
         #
         # 楽天RSSの RssStockOrder_V を直接実行
         #
-        result = client.run_macro(
+        result = market.run_macro(
             "RssStockOrder_V",
             *args
         )
@@ -142,7 +142,7 @@ def main():
     finally:
 
         # Excel接続を終了
-        client.close()
+        market.close()
 
 
 if __name__ == "__main__":

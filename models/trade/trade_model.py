@@ -100,12 +100,11 @@ class TradeModel(BaseEntity):
         # Trade実行中データ
         self.runtime = TradeRuntime()
 
-
         # Trade履歴
-        #
-        # state変更履歴
-        #
         self.timeline = []
+
+        # Tradeエラーメッセージ
+        self.message = None
 
 
     def add_timeline(self, type, message, **kwargs):
@@ -185,6 +184,7 @@ class TradeModel(BaseEntity):
             "runtime": self.runtime.to_dict(),
             "state": self.state.value,
             "timeline": self.timeline,
+            "message": self.message,
             "pause_flag": self.pause_flag,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
@@ -203,6 +203,7 @@ class TradeModel(BaseEntity):
         trade.runtime = TradeRuntime.from_dict(data.get("runtime", {}))
         trade.state = TradeState(data["state"])
         trade.timeline = data.get("timeline", [])
+        trade.message = data.get("message")
         trade.pause_flag = data.get("pause_flag", False)
         trade.created_at = datetime.fromisoformat(data["created_at"])
         trade.updated_at = datetime.fromisoformat(data["updated_at"])
@@ -231,6 +232,7 @@ class TradeModel(BaseEntity):
             "side": self.param.side.value,
             "strategy": self.param.strategy.value,
             "state": self.state.value,
+            "message": self.message,
 
             "pause_flag": self.pause_flag,
 
