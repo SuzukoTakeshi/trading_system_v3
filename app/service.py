@@ -4,14 +4,17 @@
 # Application Service
 #
 # 役割:
-#   ・Trading System V2 の統括
+#   ・Trading System の統括
 #   ・API層から呼ばれる業務サービス
-#
 #
 
 from fastapi import HTTPException
 
 from core.logger import Log
+
+from core.response import Response
+
+from trade.trade_enums import EngineState
 
 from market.status import MarketStatus
 
@@ -42,68 +45,59 @@ class AppService:
 
 
     def start(self):
-        """
-        システム開始
 
-        Returns:
-            dict
-                result:
-                    OK                正常終了
-                    APP_START_ERROR   起動失敗
-
-                message:
-                    エラー内容
-        """
         Log.debug("APP SERVICE START")
 
         try:
 
             self.trade_engine.start()
 
-            return {
-                "result": "OK",
-                "message": ""
-            }
+            if self.trade_engine.state == EngineState.RUNNING:
+
+                return Response.ok(
+                    message="TRADE ENGINE STARTED"
+                )
+
+            return Response.rejected(
+                message=self.trade_engine.last_message
+                or "Trade Engineを起動できません。"
+            )
 
         except Exception as e:
+
             Log.error(f"APP START ERROR : {e}")
 
-            return {
-                "result": "APP_START_ERROR",
-                "message": str(e)
-            }
+            return Response.error(
+                message=str(e)
+            )
 
 
     def stop(self):
-        """
-        システム停止
 
-        Returns:
-            dict
-                result:
-                    OK               正常終了
-                    APP_STOP_ERROR   停止失敗
-
-                message:
-                    エラー内容
-        """
         Log.debug("APP SERVICE STOP")
 
         try:
+
             self.trade_engine.stop()
 
-            return {
-                "result": "OK",
-                "message": ""
-            }
+            if self.trade_engine.state == EngineState.STOPPED:
+
+                return Response.ok(
+                    message="TRADE ENGINE STOPPED"
+                )
+
+            return Response.rejected(
+                message=self.trade_engine.last_message
+                or "Trade Engineを停止できません。"
+            )
 
         except Exception as e:
+
             Log.error(f"APP STOP ERROR : {e}")
 
-            return {
-                "result": "APP_STOP_ERROR",
-                "message": str(e)
-            }
+            return Response.error(
+                message=str(e)
+            )
 
 
     def status(self):
@@ -185,7 +179,9 @@ class AppService:
         """
         Trade登録
         """
-        Log.debug(f"APP SERVICE REGISTER TRADE symbol={req.symbol}")
+        Log.debug(
+            f"APP SERVICE REGISTER TRADE symbol={req.symbol}"
+        )
 
         try:
             #
@@ -211,11 +207,12 @@ class AppService:
             #
             self.trade_symbol_store.save(req.symbol)
 
-            return {
-                "result": "OK",
-                "trade_id": trade_id,
-                "message": ""
-            }
+            return Response.ok(
+                data={
+                    "trade_id": trade_id,
+                },
+                message=f"TRADE REGISTERED ID={trade_id}"
+            )
 
         #
         # APIエラー
@@ -228,13 +225,13 @@ class AppService:
         #
         except Exception as e:
 
-            Log.error(f"REGISTER TRADE ERROR : {e}")
+            Log.error(
+                f"REGISTER TRADE ERROR : {e}"
+            )
 
-            return {
-                "result": "TRADE_ERROR",
-                "trade_id": None,
-                "message": str(e)
-            }
+            return Response.error(
+                message=str(e)
+            )
 
 
     def get_trades(self):
@@ -286,18 +283,17 @@ class AppService:
         """
         Log.debug(f"APP SERVICE PAUSE TRADE (#{trade_id})")
 
-        return self.trade_engine.api.pause_trade(trade_id)
+        result = self.trade_engine.api.pause_trade(trade_id)
 
-    def pause_trades(self, trade_ids):
-        Log.debug("APP SERVICE PAUSE TRADES")
+        if result:
+            return Response.ok(
+                data={
+                    "trade_id": trade_id,
+                }
+            )
 
-        return self.trade_engine.api.pause_trades(trade_ids)
-
-    def pause_all_trades(self):
-        Log.debug("APP SERVICE PAUSE ALL TRADES")
-
-        return self.pause_trades(
-            self.trade_engine.api.get_trade_ids()
+        return Response.rejected(
+            message=f"Trade #{trade_id} をPAUSEできません。"
         )
 
 
@@ -307,18 +303,17 @@ class AppService:
         """
         Log.debug(f"APP SERVICE RESUME TRADE (#{trade_id})")
 
-        return self.trade_engine.api.resume_trade(trade_id)
+        result = self.trade_engine.api.resume_trade(trade_id)
 
-    def resume_trades(self, trade_ids):
-        Log.debug("APP SERVICE RESUME TRADES")
+        if result:
+            return Response.ok(
+                data={
+                    "trade_id": trade_id,
+                }
+            )
 
-        return self.trade_engine.api.resume_trades(trade_ids)
-
-    def resume_all_trades(self):
-        Log.debug("APP SERVICE RESUME ALL TRADES")
-
-        return self.resume_trades(
-            self.trade_engine.api.get_trade_ids()
+        return Response.rejected(
+            message=f"Trade #{trade_id} をRESUMEできません。"
         )
 
 
@@ -328,21 +323,17 @@ class AppService:
         """
         Log.debug(f"APP SERVICE CANCEL TRADE (#{trade_id})")
 
-        return self.trade_engine.api.cancel_trade(trade_id)
+        result = self.trade_engine.api.cancel_trade(trade_id)
 
-    def cancel_trades(self, trade_ids):
-        """
-        選択Trade取消
-        """
-        Log.debug("APP SERVICE CANCEL TRADES")
+        if result:
+            return Response.ok(
+                data={
+                    "trade_id": trade_id,
+                }
+            )
 
-        return self.trade_engine.api.cancel_trades(trade_ids)
-
-    def cancel_all_trades(self):
-        Log.debug("APP SERVICE CANCEL ALL TRADES")
-
-        return self.cancel_trades(
-            self.trade_engine.api.get_trade_ids()
+        return Response.rejected(
+            message=f"Trade #{trade_id} をCANCELできません。"
         )
 
 
@@ -352,21 +343,17 @@ class AppService:
         """
         Log.debug(f"APP SERVICE DELETE CANCELED TRADE (#{trade_id})")
 
-        return self.trade_engine.api.delete_trade(trade_id)
+        result = self.trade_engine.api.delete_trade(trade_id)
 
-    def delete_trades(self, trade_ids):
-        """
-        CANCELED Trade選択削除
-        """
-        Log.debug("APP SERVICE DELETE CANCELED TRADES")
+        if result:
+            return Response.ok(
+                data={
+                    "trade_id": trade_id,
+                }
+            )
 
-        return self.trade_engine.api.delete_trades(trade_ids)
-
-    def delete_all_trades(self):
-        Log.debug("APP SERVICE DELETE CANCELED ALL TRADES")
-
-        return self.delete_trades(
-            self.trade_engine.api.get_trade_ids()
+        return Response.rejected(
+            message=f"Trade #{trade_id} をDELETEできません。"
         )
 
 

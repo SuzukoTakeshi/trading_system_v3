@@ -18,6 +18,7 @@ class TradeParam:
         quantity,
         atr,
         trade_type,
+        margin_type,
         side,
         strategy,
 
@@ -48,6 +49,9 @@ class TradeParam:
         # 取引情報 (現物/信用)
         self.trade_type = trade_type
 
+        # 信用区分 (制度(6ヶ月)/一般(無期限)/一般(14日)/一般(1日))
+        self.margin_type = margin_type
+
         self.side = side
 
         # 戦略 (スキャルピング/デイトレ/スウィング)
@@ -74,6 +78,7 @@ class TradeParam:
             "atr": self.atr,
 
             "trade_type": self.trade_type.value,
+            "margin_type": self.margin_type,
             "side": self.side.value,
             "strategy": self.strategy.value,
 
@@ -104,6 +109,7 @@ class TradeParam:
             quantity=data.get("quantity"),
             atr=data.get("atr"),
             trade_type=TradeType(data.get("trade_type")),
+            margin_type=data.get("margin_type"),
             side=SideType(data.get("side")),
             strategy=StrategyType(data.get("strategy")),
 

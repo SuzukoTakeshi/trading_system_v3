@@ -62,6 +62,7 @@ class TradeEngineAPI:
             quantity=req.quantity,
             atr=req.atr,
             trade_type=TradeType(req.trade_type),
+            margin_type=req.margin_type,
             side=side,
             strategy=strategy,
 
@@ -101,6 +102,7 @@ class TradeEngineAPI:
                 f"quantity={trade.param.quantity} "
                 f"atr={trade.param.atr} "
                 f"type={trade.param.trade_type.value} "
+                f"margin_type={trade.param.margin_type} "
                 f"side={trade.param.side.value} "
                 f"strategy={trade.param.strategy.value}"
             )
@@ -117,6 +119,7 @@ class TradeEngineAPI:
             f"quantity={trade.param.quantity} "
             f"atr={trade.param.atr} "
             f"type={trade.param.trade_type.value} "
+            f"margin_type={trade.param.margin_type} "
             f"side={trade.param.side.value} "
             f"strategy={trade.param.strategy.value} "
 
@@ -254,12 +257,9 @@ class TradeEngineAPI:
         """
         Trade取消
         """
-        print(f"cancel_trade trade_id={trade_id}")
-
         trade = self.context.trades.get(trade_id)
 
         if trade is None:
-            print(f"trade is None trade_id={trade_id}")
             return False
 
         #
@@ -269,21 +269,50 @@ class TradeEngineAPI:
             TradeState.CANCELED,
             TradeState.COMPLETED,
         ]:
-            print(f"trade TradeState.CANCELED or TradeState.COMPLETED trade_id={trade_id}")
-            print(
-                f"trade state={trade.state} "
-                f"name={trade.state.name} "
-                f"value={trade.state.value}"
-            )
             return False
 
         Log.event(f"CANCEL TRADE (#{trade_id})")
 
-        # 取消
-        trade.change_state(TradeState.CANCELED)
 
-        self.engine._save_trade(trade)
+        # ------------------------------------------
+        # ENTRY前
+        # ------------------------------------------
+        #
+        # まだENTRY約定していないので、
+        # Tradeだけを取消する。
+        #
+        if trade.state in [
+            TradeState.CREATED,
+            TradeState.ENTRY_WAIT,
+            TradeState.ENTRY_PULLBACK,
+            TradeState.ENTRY_REVERSAL,
+        ]:
+            trade.change_state(TradeState.CANCELED)
 
+            self.engine._save_trade(trade)
+
+            return True
+
+        # ------------------------------------------
+        # ENTRY約定後
+        # ------------------------------------------
+        #
+        # 既にポジションを保有しているので、
+        # Tradeを直接CANCELEDにはしない。
+        #
+        elif trade.state == TradeState.TRAILING:
+
+            # PAUSE中だった場合も解除
+            trade.pause_flag = False
+
+            # EXIT処理へ
+            trade.change_state(TradeState.EXIT_CREATE)
+
+            self.engine._save_trade(trade)
+
+            return True
+
+        # その他
         return True
 
     def cancel_trades(self, trade_ids):

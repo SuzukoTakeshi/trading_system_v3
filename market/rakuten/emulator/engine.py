@@ -125,7 +125,9 @@ class EmulatorEngine:
         trade = self.scenario.get_trade()
 
         if not trade:
-            Log.emulator(f"TRADE FILE NOT FOUND : {self.scenario_file}")
+            Log.emulator(
+                f"TRADE FILE NOT FOUND : {self.scenario_file}"
+            )
             return False
 
 
@@ -138,12 +140,42 @@ class EmulatorEngine:
             "price": trade["price"],
             "quantity": trade["quantity"],
             "atr": trade["atr"],
-            "trade_type": "cash",
+
+            # 取引
+            #
+            # cash  : 現物
+            # margin: 信用
+            #
+            # 既存Scenarioとの互換性のため、
+            # 未指定の場合は cash とする。
+            #
+            "trade_type": trade.get(
+                "trade_type",
+                "cash"
+            ),
+
+            # 信用区分
+            #
+            # 現物の場合は None
+            #
+            # 例:
+            #   1 : 制度（6ヶ月）
+            #   2 : 一般（無期限）
+            #   3 : 一般（14日）
+            #   4 : 一般（1日）
+            #
+            "margin_type": trade.get(
+                "margin_type"
+            ),
+
             "side": trade["side"].lower(),
             "strategy": trade["strategy"]
         }
 
-        Log.emulator(f"CREATE EMULATOR TRADE (@{req['symbol']})")
+
+        Log.emulator(
+            f"CREATE EMULATOR TRADE (@{req['symbol']})"
+        )
 
         Log.emulator(req)
 
@@ -153,6 +185,7 @@ class EmulatorEngine:
         # ------------------------------------------
 
         try:
+
             response = requests.post(
                 "http://127.0.0.1:8000/trade",
                 json=req,
@@ -160,18 +193,38 @@ class EmulatorEngine:
             )
 
         except requests.exceptions.RequestException as e:
-            Log.emulator(f"TRADE CREATE REQUEST ERROR : {e}")
+
+            Log.emulator(
+                f"TRADE CREATE REQUEST ERROR : {e}"
+            )
 
             return False
 
+
+        # ------------------------------------------
         # API ERROR
+        # ------------------------------------------
+
         if response.status_code != 200:
-            Log.emulator(f"TRADE CREATE FAILED response.status_code={response.status_code}")
+
+            Log.emulator(
+                "TRADE CREATE FAILED "
+                f"response.status_code={response.status_code}"
+            )
+
             Log.emulator(response.text)
+
             return False
 
+
+        # ------------------------------------------
         # SUCCESS
-        Log.emulator(f"TRADE CREATE SUCCESS symbol={req['symbol']}")
+        # ------------------------------------------
+
+        Log.emulator(
+            f"TRADE CREATE SUCCESS symbol={req['symbol']}"
+        )
+
         return True
 
 
@@ -180,7 +233,9 @@ class EmulatorEngine:
     # ==================================================
 
     def run(self):
+
         try:
+
             self.excel.open()
 
             Log.emulator("EMULATOR LOOP START")
@@ -188,7 +243,11 @@ class EmulatorEngine:
             scenario_no = 0
 
             while self.running:
+
+                # ----------------------------------
                 # 価格取得
+                # ----------------------------------
+
                 price = self.scenario.get_price()
 
                 if price is None:
@@ -196,24 +255,46 @@ class EmulatorEngine:
 
                 scenario_no += 1
 
+                # ----------------------------------
                 # Price Scenario
-                Log.emulator(f"SCENARIO({self.symbol}): no={scenario_no} price={price}")
+                # ----------------------------------
 
-                # --------------------------------------
+                Log.emulator(
+                    f"SCENARIO({self.symbol}): "
+                    f"no={scenario_no} "
+                    f"price={price}"
+                )
+
+                # ----------------------------------
                 # Excel Quote更新
-                # --------------------------------------
+                # ----------------------------------
 
-                if not self.update_price(self.symbol, price):
-                    Log.emulator(f"SCENARIO SYMBOL NOT FOUND symbol={self.symbol}")
+                if not self.update_price(
+                    self.symbol,
+                    price
+                ):
+
+                    Log.emulator(
+                        "SCENARIO SYMBOL NOT FOUND "
+                        f"symbol={self.symbol}"
+                    )
+
                     break
 
                 time.sleep(self.interval)
 
+
         except Exception as e:
-            Log.emulator(f"EMULATOR START FAILED : Exception={e}")
+
+            Log.emulator(
+                f"EMULATOR START FAILED : Exception={e}"
+            )
+
 
         finally:
+
             self.running = False
+
             self.excel.close()
 
 
@@ -227,12 +308,24 @@ class EmulatorEngine:
 
     def update_price(self, symbol, price):
 
-        sheet = self.excel.book.Worksheets(self.excel.sheets["quote"])
+        sheet = self.excel.book.Worksheets(
+            self.excel.sheets["quote"]
+        )
 
-        last_row = sheet.Cells(sheet.Rows.Count, 1).End(-4162).Row
+        last_row = (
+            sheet.Cells(
+                sheet.Rows.Count,
+                1
+            ).End(-4162).Row
+        )
 
+
+        # ------------------------------------------
         # 既存symbolを検索
+        # ------------------------------------------
+
         for row in range(2, last_row + 1):
+
             value = sheet.Cells(row, 1).Value
 
             if isinstance(value, float):
@@ -244,19 +337,30 @@ class EmulatorEngine:
             if code != str(symbol):
                 continue
 
+
+            # --------------------------------------
             # 既存銘柄
+            # --------------------------------------
+
             sheet.Cells(row, 2).Value = price
 
             return True
+
 
         # ------------------------------------------
         # symbolが存在しない場合
         # 新規追加
         # ------------------------------------------
+
         row = last_row + 1
 
         sheet.Cells(row, 1).Value = symbol
         sheet.Cells(row, 2).Value = price
-        Log.emulator(f"SCENARIO SYMBOL ADD symbol={symbol} price={price}")
+
+        Log.emulator(
+            f"SCENARIO SYMBOL ADD "
+            f"symbol={symbol} "
+            f"price={price}"
+        )
 
         return True

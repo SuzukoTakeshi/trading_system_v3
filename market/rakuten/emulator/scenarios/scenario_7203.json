@@ -1,9 +1,11 @@
 {
     "trade": {
         "symbol": 7203,
-        "price": 2000,
+        "price": 3000,
         "quantity": 100,
         "atr": 2.0,
+        "trade_type": "margin",
+        "margin_type": 4,
         "side": "long",
         "strategy": "daytrade"
     },
@@ -29,22 +31,46 @@
 
             { "comment": "開始" },
 
-            { "price": 2000.0 },
-            { "price": 2000.0 },
-            { "price": 2000.5 },
-            { "price": 2001.0 },
+            { "price": 3000.0 },
+            { "price": 3000.0 },
+            { "price": 3000.5 },
+            { "price": 3001.0 },
 
             { "comment": "押し目開始" },
-            { "price": 1999.5 },
-            { "price": 1998.5 },
-            { "price": 1997.5 },
-            { "price": 1996.0 },
+            { "price": 2999.5 },
+            { "price": 2998.5 },
+            { "price": 2997.5 },
+            { "price": 2996.0 },
 
             { "comment": "反転開始" },
-            { "price": 1996.5 },
-            { "price": 1997.0 },
-            { "price": 1997.5 },
- 
+            { "price": 2996.5 },
+            { "price": 2997.0 },
+            { "price": 2997.5 },
+
+            { "comment": "買い成立" },
+            { "price": 2998.0 },
+            { "price": 2998.2 },
+            { "price": 2998.4 },
+            { "price": 2998.6 },
+            { "price": 2998.8 },
+
+            { "end": true },
+
+
+            { "comment": "再度下落" },
+            { "price": 2998.6 },
+
+            { "comment": "売り成立" },
+            { "price": 2998.4 },
+            { "price": 2998.3 },
+            { "price": 2998.2 },
+            { "price": 2998.1 },
+
+            { "end": true },
+
+            { "comment": "時間決済待ちテスト用" },
+            { "sleep": 65 },
+
             { "end": true }
         ]
    }

@@ -15,17 +15,10 @@ from core.exception import ExcelArgumentError
 
 class BaseSheet:
 
-    def __init__(
-        self,
-        client,
-        ws,
-        mode="real",
-        header_row=None,
-        stopper="--------"
-    ):
+    def __init__(self, market, ws, mode="real", header_row=None, stopper="--------"):
 
         # Rakuten Client
-        self.client = client
+        self.market = market
 
         # Worksheet
         self.ws = ws

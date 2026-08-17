@@ -41,24 +41,30 @@ class OrderListSheet(BaseSheet):
 
     SYMBOL_COLUMN = "銘柄コード"            # 英数字4桁（or 5桁）
     SYMBOL_NAME_COLUMN = "銘柄名称"         # 例) ＮＴＴ
+
     ACCOUNT_TYPE_COLUMN = "口座区分"        # 特定 / 一般
+
     ORDER_DATETIME_COLUMN = "発注/受注日時" # 例) 2026/07/22 11:10:55
+
     SIDE_COLUMN = "売買"                    # 買付 / 売付
+
     TRADE_TYPE_COLUMN = "取引"              # 現物
+
+    # 信用取引用
+    MARGIN_TYPE_COLUMN = "信用区分"
+    REPAYMENT_PERIOD_COLUMN = "弁済期限"
+
     EXECUTION_CONDITION_COLUMN = "執行条件" # 本日中
     ORDER_EXPIRATION_COLUMN = "注文期限"    # 例) 20260722
+
     ORDER_QUANTITY_COLUMN = "注文数量"      # 
     FILLED_QUANTITY_COLUMN = "約定数量"     # 注)取消済（出来無）では0
+
     ORDER_PRICE_COLUMN = "注文単価"         # 例) 150.5
 
 
-    def __init__(self, client, ws, mode):
-        super().__init__(
-            client,
-            ws,
-            mode=mode,
-            header_row=2,
-        )
+    def __init__(self, market, ws, mode):
+        super().__init__(market, ws, mode=mode, header_row=2)
 
 
     def get_order_list_data(self, order_no):
@@ -71,10 +77,7 @@ class OrderListSheet(BaseSheet):
             見つからない場合はNone
         """
 
-        row = self.find_row(
-            self.column_map[self.ORDER_NO_COLUMN],
-            str(order_no)
-        )
+        row = self.find_row(self.column_map[self.ORDER_NO_COLUMN], str(order_no))
 
         if row is None:
             return None
@@ -92,10 +95,7 @@ class OrderListSheet(BaseSheet):
         注文結果取得
         """
 
-        row = self.find_row(
-            self.column_map[self.ORDER_NO_COLUMN],
-            str(order_no)
-        )
+        row = self.find_row(self.column_map[self.ORDER_NO_COLUMN], str(order_no))
 
         if row is None:
             return None
@@ -116,31 +116,106 @@ class OrderListSheet(BaseSheet):
         Debug用 注文一覧追加
 
         request:
-            OrderRequestDTO
+            dic
 
         return:
             True
         """
+
+        # ------------------------------------------
+        # 売買
+        # ------------------------------------------
 
         if request["order_action"] == "buy":
             side = "買付"
         else:
             side = "売付"
 
+        # ------------------------------------------
+        # 取引種別
+        #
+        # 現物:
+        #   取引     = 現物
+        #   信用区分 = ""
+        #   弁済期限 = ""
+        #
+        # 信用:
+        #   取引     = 信用新規
+        #   信用区分 = 制度 / 一般
+        #   弁済期限 = 6ヶ月(1) / 無期限(2) / 14日(3) / 1日(4)
+        # ------------------------------------------
+
+        if request["trade_type"] == "margin":
+
+            if request["order_role"] == "entry":
+                trade_type = "信用新規"
+
+            elif request["order_role"] == "exit":
+                trade_type = "信用返済"
+
+            else:
+                raise Exception(
+                    f"未対応order_role: {request['order_role']}"
+                )
+
+
+            margin_type_value = request["margin_type"]
+
+            if margin_type_value == 1:
+                margin_type = "制度"
+                repayment_period = "6ヶ月"
+
+            elif margin_type_value == 2:
+                margin_type = "一般"
+                repayment_period = "無期限"
+
+            elif margin_type_value == 3:
+                margin_type = "一般"
+                repayment_period = "14日"
+
+
+            elif margin_type_value == 4:
+                margin_type = "一般"
+                repayment_period = "1日"
+
+            else:
+                raise Exception(f"未対応margin_type: {margin_type_value}")
+
+        elif request["trade_type"] == "cash":
+            trade_type = "現物"
+            margin_type = ""
+            repayment_period = ""
+
+        else:
+            raise Exception(f"未対応trade_type: {request['trade_type']}")
+
+        # ------------------------------------------
+        # DEBUG Order List
+        # ------------------------------------------
+
         values = {
             self.ORDER_NO_COLUMN: order_no,
             self.RECEPTION_NO_COLUMN: "#0001",
 
-            # 約定確認用
             self.ORDER_STATUS_COLUMN: "約定",
             self.SYMBOL_COLUMN: request["symbol"],
             self.SYMBOL_NAME_COLUMN: "DEBUG",
             self.ACCOUNT_TYPE_COLUMN: "特定",
-            self.ORDER_DATETIME_COLUMN: datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
+            self.ORDER_DATETIME_COLUMN:
+                datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
             self.SIDE_COLUMN: side,
-            self.TRADE_TYPE_COLUMN: "現物",
+
+            self.TRADE_TYPE_COLUMN: trade_type,
+
+            self.MARGIN_TYPE_COLUMN:
+                margin_type,
+
+            self.REPAYMENT_PERIOD_COLUMN:
+                repayment_period,
+
             self.EXECUTION_CONDITION_COLUMN: "本日中",
-            self.ORDER_EXPIRATION_COLUMN: datetime.now().strftime("%Y%m%d"),
+            self.ORDER_EXPIRATION_COLUMN:
+                datetime.now().strftime("%Y%m%d"),
             self.ORDER_QUANTITY_COLUMN: request["quantity"],
             self.FILLED_QUANTITY_COLUMN: request["quantity"],
             self.ORDER_PRICE_COLUMN: request["price"],
@@ -148,6 +223,17 @@ class OrderListSheet(BaseSheet):
 
         self.add_row(values)
 
-        Log.debug(f"DEBUG ADD ORDER LIST order_no={order_no}")
+        Log.debug(
+            f"DEBUG ADD ORDER LIST "
+            f"order_no={order_no} "
+            f"trade_type={request['trade_type']} "
+            f"display={trade_type}"
+            + (
+                f" margin_type={margin_type} "
+                f"repayment_period={repayment_period}"
+                if request["trade_type"] == "margin"
+                else ""
+            )
+        )
 
         return True

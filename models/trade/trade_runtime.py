@@ -62,6 +62,19 @@ class TradeRuntime:
         # 約定時刻
         self.entry_time = None
 
+        # ENTRY約定市場
+        #
+        # 信用返済時の建市場として使用
+        #
+        # 1：東証
+        # 4：JNX
+        # 5：JAX
+        # 6：Chi-X
+        #
+        # 現時点では東証を1固定
+        #
+        self.entry_market = 1
+
         # 実際のEXIT約定価格
         self.exit_price = None
 
@@ -124,6 +137,8 @@ class TradeRuntime:
                 else None
             ),
 
+            "entry_market": self.entry_market,
+
             "exit_price": self.exit_price,
             "exit_time": (
                 self.exit_time.isoformat()
@@ -162,6 +177,7 @@ class TradeRuntime:
         if entry_time:
             runtime.entry_time = datetime.fromisoformat(entry_time)
 
+        runtime.entry_market = data.get("entry_market", 1)
 
         runtime.exit_price = data.get("exit_price")
 

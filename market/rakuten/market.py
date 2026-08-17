@@ -74,29 +74,13 @@ class RakutenMarket:
         if self.book is None:
             raise Exception(f"Workbookが見つかりません: {self.path}")
 
-        self.quote_sheet = QuoteSheet(
-            self,
-            self.get_sheet(self.sheets["quote"]),
-            self.mode
-        )
+        self.quote_sheet = QuoteSheet(self, self.get_sheet(self.sheets["quote"]), self.mode)
 
-        self.order_sheet = OrderSheet(
-            self,
-            self.get_sheet(self.sheets["order"]),
-            self.mode
-        )
+        self.order_sheet = OrderSheet(self, self.get_sheet(self.sheets["order"]), self.mode)
 
-        self.order_id_list_sheet = OrderIDListSheet(
-            self,
-            self.get_sheet(self.sheets["order_id_list"]),
-            self.mode
-        )
+        self.order_id_list_sheet = OrderIDListSheet(self, self.get_sheet(self.sheets["order_id_list"]), self.mode)
 
-        self.order_list_sheet = OrderListSheet(
-            self,
-            self.get_sheet(self.sheets["order_list"]),
-            self.mode
-        )
+        self.order_list_sheet = OrderListSheet(self, self.get_sheet(self.sheets["order_list"]), self.mode)
 
         if self.mode == "debug":
             price = self.debug_settings.get("quote_price")
@@ -154,6 +138,7 @@ class RakutenMarket:
         """
         発注依頼
         """
+
         request = {
             "order_id": request_order_dto.order_id,
             "symbol": request_order_dto.symbol,
@@ -166,6 +151,17 @@ class RakutenMarket:
             # 数量
             "quantity": request_order_dto.quantity,
 
+            # 取引
+            "trade_type": request_order_dto.trade_type.value,
+
+            # 信用区分
+            "margin_type": request_order_dto.margin_type,
+
+            # 注文役割
+            # entry : 新規
+            # exit  : 決済
+            "order_role": request_order_dto.order_role,
+
             # 価格
             "price": request_order_dto.price,
 
@@ -173,6 +169,12 @@ class RakutenMarket:
             # LIMIT  -> "limit"
             # MARKET -> "market"
             "order_type": request_order_dto.order_type.value,
+
+            # 返済建玉情報
+            # exit / 信用返済で使用
+            "open_date": request_order_dto.open_date,
+            "open_price": request_order_dto.open_price,
+            "open_market": request_order_dto.open_market,
         }
 
         result, rss_result = self.order_sheet.request_order(request)
@@ -191,20 +193,29 @@ class RakutenMarket:
         #   order_enabled=false の場合だけ作成
         #
         if self.mode == "simulator":
-            order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
+            order_no = self.order_id_list_sheet.debug_add_order(
+                request_order_dto.order_id
+            )
 
-            self.order_list_sheet.debug_add_order(order_no, request)
+            self.order_list_sheet.debug_add_order(
+                order_no,
+                request
+            )
 
         elif (
             self.mode == "debug"
             and not self.debug_settings.get("order_enabled", False)
         ):
-            order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
+            order_no = self.order_id_list_sheet.debug_add_order(
+                request_order_dto.order_id
+            )
 
-            self.order_list_sheet.debug_add_order(order_no, request)
+            self.order_list_sheet.debug_add_order(
+                order_no,
+                request
+            )
 
         return True, ""
-
 
     def run_macro(self, macro_name, *args):
         """

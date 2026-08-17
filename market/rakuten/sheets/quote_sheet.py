@@ -21,14 +21,8 @@ class QuoteSheet(BaseSheet):
     SYMBOL_COLUMN = "銘柄コード"
     PRICE_COLUMN = "現在値"
 
-    def __init__(self, client, ws, mode):
-        super().__init__(
-            client,
-            ws,
-            mode=mode,
-            header_row=1,
-            stopper=None,
-        )
+    def __init__(self, market, ws, mode):
+        super().__init__(market, ws, mode=mode, header_row=1, stopper=None)
 
         self.debug_quote_price = None
 

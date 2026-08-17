@@ -49,6 +49,7 @@ class TradeModel(BaseEntity):
         quantity,
         atr,
         trade_type,
+        margin_type,
         side,
         strategy,
 
@@ -84,6 +85,7 @@ class TradeModel(BaseEntity):
             quantity=quantity,
             atr=atr,
             trade_type=trade_type,
+            margin_type=margin_type,
             side=side,
             strategy=strategy,
 
@@ -229,8 +231,10 @@ class TradeModel(BaseEntity):
             "quantity": self.param.quantity,
             "atr": self.param.atr,
             "trade_type": self.param.trade_type.value,
+            "margin_type": self.param.margin_type,
             "side": self.param.side.value,
             "strategy": self.param.strategy.value,
+
             "state": self.state.value,
             "message": self.message,
 

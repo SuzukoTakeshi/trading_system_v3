@@ -25,8 +25,8 @@ class OrderIDListSheet(BaseSheet):
     ORDER_NO_COLUMN = "注文番号"
     ORDER_RESULT_COLUMN = "発注結果"    # 発注済み または　エラー[指値は、値幅制限値以内で指定してください。]
 
-    def __init__(self, client, ws, mode):
-        super().__init__(client, ws, mode=mode, header_row=2)
+    def __init__(self, market, ws, mode):
+        super().__init__(market, ws, mode=mode, header_row=2)
 
 
     def get_order_id_data(self, order_id):

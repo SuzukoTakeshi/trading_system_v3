@@ -13,6 +13,7 @@ from trade.trade_enums import (
     StrategyType,
 )
 
+from typing import Optional
 
 #
 # Trade登録 Request
@@ -24,6 +25,7 @@ class TradeRequestDTO(BaseModel):
     quantity: int
     atr: float
     trade_type: TradeType
+    margin_type: Optional[int] = None
     side: SideType
     strategy: StrategyType = StrategyType.DAYTRADE
 

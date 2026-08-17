@@ -7,6 +7,7 @@
 import streamlit as st
 
 from ui.api.client import (
+    get_error_message,
     get_trade_options,
     register_trade,
 )
@@ -125,6 +126,38 @@ def trade_panel():
             )
             trade_type = trade_type_options[trade_type_label]
 
+        # 信用区分
+        if trade_type == "margin":
+
+            col1, col2 = st.columns([1, 3])
+
+            with col1:
+                st.write("信用区分")
+
+            with col2:
+                margin_type_options = {
+                    "制度(6ヶ月)": 1,
+                    "一般(無期限)": 2,
+                    "一般(14日)": 3,
+                    "一般(1日)": 4,
+                }
+
+                margin_type_label = st.radio(
+                    "信用区分",
+                    list(margin_type_options.keys()),
+                    index=3,
+                    horizontal=True,
+                    label_visibility="collapsed",
+                )
+
+                margin_type = margin_type_options[
+                    margin_type_label
+                ]
+
+        else:
+            margin_type = None
+
+
         # Strategy
         col1, col2 = st.columns([1, 3])
 
@@ -211,22 +244,54 @@ def trade_panel():
                 "quantity": quantity,
                 "atr": atr,
                 "trade_type": trade_type,
+                "margin_type": margin_type,
                 "side": side_str,
                 "strategy": strategy,
             }
 
-            result = register_trade(payload)
+            try:
 
-            # 成功
-            if result.get("result") == "OK":
-                st.success(f"TRADE REGISTERED ID={result['trade_id']}")
+                result = register_trade(payload)
 
-                # 銘柄履歴更新
-                options = get_trade_options()
-                st.session_state.trade_symbols = (
-                    options["symbols"]
-                )
+                if result.get("result") == "OK":
 
-            # 失敗
-            else:
-                st.error(result.get("message", "Trade登録に失敗しました。"))
+                    st.session_state.ui_message_once = {
+                        "level": "INFO",
+                        "message": result.get(
+                            "message",
+                            "TRADE REGISTERED"
+                        ),
+                    }
+
+                    #
+                    # 銘柄履歴更新
+                    #
+                    options = get_trade_options()
+
+                    st.session_state.trade_symbols = (
+                        options["symbols"]
+                    )
+
+                else:
+
+                    st.session_state.ui_message_once = {
+                        "level": "WARNING",
+                        "message": result.get(
+                            "message",
+                            "Trade登録に失敗しました。"
+                        ),
+                    }
+
+                st.rerun()
+
+            except Exception as e:
+
+                st.session_state.ui_message_once = {
+                    "level": "ERROR",
+                    "message": (
+                        f"TRADE ERROR : "
+                        f"{get_error_message(e)}"
+                    ),
+                }
+
+                st.rerun()

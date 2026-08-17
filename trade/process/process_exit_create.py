@@ -75,11 +75,11 @@ class ProcessExitCreate(ProcessOrderBase):
                 code="UNKNOWN_SIDE",
             )
 
-        # 成行注文
         return self.create_order(
             trade,
             order_action,
             # 成行(OrderType.MARKET)だが、DEBUGで約定単価とする為、priceを渡している。
             trade.runtime.exit_execution_price,
-            OrderType.MARKET,
+            OrderType.MARKET,       # 成行注文固定
+            order_role="exit",
         )

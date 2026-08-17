@@ -57,16 +57,15 @@ class ProcessExitWait(ProcessBase):
                 order.change_state(OrderState.FILLED)
 
                 Log.event(
-                    f"EXIT ORDER FILLED (#{trade.id}) "
-                    f"id={order.id} "
-                    f"{order.symbol} "
+                    f"EXIT ORDER FILLED (#{trade.id}) (@{order.id}) "
+                    f"symbol={order.symbol} "
                     f"order_no={order.order_no} "
                     f"price={result_dto.price}"
                 )
 
                 trade.add_timeline(
                     type="EXIT",
-                    message=f"FILLED id={order.id} order_no={order.order_no} price={result_dto.price}"
+                    message=f"FILLED (#{order.id}) (@{order.id}) order_no={order.order_no} price={result_dto.price}"
                 )
 
                 return True

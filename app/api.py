@@ -71,123 +71,26 @@ def trades():
 @app.post("/trade/{trade_id}/pause")
 def pause_trade(trade_id: int):
 
-    result = app_service.pause_trade(trade_id)
-
-    return {
-        "result": result
-    }
-
-@app.post("/trade/pause")
-def pause_trades(req: TradeIdsRequestDTO):
-
-    count = app_service.pause_trades(req.trade_ids)
-
-    return {
-        "result": "OK",
-        "count": count,
-    }
-
-@app.post("/trade/pause/all")
-def pause_all_trades():
-
-    count = app_service.pause_all_trades()
-
-    return {
-        "result": "OK",
-        "count": count
-    }
+    return app_service.pause_trade(trade_id)
 
 
 @app.post("/trade/{trade_id}/resume")
 def resume_trade(trade_id: int):
 
-    result = app_service.resume_trade(trade_id)
-
-    return {
-        "result": result
-    }
-
-@app.post("/trade/resume")
-def resume_trades(req: TradeIdsRequestDTO):
-
-    count = app_service.resume_trades(req.trade_ids)
-
-    return {
-        "result": "OK",
-        "count": count,
-    }
-
-@app.post("/trade/resume/all")
-def resume_all_trades():
-
-    count = app_service.resume_all_trades()
-
-    return {
-        "result": "OK",
-        "count": count
-    }
+    return app_service.resume_trade(trade_id)
 
 
 @app.post("/trade/{trade_id}/cancel")
 def cancel_trade(trade_id: int):
 
-    result = app_service.cancel_trade(trade_id)
-
-    return {
-        "result": "OK" if result else "NG",
-        "trade_id": trade_id,
-    }
-
-@app.post("/trade/cancel")
-def cancel_trades(req: TradeIdsRequestDTO):
-
-    count = app_service.cancel_trades(req.trade_ids)
-
-    return {
-        "result": "OK",
-        "count": count,
-    }
-
-@app.post("/trade/cancel/all")
-def cancel_all_trades():
-
-    count = app_service.cancel_all_trades()
-
-    return {
-        "result": "OK",
-        "count": count
-    }
+    return app_service.cancel_trade(trade_id)
 
 
 @app.delete("/trade/{trade_id}/delete")
 def delete_trade(trade_id: int):
 
-    result = app_service.delete_trade(trade_id)
+    return app_service.delete_trade(trade_id)
 
-    return {
-        "result": "OK" if result else "NG",
-        "trade_id": trade_id,
-    }
-
-@app.delete("/trade/delete")
-def delete_trades(req: TradeIdsRequestDTO):
-
-    count = app_service.delete_trades(req.trade_ids)
-
-    return {
-        "result": "OK",
-        "count": count,
-    }
-
-@app.delete("/trade/delete/all")
-def delete_all_trades():
-
-    count = app_service.delete_all_trades()
-
-    return {
-        "result": "OK",
-        "count": count
-    }
 
 @app.post("/trade/chart_datas")
 def trade_chart_datas(req: TradeIdsRequestDTO):

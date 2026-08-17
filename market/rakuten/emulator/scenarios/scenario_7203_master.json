@@ -4,6 +4,8 @@
         "price": 3000,
         "quantity": 100,
         "atr": 2.0,
+        "trade_type": "margin",
+        "margin_type": 4,
         "side": "long",
         "strategy": "daytrade"
     },

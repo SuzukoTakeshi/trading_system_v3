@@ -57,7 +57,7 @@ class ProcessOrderBase(ProcessBase):
     #
     # Order生成
     #
-    def create_order(self, trade, order_action, price, order_type=OrderType.MARKET):
+    def create_order(self, trade, order_action, price, order_type=OrderType.MARKET, order_role="entry"):
 
         order = OrderModel(
             trade=trade,
@@ -66,13 +66,13 @@ class ProcessOrderBase(ProcessBase):
             price=price,
             quantity=trade.param.quantity,
             order_type=order_type,
+            order_role=order_role,
         )
 
         self.context.cache.orders[order.id] = order
 
         Log.event(
-            f"CREATE ORDER (#{trade.id}) "
-            f"{order.id} "
+            f"CREATE ORDER (#{trade.id}) (@{order.id}) "
             f"{trade.param.symbol} "
             f"{order_action.value}"
         )
@@ -80,11 +80,12 @@ class ProcessOrderBase(ProcessBase):
         trade.add_timeline(
             type="ORDER",
             message=(
-                f"CREATE id={order.id} "
+                f"CREATE (@{order.id}) "
                 f"order_action={order.order_action.value} "
                 f"price={order.price} "
                 f"quantity={order.quantity} "
-                f"order_type={order.order_type.value}"
+                f"order_type={order.order_type.value} "
+                f"order_role={order.order_role}"
             )
         )
         return order
@@ -95,11 +96,64 @@ class ProcessOrderBase(ProcessBase):
     #
     def request_order(self, trade, order):
 
+        # ------------------------------------------
+        # 返済建玉情報
+        # ------------------------------------------
+
+        open_date = None
+        open_price = None
+        open_market = None
+
+        if order.order_role == "exit":
+
+            # 建日
+            #
+            # ENTRY約定時刻から取得
+            #
+            if trade.runtime.entry_time is None:
+                raise Exception(f"ENTRY約定時刻がありません (#{trade.id})")
+
+            open_date = trade.runtime.entry_time.strftime("%Y%m%d")
+
+            # 建単価
+            #
+            # 実際のENTRY約定価格
+            #
+            if trade.runtime.entry_price is None:
+                raise Exception(f"ENTRY約定価格がありません (#{trade.id})")
+
+            open_price = trade.runtime.entry_price
+
+            # 建市場
+            #
+            # 1：東証 4：JNX 5：JAX 6：Chi-X
+            #
+            if trade.runtime.entry_market is None:
+                raise Exception(f"ENTRY約定市場がありません (#{trade.id})")
+
+            open_market = trade.runtime.entry_market
+
+
         request = OrderRequestDTO(
             order_id=order.id,
             symbol=order.symbol,
             order_action=order.order_action,
             quantity=order.quantity,
+
+            # 取引
+            trade_type=trade.param.trade_type,
+
+            # 信用区分
+            margin_type=trade.param.margin_type,
+
+            # 注文役割
+            order_role=order.order_role,
+
+            # 返済建玉情報
+            open_date=open_date,
+            open_price=open_price,
+            open_market=open_market,
+
             price=order.price,
             order_type=order.order_type,
         )

@@ -68,6 +68,10 @@ def header(ctx):
             )
 
         with col_engine:
+            st.write(
+                f"DEBUG state={engine!r}, "
+                f"running={running!r}"
+            )
 
             engine_state_display = ENGINE_STATE_LABEL.get(
                 engine,
@@ -92,17 +96,34 @@ def header(ctx):
                 if st.button(
                     "▶",
                     use_container_width=True,
-                    disabled=running,
+                    disabled=(
+                        engine in [
+                            "starting",
+                            "running",
+                            "stopping",
+                        ]
+                    ),
                 ):
-
                     try:
-                        start_system()
+                        result = start_system()
 
-                        # UI一時メッセージをクリア
-                        st.session_state.pop(
-                            "ui_message_once",
-                            None
-                        )
+                        if result.get("result") == "OK":
+                            st.session_state.ui_message_once = {
+                                "level": "INFO",
+                                "message": result.get(
+                                    "message",
+                                    "TRADE ENGINE STARTED"
+                                ),
+                            }
+
+                        else:
+                            st.session_state.ui_message_once = {
+                                "level": "WARNING",
+                                "message": result.get(
+                                    "message",
+                                    "Trade Engineを開始できません。"
+                                ),
+                            }
 
                         st.rerun()
 
@@ -117,21 +138,37 @@ def header(ctx):
 
 
             with btn_stop:
-
                 if st.button(
                     "■",
                     use_container_width=True,
-                    disabled=not running,
+                    disabled=(
+                        engine in [
+                            "stopped",
+                            "starting",
+                            "stopping",
+                            "error",
+                        ]
+                    ),
                 ):
-
                     try:
-                        stop_system()
+                        result = stop_system()
 
-                        # UI一時メッセージをクリア
-                        st.session_state.pop(
-                            "ui_message_once",
-                            None
-                        )
+                        if result.get("result") == "OK":
+
+                            st.session_state.ui_message_once = {
+                                "level": "INFO",
+                                "message": "TRADE ENGINE STOPPED",
+                            }
+
+                        else:
+
+                            st.session_state.ui_message_once = {
+                                "level": "WARNING",
+                                "message": result.get(
+                                    "message",
+                                    "Trade Engineを停止できません。"
+                                ),
+                            }
 
                         st.rerun()
 

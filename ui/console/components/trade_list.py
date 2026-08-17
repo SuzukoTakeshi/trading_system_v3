@@ -32,24 +32,35 @@ from ui.api.client import (
 )
 
 
-def list_button_action(action, trade_ids, success_message):
-    """
-    Trade List ボタン共通処理
-
-    ・選択TradeへAction実行
-    ・成功時にINFOメッセージ設定
-    ・Exception時にERRORメッセージ設定
-    ・処理後に画面再描画
-    """
+def list_button_action(action, trade_id, success_message):
 
     try:
-        for trade_id in trade_ids:
-            action(trade_id)
 
-        st.session_state.ui_message_once = {
-            "level": "INFO",
-            "message": success_message,
-        }
+        response = action(trade_id)
+
+        result = response.get("result")
+        message = response.get("message", "")
+
+        if result == "OK":
+
+            st.session_state.ui_message_once = {
+                "level": "INFO",
+                "message": message or success_message,
+            }
+
+        elif result == "REJECTED":
+
+            st.session_state.ui_message_once = {
+                "level": "WARNING",
+                "message": message or "操作が拒否されました。",
+            }
+
+        else:
+
+            st.session_state.ui_message_once = {
+                "level": "ERROR",
+                "message": message or "処理に失敗しました。",
+            }
 
     except Exception as e:
 
@@ -318,71 +329,60 @@ def trade_list():
         #
         # Pause
         #
-
         with pause_col:
-
             if st.button(
                 "⏸ Pause",
                 width="stretch",
-                disabled=len(selected_ids) == 0,
+                disabled=len(selected_ids) != 1,
             ):
-
                 list_button_action(
                     pause_trade,
-                    selected_ids,
-                    f"PAUSE 完了",
+                    selected_ids[0],
+                    "PAUSE 完了",
                 )
 
         #
         # Resume
         #
-
         with resume_col:
-
             if st.button(
                 "▶ Resume",
                 width="stretch",
-                disabled=len(selected_ids) == 0,
+                disabled=len(selected_ids) != 1,
             ):
-
                 list_button_action(
                     resume_trade,
-                    selected_ids,
-                    f"RESUME 完了",
+                    selected_ids[0],
+                    "RESUME 完了",
                 )
+
 
         #
         # Cancel
         #
-
         with cancel_col:
-
             if st.button(
                 "❌ Cancel",
                 width="stretch",
-                disabled=len(selected_ids) == 0,
+                disabled=len(selected_ids) != 1,
             ):
-
                 list_button_action(
                     cancel_trade,
-                    selected_ids,
-                    f"CANCEL 完了",
+                    selected_ids[0],
+                    "CANCEL 完了",
                 )
 
         #
         # Delete
         #
-
         with delete_col:
-
             if st.button(
                 "🗑 Delete",
                 width="stretch",
-                disabled=len(selected_ids) == 0,
+                disabled=len(selected_ids) != 1,
             ):
-
                 list_button_action(
                     delete_trade,
-                    selected_ids,
-                    f"DELETE 完了",
+                    selected_ids[0],
+                    "DELETE 完了",
                 )

@@ -60,7 +60,7 @@ class ProcessAsset(ProcessBase):
                 code="ORDER_NOT_FOUND",
             )
 
-        Log.asset(trade.id, f"ORDER id={order.id} state={order.state.value}")
+        Log.asset(trade.id, f"(@{order.id}) state={order.state.value}")
 
         asset = self.store.load()
 

@@ -32,6 +32,7 @@ class OrderModel(BaseEntity):
         price,
         quantity,
         order_type: OrderType = OrderType.MARKET,
+        order_role="entry",
         generate_id=True,
     ):
 
@@ -59,6 +60,13 @@ class OrderModel(BaseEntity):
         # MARKET : 成行注文
         #
         self.order_type = order_type
+
+        # 注文役割
+        #
+        # entry : 新規注文
+        # exit  : 決済注文
+        #
+        self.order_role = order_role
 
         # 注文番号
         #
@@ -116,8 +124,7 @@ class OrderModel(BaseEntity):
         old_state_name = old_state.value if old_state else "None"
 
         Log.event(
-            f"ORDER STATE CHANGE "
-            f"{self.id} "
+            f"ORDER STATE CHANGE (@{self.id}) "
             f"{old_state_name} -> {new_state.value}"
         )
 
@@ -143,6 +150,7 @@ class OrderModel(BaseEntity):
             "symbol": self.symbol,
             "order_action": self.order_action.value,
             "order_type": self.order_type.value,
+            "order_role": self.order_role,
             "price": self.price,
             "quantity": self.quantity,
 
