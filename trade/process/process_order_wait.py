@@ -13,7 +13,11 @@ from market.order_enums import OrderState
 from core.exception import (
 	OrderNotFoundError,
 	DuplicateOrderError,
+    CancelOrderResult,
+    NotFilledOrderResult,
 )
+
+from market.order_enums import OrderResultStatus
 
 
 class ProcessOrderWait(ProcessBase):
@@ -46,33 +50,70 @@ class ProcessOrderWait(ProcessBase):
         if order.state == OrderState.REQUESTED:
             Log.trace("ORDER_WAIT", f"(#{trade.id}) order_id={order.id} state={order.state.name}")
 
+            # 確認用：OrderListの生データを取得
             order.order_list_sheet_data = self.market.get_order_list_data(order.order_no)
             if order.order_list_sheet_data is None:
                 return False
 
-
-            result, result_dto = self.market.get_order_result(order.order_no)
+            # 注文結果取得　OrderResultModel
+            result, order_result = self.market.get_order_result(order.order_no)
 
             if result:
                 # 注文結果をOrderへ設定
-                order.result = result_dto
+                order.result = order_result
 
                 order.change_state(OrderState.FILLED)
 
-                trade.runtime.entry_price = result_dto.price
+                trade.runtime.entry_price = order_result.price
                 trade.runtime.entry_time = datetime.now()
 
                 Log.event(
-                    f"ORDER FILLED (#{trade.id}) id={order.id} symbol={order.symbol} "
-                    f"order_no={order.order_no} price={result_dto.price}"
+                    f"ORDER FILLED (#{trade.id}) (@{order.id}) symbol={order.symbol} "
+                    f"order_no={order.order_no} price={order_result.price}"
                 )
 
                 trade.add_timeline(
                     type="ORDER",
-                    message=f"FILLED id={order.id} order_no={order.order_no} price={result_dto.price}",
+                    message=f"FILLED id={order.id} order_no={order.order_no} price={order_result.price}",
                 )
 
                 return True
+
+            if order_result.status in (
+                OrderResultStatus.PARTIAL_FILLED,   # 一部約定
+            ):
+                return False
+
+            if order_result.status in (
+                OrderResultStatus.EXECUTION_WAIT,
+                OrderResultStatus.EXECUTING,
+            ):
+                return False
+
+            if order_result.status in (
+                OrderResultStatus.CANCELING_FILLED,
+                OrderResultStatus.CANCELING_UNFILLED,
+                OrderResultStatus.CANCELED_FILLED,
+                OrderResultStatus.CANCELED_UNFILLED,
+            ):
+                raise CancelOrderResult(
+                    message=f"CANCEL ORDER (#{trade.id}) @({order.order_no}) ",
+                    code="CANCEL_ORDER",
+                )
+
+            if order_result.status in (
+                OrderResultStatus.NOT_FILLED_FILLED,
+                OrderResultStatus.NOT_FILLED_UNFILLED,
+            ):
+                raise NotFilledOrderResult(
+                    message=f"NOT FILLED ORDER (#{trade.id}) @({order.order_no})",
+                    code="NOT_FILLED_ORDER",
+                )
+
+            if order_result.status in (     #訂正済
+                OrderResultStatus.CORRECTED,
+            ):
+                return False
 
         return False
 

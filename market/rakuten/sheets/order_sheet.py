@@ -12,8 +12,6 @@
 
 from datetime import datetime
 
-from core.logger import Log
-
 from market.rakuten.sheets.base_sheet import BaseSheet
 
 from market.rakuten.macro.stock_order import StockOrder
@@ -74,26 +72,23 @@ class OrderSheet(BaseSheet):
 
         # 調査用
         row_data = self.get_row_data(row)
-        Log.debug(f"ORDER SHEET : {self.get_row_log(row_data)}")
+
+        self.market.add_internal_log(level="DEBUG", message="ORDER SHEET", data={"row": row_data})
 
         # ------------------------------------------
         # 注文実行
         # ------------------------------------------
 
         if self.is_real():
-
             result, rss_result = self._submit_order(request)
 
         elif self.is_simulator():
-
             result, rss_result = self._submit_simulator(request)
 
         elif self.is_emulator():
-
             result, rss_result = self._submit_emulator(request)
 
         elif self.is_debug():
-
             if self.market.debug_settings.get(
                 "order_enabled",
                 False,
@@ -109,22 +104,25 @@ class OrderSheet(BaseSheet):
         # ------------------------------------------
         # 結果
         # ------------------------------------------
-
         if result:
-            Log.event(
-                f"ORDER REQUEST OK "
-                f"(@{request['order_id']} "
-                f"symbol={request['symbol']} "
-                f"mode={self.mode})"
+            self.market.add_internal_log(
+                level="EVENT", message="ORDER REQUEST OK",
+                data={
+                    "order_id": request["order_id"],
+                    "symbol": request["symbol"],
+                    "mode": self.mode,
+                },
             )
 
         else:
-            Log.event(
-                f"ORDER REQUEST NG "
-                f"(@{request['order_id']} "
-                f"rss_result={rss_result} "
-                f"symbol={request['symbol']} "
-                f"mode={self.mode})"
+            self.market.add_internal_log(
+                level="EVENT", message="ORDER REQUEST NG",
+                data={
+                    "order_id": request["order_id"],
+                    "symbol": request["symbol"],
+                    "mode": self.mode,
+                    "rss_result": rss_result,
+                },
             )
 
         return result, rss_result
@@ -171,7 +169,6 @@ class OrderSheet(BaseSheet):
 
     def _submit_emulator(self, request):
         return True, ""
-
    
 
     def _submit_debug(self, request):

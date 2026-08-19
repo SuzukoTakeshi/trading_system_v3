@@ -1,6 +1,11 @@
 {
     "excel": {
-        "path": "C:\\StockProjects\\TradingData\\楽天RSS_v3_Debug.xlsm",
+        "path": {
+            "real": "C:\\StockProjects\\TradingData\\楽天RSS_v3.xlsm",
+            "simulator": "C:\\StockProjects\\TradingData\\楽天RSS_v3.xlsm",
+            "emulator": "C:\\StockProjects\\TradingData\\楽天RSS_v3_Debug.xlsm",
+            "debug": "C:\\StockProjects\\TradingData\\楽天RSS_v3_Debug.xlsm"
+        },
 
         "sheets": {
             "quote": "Quotes",
@@ -13,11 +18,12 @@
 
     "description": {
         "excel": "楽天RSS Excel設定",
-        "path": "使用する楽天RSS Excelブックのパス",
+        "path": "modeごとに使用する楽天RSS Excelブックのパス",
         "sheets": "楽天RSSで使用するシート設定",
         "quote": "現在値取得用シート名",
         "order": "注文書込用シート名",
         "order_id_list": "注文番号一覧取得シート",
-        "order_list": "注文一覧取得シート"
+        "order_list": "注文一覧取得シート",
+        "execution_list": "約定一覧取得シート"
     }
 }

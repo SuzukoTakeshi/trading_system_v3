@@ -197,7 +197,7 @@ def trade_list():
         edited = st.data_editor(
             trades,
             width="stretch",
-            height=400,
+            height=280,
             hide_index=True,
 
             column_order=[

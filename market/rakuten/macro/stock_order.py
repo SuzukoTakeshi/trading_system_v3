@@ -7,15 +7,10 @@
 #   ・現物注文
 #   ・RssStockOrder_V 呼出
 #
-#
-
-from core.logger import Log
-
 
 class StockOrder:
 
     def __init__(self, client):
-
         self.client = client
 
 
@@ -136,6 +131,16 @@ class StockOrder:
 
         # ------------------------------------------
         # RSS実行
+        #
+        # 正常パターン
+        #   RESULT :
+        #
+        # マーケットスピードII 発注不可
+        #   RESULT : 発注ロック中(発注を行うには発注機能を有効にしてください)
+        #
+        # 注文ID=345 は既に使用済み
+        #   RESULT : 注文ID=345 は既に使用済みです。
+        #
         # ------------------------------------------
 
         order_result = self.client.run_macro(
@@ -161,16 +166,31 @@ class StockOrder:
             set_order_expire,
         )
 
-        Log.debug(
-            f"RssStockOrder_V RESULT "
-            f"(@{order_id}) "
-            f"symbol={symbol} "
-            f"status={order_result}"
+        self.client.add_internal_log(
+            level="DEBUG",
+            message="RssStockOrder_V RESULT",
+            data={
+                "order_id": order_id,
+                "symbol": symbol,
+                "status": order_result,
+            },
         )
 
         if order_result == "":
             result = True
+
         else:
+            self.client.set_last_error(
+                code="ORDER_REJECTED",
+                message=order_result,
+                source="RSS",
+                data={
+                    "macro": "RssStockOrder_V",
+                    "order_id": order_id,
+                    "symbol": symbol,
+                },
+            )
+
             result = False
 
         return result, order_result

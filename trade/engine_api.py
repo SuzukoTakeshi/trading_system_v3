@@ -372,7 +372,7 @@ class TradeEngineAPI:
 
         Log.event(f"DELETE TRADE (#{trade_id})")
 
-        self.engine._delete_trade(trade)
+        self.engine.delete_trade(trade)
 
         return True
 

@@ -9,9 +9,9 @@
 #   ・ヘッダー行管理
 #   ・ヘッダー行指定時、列タイトル辞書作成
 #
-#
 
 from core.exception import ExcelArgumentError
+
 
 class BaseSheet:
 

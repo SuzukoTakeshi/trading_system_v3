@@ -188,6 +188,29 @@ class OrderNotFoundError(OrderError):
     """
     pass
 
+class CancelOrderResult(OrderError):
+    """
+    注文取消
+
+    原因:
+        ・Marketから取消が報告された
+
+    発生箇所:
+        ProcessOrderWait.process()
+    """
+    pass
+
+class NotFilledOrderResult(OrderError):
+    """
+    注文出来ず
+
+    原因:
+        ・Marketから出来ずが報告された
+
+    発生箇所:
+        ProcessOrderWait.process()
+    """
+    pass
 
 # ==================================================
 # Asset Error

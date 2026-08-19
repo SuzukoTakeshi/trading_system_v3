@@ -7,15 +7,10 @@
 #   ・信用新規注文
 #   ・RssMarginOpenOrder_V 呼出
 #
-#
-
-from core.logger import Log
-
 
 class MarginOrder:
 
     def __init__(self, client):
-
         self.client = client
 
 
@@ -175,16 +170,33 @@ class MarginOrder:
             set_order_expire,
         )
 
-        Log.debug(
-            f"RssMarginOpenOrder_V RESULT "
-            f"(@{order_id}) "
-            f"symbol={symbol} "
-            f"status={order_result}"
+        self.client.add_internal_log(
+            level="DEBUG",
+            message="RssMarginOpenOrder_V RESULT",
+            data={
+                "order_id": order_id,
+                "symbol": symbol,
+                "status": order_result,
+                "margin_type": margin_type,
+            },
         )
 
         if order_result == "":
             result = True
+
         else:
+            self.client.set_last_error(
+                code="ORDER_REJECTED",
+                message=order_result,
+                source="RSS",
+                data={
+                    "macro": "RssMarginOpenOrder_V",
+                    "order_id": order_id,
+                    "symbol": symbol,
+                    "margin_type": margin_type,
+                },
+            )
+
             result = False
 
         return result, order_result

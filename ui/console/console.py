@@ -62,7 +62,6 @@ from ui.api.client import get_status
 from ui.console.components.context import UIContext
 from ui.console.components.header import header
 from ui.console.components.body import body
-from ui.console.components.footer import footer
 
 from ui.console import message_store
 
@@ -123,8 +122,6 @@ def main():
         return
 
     body(ctx)
-
-    footer(ctx)
 
 
 def system_header(status):

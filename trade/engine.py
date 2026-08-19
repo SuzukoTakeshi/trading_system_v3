@@ -445,6 +445,7 @@ class TradeEngine:
         if self.check_cycle("save", self.SAVE_INTERVAL_SEC):
             self.save()
 
+
     def check_cycle(self, name, interval):
         """
         Proc実行タイミング確認
@@ -529,12 +530,12 @@ class TradeEngine:
         self.store.save(trade)
 
 
-    def _delete_trade(self, trade):
+    def delete_trade(self, trade):
         self.store.delete(trade.id)
+
         self.trade_chart_data_store.delete_by_trade_id(trade.id)
         self.context.cache.trade_chart_datas.pop(trade.id, None)
         del self.context.trades[trade.id]
-        Log.event(f"_DELETE TRADE (#{trade.id})")
 
 
     def restore(self):

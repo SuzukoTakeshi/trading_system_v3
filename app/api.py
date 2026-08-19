@@ -32,6 +32,15 @@ def status():
     return app_service.status()
 
 
+@app.get("/logs")
+def logs(limit: int = 20):
+    """
+    System Log取得
+    """
+
+    return app_service.get_logs(limit)
+
+
 @app.post("/start")
 def start():
     """

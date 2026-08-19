@@ -7,11 +7,8 @@
 #   ・Quotesシート操作
 #   ・銘柄価格取得
 #
-#
 
 from datetime import datetime
-
-from core.logger import Log
 
 from market.rakuten.sheets.base_sheet import BaseSheet
 
@@ -63,8 +60,6 @@ class QuoteSheet(BaseSheet):
 
         max_row = self.ws.UsedRange.Rows.Count
 
-        # Log.debug("====== get_quotes")
-
         updated = datetime.now()
 
         for row in range(self.header_row + 1, max_row + 1):
@@ -106,10 +101,6 @@ class QuoteSheet(BaseSheet):
         quotes = self.get_quotes()
 
         quote = quotes.get(symbol)
-        # if quote:
-        #     Log.debug(f"====== get_quote symbol={symbol} price={quote["price"]}")
-        # else:
-        #     Log.debug(f"====== get_quote symbol={symbol} price=None")
 
         return quote
 

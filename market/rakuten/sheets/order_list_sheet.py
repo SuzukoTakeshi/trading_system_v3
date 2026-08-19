@@ -7,17 +7,13 @@
 #   ・ORDER_LISTシート操作
 #   ・注文結果取得
 #
-#
-from datetime import datetime
 
-from core.logger import Log
+from datetime import datetime
 
 from market.rakuten.sheets.base_sheet import BaseSheet
 
 
 class OrderListSheet(BaseSheet):
-
-    # OrderList Sheet Columns
 
     ORDER_NO_COLUMN = "注文番号"
 
@@ -67,6 +63,11 @@ class OrderListSheet(BaseSheet):
         super().__init__(market, ws, mode=mode, header_row=2)
 
 
+    #
+    # OrderList生データ取得(カンマ区切り)
+    #
+    # データ確認の為の取得用
+    #
     def get_order_list_data(self, order_no):
         """
         注文番号に対応する注文一覧シートの
@@ -76,7 +77,6 @@ class OrderListSheet(BaseSheet):
             1行分のデータ(tuple)
             見つからない場合はNone
         """
-
         row = self.find_row(self.column_map[self.ORDER_NO_COLUMN], str(order_no))
 
         if row is None:
@@ -84,8 +84,14 @@ class OrderListSheet(BaseSheet):
 
         data = self.get_row_data(row)
 
-        # 調査用：取得したExcel行をそのまま記録
-        Log.debug(f"ORDER LIST : {self.get_row_log(data)}")
+        # 取得したExcel行をそのまま記録
+        self.market.add_internal_log(
+            level="DEBUG", message="ORDER LIST",
+            data={
+                "order_no": order_no,
+                "row": data,
+            },
+        )
 
         return data
 
@@ -154,9 +160,7 @@ class OrderListSheet(BaseSheet):
                 trade_type = "信用返済"
 
             else:
-                raise Exception(
-                    f"未対応order_role: {request['order_role']}"
-                )
+                raise Exception(f"未対応order_role: {request['order_role']}")
 
 
             margin_type_value = request["margin_type"]
@@ -223,17 +227,15 @@ class OrderListSheet(BaseSheet):
 
         self.add_row(values)
 
-        Log.debug(
-            f"DEBUG ADD ORDER LIST "
-            f"order_no={order_no} "
-            f"trade_type={request['trade_type']} "
-            f"display={trade_type}"
-            + (
-                f" margin_type={margin_type} "
-                f"repayment_period={repayment_period}"
-                if request["trade_type"] == "margin"
-                else ""
-            )
+        self.market.add_internal_log(
+            level="DEBUG", message="DEBUG ADD ORDER LIST",
+            data={
+                "order_no": order_no,
+                "trade_type": request["trade_type"],
+                "display": trade_type,
+                "margin_type": margin_type,
+                "repayment_period": repayment_period,
+            },
         )
 
         return True

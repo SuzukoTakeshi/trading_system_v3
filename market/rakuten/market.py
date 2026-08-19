@@ -9,12 +9,12 @@
 #   ・Excel管理
 #
 
+from datetime import datetime
+
 import pythoncom
 import win32com.client
 
 from config.config_loader import Config
-
-from core.logger import Log
 
 from market.rakuten.config.config_loader import MarketConfig
 
@@ -29,12 +29,30 @@ class RakutenMarket:
     def __init__(self, mode="debug"):
         self.mode = mode
 
+        #
+        # Last Error
+        #
+        self.last_error = None
+
+        #
+        # Internal Log
+        #
+        self.internal_logs = []
+        self.internal_log_limit = 1000
+
         system_config = Config.instance().data
         self.debug_settings = system_config.get("debug_settings", {})
 
         market_config = MarketConfig.instance().data
 
-        self.path = market_config["excel"]["path"]
+        excel_paths = market_config["excel"]["path"]
+
+        if self.mode not in excel_paths:
+            raise Exception(
+                f"Excel pathが設定されていません: mode={self.mode}"
+            )
+
+        self.path = excel_paths[self.mode]
         self.sheets = market_config["excel"]["sheets"]
 
         # Excel Application
@@ -48,8 +66,60 @@ class RakutenMarket:
         self.order_id_list_sheet = None
         self.order_list_sheet = None
 
+    def set_last_error(
+        self,
+        code,
+        message,
+        source,
+        data=None,
+    ):
+        self.last_error = {
+            "code": code,
+            "message": message,
+            "source": source,
+            "data": data or {},
+        }
+
+
+    def get_last_error(self):
+        return self.last_error
+
+
+    def clear_last_error(self):
+        self.last_error = None
+
+
+    # ========================
+    # Internal Log
+    # ========================
+
+    def add_internal_log(
+        self,
+        level,
+        message,
+        data=None,
+    ):
+        self.internal_logs.append({
+            "level": level,
+            "message": message,
+            "data": data or {},
+            "timestamp": datetime.now(),
+        })
+
+        if len(self.internal_logs) > self.internal_log_limit:
+            self.internal_logs.pop(0)
+
+
+    def get_internal_logs(self, limit=100):
+        return self.internal_logs[-limit:]
+
+
+    def clear_internal_logs(self):
+        self.internal_logs.clear()
+
 
     def open(self):
+        self.last_error = None
 
         self.quote_sheet = None
         self.order_sheet = None
@@ -58,7 +128,7 @@ class RakutenMarket:
 
         pythoncom.CoInitialize()
 
-        Log.event(f"EXCEL OPEN : {self.path}")
+        self.add_internal_log(level="EVENT", message="EXCEL OPEN", data={"path": self.path})
 
         try:
             self.app = win32com.client.GetObject(None, "Excel.Application")
@@ -110,7 +180,7 @@ class RakutenMarket:
         # COM解放
         pythoncom.CoUninitialize()
 
-        Log.event("EXCEL CLOSE")
+        self.add_internal_log(level="EVENT", message="EXCEL CLOSE")
 
 
     def get_sheet(self, name):
@@ -193,48 +263,36 @@ class RakutenMarket:
         #   order_enabled=false の場合だけ作成
         #
         if self.mode == "simulator":
-            order_no = self.order_id_list_sheet.debug_add_order(
-                request_order_dto.order_id
-            )
-
-            self.order_list_sheet.debug_add_order(
-                order_no,
-                request
-            )
+            order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
+            self.order_list_sheet.debug_add_order(order_no, request)
 
         elif (
             self.mode == "debug"
             and not self.debug_settings.get("order_enabled", False)
         ):
-            order_no = self.order_id_list_sheet.debug_add_order(
-                request_order_dto.order_id
-            )
+            order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
 
-            self.order_list_sheet.debug_add_order(
-                order_no,
-                request
-            )
+            self.order_list_sheet.debug_add_order(order_no, request)
 
         return True, ""
 
+
+    #
+    # Excel VBAマクロ実行
+    #
+    # macro_name: VBAマクロ名
+    # args:       VBAマクロ引数
+    #
     def run_macro(self, macro_name, *args):
-        """
-        Excel VBAマクロ実行
 
-        macro_name:
-            VBAマクロ名
-
-        args:
-            VBAマクロ引数
-        """
-
-        Log.debug(f"RUN MACRO name={macro_name} args={args}")
+        self.add_internal_log(level="DEBUG", message="RUN MACRO", data={"name": macro_name, "args": args})
 
         result = self.app.Run(macro_name, *args)
 
-        Log.debug(f"RUN MACRO RESULT name={macro_name} result={result}")
+        self.add_internal_log(level="DEBUG", message="RUN MACRO RESULT", data={"name": macro_name, "result": result})
 
         return result
+
 
     #
     # 発注ID一覧データ取得
@@ -274,10 +332,64 @@ class RakutenMarket:
     #
     # 約定確認
     #
-    # return: 約定結果コード
+    # return: 約定結果データ
     #
     def get_order_result(self, order_no):
         """
         注文結果取得
         """
-        return self.order_list_sheet.get_order_result(order_no)
+
+        result = self.order_list_sheet.get_order_result(order_no)
+
+        if result is None:
+            self.set_last_error(
+                code="ORDER_NOT_FOUND",
+                message="注文一覧に注文番号が存在しません。",
+                source="ORDER_LIST",
+                data={
+                    "order_no": order_no,
+                },
+            )
+            return None
+
+        status = result["status"]
+        # 1 ： 訂正取消可能注文
+        # 2 ： 執行待ち
+        # 3 ： 執行中
+        # 4 ： 出来有
+        # 5 ： 約定
+        # 6 ： 取消中（出来有）
+        # 7 ： 取消中（出来無）
+        # 8 ： 取消済（出来無）
+        # 9 ： 取消済（出来有）
+        # 10 ： 出来ず（出来有）
+        # 11 ： 出来ず（出来無）
+        # 12 ： 訂正済
+        # 13 ： -（逆指値･アルゴ）
+        # 注) 数字はRssOrderListでの取得パラメータ
+        if status == "約定" or status == "出来有":
+            return result
+
+        if status == "執行待ち" or status == "執行中":
+            self.set_last_error(
+                code="ORDER_EXECUTION_WAIT",
+                message="注文は執行待ちまたは執行中です。",
+                source="ORDER_LIST",
+                data={
+                    "order_no": order_no,
+                    "result": result,
+                },
+            )
+
+        else:
+            self.set_last_error(
+                code="ORDER_ERROR_STATUS",
+                message="注文結果にエラーが報告されました。",
+                source="ORDER_LIST",
+                data={
+                    "order_no": order_no,
+                    "result": result,
+                },
+            )
+
+        return result

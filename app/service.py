@@ -100,6 +100,14 @@ class AppService:
         }
 
 
+    def get_logs(self, limit=20):
+        """
+        System Log取得
+        """
+
+        return Log.get_logs(limit)
+
+
     def get_trade_options(self):
         """
         Trade Entry Options取得

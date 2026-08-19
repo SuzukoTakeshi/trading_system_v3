@@ -7,15 +7,10 @@
 #   ・信用返済注文
 #   ・RssMarginCloseOrder_V 呼出
 #
-#
-
-from core.logger import Log
-
 
 class MarginCloseOrder:
 
     def __init__(self, client):
-
         self.client = client
 
 
@@ -54,93 +49,61 @@ class MarginCloseOrder:
         # 19 逆指値価格
         # ------------------------------------------
 
-        # 1: 発注ID
         order_id = request["order_id"]
 
-        # 2: 銘柄コード
         symbol = request["symbol"]
 
-        # 3: 売買区分
-        #
-        # 信用返済:
-        #   1：売り返済
-        #   3：買い返済
-        #
+        # 信用返済
+        # 1：売り返済
+        # 3：買い返済
         if request["order_action"] == "sell":
             action = 1
         else:
             action = 3
 
-        # 4: 注文区分
-        # 0：通常注文
-        # 1：逆指値付注文
-        # 2：逆指値待機注文
+        # 注文区分
         order_type = 0
 
-        # 5: SOR区分
-        # 0：通常注文
-        # 1：SOR注文
+        # SOR区分
         sor = 1
 
-        # 6: 信用区分
-        #
-        # 1：制度（6ヶ月）
-        # 2：一般（無期限）
-        # 3：一般（14日）
-        # 4：一般（1日）
-        #
+        # 信用区分
         margin_type = request["margin_type"]
 
-        # 7: 注文数量
+        # 注文数量
         quantity = request["quantity"]
 
-        # 8: 価格区分
-        # 0：成行
-        # 1：指値
+        # 価格区分
         if request["order_type"] == "market":
             price_type = 0
         else:
             price_type = 1
 
-        # 9: 注文価格
+        # 注文価格
         if request["order_type"] == "market":
             price = ""
         else:
             price = request["price"]
 
-        # 10: 執行条件
-        # 1：本日中
+        # 執行条件
         condition = 1
 
-        # 11: 注文期限
+        # 注文期限
         expire = ""
 
-        # 12: 口座区分
-        # 0：特定
-        # 1：一般
-        # 2：NISA
-        # 3：旧NISA
+        # 口座区分
         account = 0
 
         # ------------------------------------------
-        # 13～15: 返済建玉情報
+        # 返済建玉情報
         # ------------------------------------------
 
-        # 建日
         open_date = request["open_date"]
-
-        # 建単価
         open_price = request["open_price"]
-
-        # 建市場
-        # 1：東証
-        # 4：JNX
-        # 5：JAX
-        # 6：Chi-X
         open_market = request["open_market"]
 
         # ------------------------------------------
-        # 16～19: 逆指値
+        # 逆指値
         # ------------------------------------------
 
         trigger_price = ""
@@ -175,20 +138,47 @@ class MarginCloseOrder:
             trigger_order_price,
         )
 
-        Log.debug(
-            f"RssMarginCloseOrder_V RESULT "
-            f"(@{order_id}) "
-            f"symbol={symbol} "
-            f"margin_type={margin_type} "
-            f"open_date={open_date} "
-            f"open_price={open_price} "
-            f"open_market={open_market} "
-            f"status={order_result}"
+        # ------------------------------------------
+        # Internal Log
+        # ------------------------------------------
+
+        self.client.add_internal_log(
+            level="DEBUG",
+            message="RssMarginCloseOrder_V RESULT",
+            data={
+                "order_id": order_id,
+                "symbol": symbol,
+                "margin_type": margin_type,
+                "open_date": open_date,
+                "open_price": open_price,
+                "open_market": open_market,
+                "status": order_result,
+            },
         )
+
+        # ------------------------------------------
+        # RSS結果
+        # ------------------------------------------
 
         if order_result == "":
             result = True
+
         else:
+            self.client.set_last_error(
+                code="ORDER_REJECTED",
+                message=order_result,
+                source="RSS",
+                data={
+                    "macro": "RssMarginCloseOrder_V",
+                    "order_id": order_id,
+                    "symbol": symbol,
+                    "margin_type": margin_type,
+                    "open_date": open_date,
+                    "open_price": open_price,
+                    "open_market": open_market,
+                },
+            )
+
             result = False
 
         return result, order_result

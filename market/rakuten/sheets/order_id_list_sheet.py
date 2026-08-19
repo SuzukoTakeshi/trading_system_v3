@@ -7,11 +7,8 @@
 #   ・ORDER_ID_LISTシート操作
 #   ・発注情報書込
 #
-#
 
 from datetime import datetime
-
-from core.logger import Log
 
 from market.rakuten.sheets.base_sheet import BaseSheet
 
@@ -41,18 +38,15 @@ class OrderIDListSheet(BaseSheet):
 
         column = self.column_map[self.ORDER_ID_COLUMN]
 
-        row = self.find_row(
-            column,
-            order_id
-        )
+        row = self.find_row(column, order_id)
 
         if row is None:
             return None
 
         data = self.get_row_data(row)
 
-        # 調査用：取得したExcel行をそのまま記録
-        Log.debug(f"ORDER ID LIST : {self.get_row_log(data)}")
+        # 取得したExcel行をそのまま記録
+        self.market.add_internal_log(level="DEBUG", message="ORDER ID LIST", data={"row": data})
 
         return data
 
@@ -71,7 +65,22 @@ class OrderIDListSheet(BaseSheet):
 
         result = self.get_value(row, self.column_map[self.ORDER_RESULT_COLUMN])
 
-        Log.debug(f"ORDER RESULT={result}")
+        # result値
+        # 発注済み
+        # 現在の時間帯は、東証銘柄の注文を受付していません。17:15以降に再度注文してください。
+        # 現在、株式取引に関するサービスが利用できません。
+        # 手数料ゼロコースでは、SORを有効にして、再度注文してください。
+        # 成行の場合、値幅制限上限までの買付可能額が必要です。
+        #   175,103円以内で発注可能な指値を入力してください。
+        # 指値は、値幅制限値以内で指定してください。
+
+        self.market.add_internal_log(
+            level="DEBUG", message="ORDER RESULT",
+            data={
+                "order_id": order_id,
+                "result": result,
+            },
+        )
 
         if result != "発注済み":
             return None
@@ -81,7 +90,13 @@ class OrderIDListSheet(BaseSheet):
         if order_no is None:
             return None
 
-        Log.debug(f"GET ORDER NO order_id={order_id} order_no={order_no}")
+        self.market.add_internal_log(
+            level="DEBUG", message="GET ORDER NO",
+            data={
+                "order_id": order_id,
+                "order_no": order_no,
+            },
+        )
 
         return order_no
 
@@ -96,7 +111,6 @@ class OrderIDListSheet(BaseSheet):
         目的:
             OrderID → 注文番号取得テスト用
         """
-
         order_no = order_id + 10000
 
         values = {

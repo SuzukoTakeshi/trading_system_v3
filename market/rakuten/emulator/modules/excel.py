@@ -28,12 +28,14 @@ class EmulatorExcel:
         config = MarketConfig.instance()
 
         excel_config = config.data["excel"]
-        self.excel_path = excel_config["path"]
 
-        self.sheets = config.data["excel"]["sheets"]
+        self.excel_path = excel_config["path"]["emulator"]
+
+        self.sheets = excel_config["sheets"]
 
         self.excel = None
         self.book = None
+
 
     # ==================================================
     # 接続

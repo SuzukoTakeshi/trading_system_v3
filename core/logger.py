@@ -434,9 +434,15 @@ class Log:
     # ========================
 
     @classmethod
-    def get_logs(cls):
+    def get_logs(cls, limit=20):
 
-        return list(cls._logs)
+        if limit <= 0:
+            return []
+
+        logs = list(cls._logs)
+
+        return list(reversed(logs[-limit:]))
+
 
     # ========================
     # 最終 INFO / ERROR メッセージ取得
