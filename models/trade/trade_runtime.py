@@ -46,10 +46,6 @@ class TradeRuntime:
         #
         self.entry_reversal_count = 0
 
-        # Debug/約定予定価格
-        self.entry_execution_price = None
-        self.exit_execution_price = None
-
         #
         # 約定情報
         #

@@ -31,6 +31,8 @@ from ui.api.client import (
     delete_trade,
 )
 
+from ui.console import message_store
+
 
 def list_button_action(action, trade_id, success_message):
 
@@ -39,35 +41,35 @@ def list_button_action(action, trade_id, success_message):
         response = action(trade_id)
 
         result = response.get("result")
-        message = response.get("message", "")
+        response_message = response.get("message", "")
 
         if result == "OK":
 
-            st.session_state.ui_message_once = {
-                "level": "INFO",
-                "message": message or success_message,
-            }
+            message_store.set(
+                level="INFO",
+                message=response_message or success_message,
+            )
 
         elif result == "REJECTED":
 
-            st.session_state.ui_message_once = {
-                "level": "WARNING",
-                "message": message or "操作が拒否されました。",
-            }
+            message_store.set(
+                level="WARNING",
+                message=response_message or "操作が拒否されました。",
+            )
 
         else:
 
-            st.session_state.ui_message_once = {
-                "level": "ERROR",
-                "message": message or "処理に失敗しました。",
-            }
+            message_store.set(
+                level="ERROR",
+                message=response_message or "処理に失敗しました。",
+            )
 
     except Exception as e:
 
-        st.session_state.ui_message_once = {
-            "level": "ERROR",
-            "message": get_error_message(e),
-        }
+        message_store.set(
+            level="ERROR",
+            message=get_error_message(e),
+        )
 
     st.rerun()
 

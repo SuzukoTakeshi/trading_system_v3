@@ -45,11 +45,7 @@ class AppService:
 
 
     def start(self):
-
-        Log.debug("APP SERVICE START")
-
         try:
-
             self.trade_engine.start()
 
             if self.trade_engine.state == EngineState.RUNNING:
@@ -64,27 +60,19 @@ class AppService:
             )
 
         except Exception as e:
-
             Log.error(f"APP START ERROR : {e}")
 
-            return Response.error(
-                message=str(e)
-            )
+            return Response.error(message=f"APP START ERROR : {e}")
 
 
     def stop(self):
 
-        Log.debug("APP SERVICE STOP")
-
         try:
-
             self.trade_engine.stop()
 
             if self.trade_engine.state == EngineState.STOPPED:
 
-                return Response.ok(
-                    message="TRADE ENGINE STOPPED"
-                )
+                return Response.ok(message="TRADE ENGINE STOPPED")
 
             return Response.rejected(
                 message=self.trade_engine.last_message
@@ -92,12 +80,9 @@ class AppService:
             )
 
         except Exception as e:
-
             Log.error(f"APP STOP ERROR : {e}")
 
-            return Response.error(
-                message=str(e)
-            )
+            return Response.error(message=f"APP STOP ERROR : {e}")
 
 
     def status(self):
@@ -179,23 +164,15 @@ class AppService:
         """
         Trade登録
         """
-        Log.debug(
-            f"APP SERVICE REGISTER TRADE symbol={req.symbol}"
-        )
+        Log.debug(f"APP SERVICE REGISTER TRADE symbol={req.symbol}")
 
         try:
+
             #
             # 銘柄存在確認
             #
             if not self.symbol_store.exists(req.symbol):
-
-                raise HTTPException(
-                    status_code=404,
-                    detail={
-                        "code": "SYMBOL_NOT_FOUND",
-                        "message": f"{req.symbol} の銘柄情報がありません。"
-                    }
-                )
+                return Response.error(message=f"{req.symbol} の銘柄情報がありません。")
 
             #
             # Trade登録
@@ -203,7 +180,7 @@ class AppService:
             trade_id = self.trade_engine.api.create_trade(req)
 
             #
-            # 履歴保存
+            # トレード開始の銘柄選択に表示される銘柄リストに追加
             #
             self.trade_symbol_store.save(req.symbol)
 
@@ -215,24 +192,12 @@ class AppService:
             )
 
         #
-        # APIエラー
-        #
-        except HTTPException:
-            raise
-
-        #
         # システムエラー
         #
         except Exception as e:
+            Log.error(f"TRADE REGISTER ERROR : {e}")
 
-            Log.error(
-                f"REGISTER TRADE ERROR : {e}"
-            )
-
-            return Response.error(
-                message=str(e)
-            )
-
+            return Response.error(message=f"TRADE REGISTER ERROR : {e}")
 
     def get_trades(self):
         """
@@ -323,7 +288,7 @@ class AppService:
         """
         Log.debug(f"APP SERVICE CANCEL TRADE (#{trade_id})")
 
-        result = self.trade_engine.api.cancel_trade(trade_id)
+        result, message = self.trade_engine.api.cancel_trade(trade_id)
 
         if result:
             return Response.ok(
@@ -332,9 +297,7 @@ class AppService:
                 }
             )
 
-        return Response.rejected(
-            message=f"Trade #{trade_id} をCANCELできません。"
-        )
+        return Response.rejected(message=message)
 
 
     def delete_trade(self, trade_id):

@@ -12,6 +12,8 @@ from ui.api.client import (
     register_trade,
 )
 
+from ui.console import message_store
+
 
 def trade_panel():
 
@@ -255,13 +257,13 @@ def trade_panel():
 
                 if result.get("result") == "OK":
 
-                    st.session_state.ui_message_once = {
-                        "level": "INFO",
-                        "message": result.get(
+                    message_store.set(
+                        level="INFO",
+                        message=result.get(
                             "message",
                             "TRADE REGISTERED"
                         ),
-                    }
+                    )
 
                     #
                     # 銘柄履歴更新
@@ -274,24 +276,24 @@ def trade_panel():
 
                 else:
 
-                    st.session_state.ui_message_once = {
-                        "level": "WARNING",
-                        "message": result.get(
+                    message_store.set(
+                        level="WARNING",
+                        message=result.get(
                             "message",
                             "Trade登録に失敗しました。"
                         ),
-                    }
+                    )
 
                 st.rerun()
 
             except Exception as e:
 
-                st.session_state.ui_message_once = {
-                    "level": "ERROR",
-                    "message": (
+                message_store.set(
+                    level="ERROR",
+                    message=(
                         f"TRADE ERROR : "
                         f"{get_error_message(e)}"
                     ),
-                }
+                )
 
                 st.rerun()

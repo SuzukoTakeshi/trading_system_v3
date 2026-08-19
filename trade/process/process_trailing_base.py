@@ -110,7 +110,6 @@ class ProcessTrailingBase(ProcessBase):
 
             trade.runtime.exit_price = self.price
             trade.runtime.exit_time = datetime.now()
-            trade.runtime.exit_execution_price = self.price
 
             trade.add_timeline(
                 type="EXIT",
@@ -140,7 +139,6 @@ class ProcessTrailingBase(ProcessBase):
 
             trade.runtime.exit_price = self.price
             trade.runtime.exit_time = datetime.now()
-            trade.runtime.exit_execution_price = self.price
 
             trade.add_timeline(
                 type="EXIT",

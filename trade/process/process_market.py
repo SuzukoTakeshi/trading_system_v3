@@ -48,7 +48,7 @@ class ProcessMarket(ProcessBase):
                 price=price
             )
 
-            Log.trace("RSS PRICE", f"CREATE QuoteModel({symbol}, {price})")
+            Log.market("CREATE QuoteModel({symbol}, {price})")
             self.context.cache.quotes[symbol] = quote
 
         else:

@@ -79,7 +79,7 @@ class ProcessExitCreate(ProcessOrderBase):
             trade,
             order_action,
             # 成行(OrderType.MARKET)だが、DEBUGで約定単価とする為、priceを渡している。
-            trade.runtime.exit_execution_price,
+            trade.runtime.exit_price,
             OrderType.MARKET,       # 成行注文固定
             order_role="exit",
         )

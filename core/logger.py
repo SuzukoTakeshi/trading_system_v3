@@ -22,6 +22,7 @@
 #   [機能別]
 #   ・create()     ：クラス生成
 #   ・state()      ：状態変更
+#   ・market()     ：マーケット処理
 #   ・trailing()   ：Trailing情報
 #   ・asset()      ：資産処理
 
@@ -49,6 +50,7 @@
 #   [機能別]
 #   ・CREATE      ：クラス生成
 #   ・STATE       ：状態変更
+#   ・MARKET      ：マーケット処理
 #   ・TRAILING    ：Trailing
 #   ・ASSET       ：資産処理
 
@@ -102,6 +104,7 @@ class Log:
 
         "CREATE": Fore.GREEN,
         "STATE": Fore.YELLOW,
+        "MARKET": Fore.LIGHTMAGENTA_EX,
         "TRAILING": Fore.BLUE,
         "ASSET": Fore.MAGENTA,
 
@@ -113,7 +116,9 @@ class Log:
         "ORDER": Fore.MAGENTA,
         "EXECUTION": Fore.GREEN,
         "BREAKEVEN": Fore.MAGENTA,
+
         "RSS PRICE": Fore.LIGHTBLUE_EX,
+        "ORDER_WAIT": Fore.LIGHTBLACK_EX,
     }
 
     # ========================
@@ -283,6 +288,17 @@ class Log:
     def state(cls, trade_id, old, new):
         cls._write_log("STATE", f"(#{trade_id}) {old} -> {new}")
 
+
+    # ========================
+    # MARKET
+    #
+    # マーケット処理
+    # ========================
+    @classmethod
+    def market(cls, *args):
+        cls._write_log("MARKET", *args)
+
+
     # ========================
     # TRAILING
     #
@@ -291,6 +307,7 @@ class Log:
     @classmethod
     def trailing(cls, trade_id, *args):
         cls._write_log("TRAILING", f"(#{trade_id})", *args)
+
 
     # ========================
     # ASSET
@@ -322,8 +339,7 @@ class Log:
 
     @classmethod
     def trace(cls, log_id, *args):
-
-        return cls._write_log(log_id, *args)
+        cls._write_log(log_id, *args)
 
     # ========================
     # EMULATOR
@@ -331,6 +347,8 @@ class Log:
     @classmethod
     def emulator(cls, *args):
         cls._write_log("EMULATOR", *args)
+
+
 
     # ========================
     # FLOW

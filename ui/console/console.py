@@ -64,6 +64,7 @@ from ui.console.components.header import header
 from ui.console.components.body import body
 from ui.console.components.footer import footer
 
+from ui.console import message_store
 
 st.set_page_config(
     page_title="Trading System V3 Console",
@@ -127,27 +128,36 @@ def main():
 
 
 def system_header(status):
-    now = datetime.now()
 
+    now = datetime.now()
     datetime_text = format_datetime_jp(now)
 
-    # UI一時メッセージ
-    # 1回表示したら削除する
-    system_message = st.session_state.pop(
-        "ui_message_once",
-        None
-    )
+    #
+    # Backendメッセージ
+    #
+    backend_message = status.get("message")
 
-    # UIメッセージを優先
-    if not system_message:
-        system_message = status.get("message")
+    if backend_message:
+
+        message_store.set(
+            level=backend_message.get("level"),
+            message=backend_message.get("message"),
+            timestamp=backend_message.get("time"),
+        )
+
+    #
+    # 最新メッセージ
+    #
+    system_message = message_store.get()
 
     message_level = None
     message_text = None
 
     if system_message:
+
         message_level = system_message.get("level")
         message_text = system_message.get("message")
+
 
     col_title, col_message, col_datetime = st.columns([4, 4, 2])
 
@@ -166,6 +176,13 @@ def system_header(status):
                 icon = "✓"
                 color = "inherit"
 
+            message_time = ""
+
+            if system_message.get("timestamp"):
+                message_time = system_message["timestamp"].strftime(
+                    "%H:%M:%S"
+                )
+
             st.markdown(
                 f"""
                 <div style="
@@ -176,7 +193,7 @@ def system_header(status):
                     overflow:hidden;
                     text-overflow:ellipsis;
                 ">
-                    {icon} {message_text}
+                    {icon} {message_time} {message_text}
                 </div>
                 """,
                 unsafe_allow_html=True

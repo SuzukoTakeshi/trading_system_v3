@@ -107,7 +107,6 @@ class ProcessTrailingLong(ProcessTrailingBase):
             trade.add_timeline(type="EXIT", message=f"STOP HIT price={price}")
 
             # EXIT実績
-            trade.runtime.exit_execution_price = price
             trade.runtime.exit_price = price
             trade.runtime.exit_time = datetime.now()
 

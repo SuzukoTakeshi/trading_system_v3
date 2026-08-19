@@ -70,17 +70,7 @@ class ProcessEntryReversalLong(ProcessEntryBase):
             >=
             cfg["reversal_confirm_count"]
         ):
-            # 現在、約定価格が取得できていないので、現在価格を約定価格として格納している。
-            # ※約定価格をセットしないと、資産反映(ProcessAsset)でエラーｔろなる。
-            # [ERROR] (#373) Trade Process Exception TypeError: unsupported operand type(s) for *: 'NoneType' and 'int'
-
-            trade.runtime.entry_execution_price = price
-
-            Log.event(
-                f"REVERSAL COMPLETE LONG (#{trade.id}) "
-                f"{trade.param.symbol} "
-                f"price={price}"
-            )
+            Log.event(f"REVERSAL COMPLETE LONG (#{trade.id}) symbol={trade.param.symbol} price={price}")
             self.add_entry_timeline(
                 (
                     f"REVERSAL COMPLETE LONG "

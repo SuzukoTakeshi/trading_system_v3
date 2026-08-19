@@ -86,7 +86,8 @@ class ProcessOrderRequest(ProcessOrderBase):
         return self.create_order(
             trade,
             order_action,
-            # 成行(OrderType.MARKET)だが、DEBUGで約定単価とする為、priceを渡している。
-            trade.runtime.entry_execution_price,
+            # 成行(OrderType.MARKET)だが、
+            # DEBUGでは反転確定時の価格を約定価格として使用する。
+            trade.runtime.entry_previous_price,
             OrderType.MARKET,
         )

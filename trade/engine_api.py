@@ -8,8 +8,13 @@
 # ・Tradeの作成、取得、操作
 #
 
+from datetime import datetime
+
 from core.logger import Log
-from core.exception import StrategySideDisabledError
+from core.exception import (
+    StrategySideDisabledError,
+    QuoteNotFoundError,
+)
 
 from config.strategy_config_loader import StrategyConfig
 
@@ -193,6 +198,7 @@ class TradeEngineAPI:
             return False
 
         if trade.state not in [
+            TradeState.CREATED,
             TradeState.ENTRY_WAIT,
             TradeState.ENTRY_PULLBACK,
             TradeState.ENTRY_REVERSAL,
@@ -209,16 +215,6 @@ class TradeEngineAPI:
 
         return True
 
-    def pause_trades(self, trade_ids):
-        """
-        全Trade一時停止
-        """
-        count = 0
-        for trade_id in trade_ids:
-            if self.pause_trade(trade_id):
-                count += 1
-
-        return count
 
     def resume_trade(self, trade_id):
         """
@@ -242,16 +238,6 @@ class TradeEngineAPI:
 
         return True
 
-    def resume_trades(self, trade_ids):
-        """
-        全Trade再開
-        """
-        count = 0
-        for trade_id in trade_ids:
-            if self.resume_trade(trade_id):
-                count += 1
-
-        return count
 
     def cancel_trade(self, trade_id):
         """
@@ -260,7 +246,10 @@ class TradeEngineAPI:
         trade = self.context.trades.get(trade_id)
 
         if trade is None:
-            return False
+            return (
+                False,
+                f"Trade #{trade_id} が存在しません。"
+            )
 
         #
         # 完了済みは取消不可
@@ -269,10 +258,36 @@ class TradeEngineAPI:
             TradeState.CANCELED,
             TradeState.COMPLETED,
         ]:
-            return False
+            return (
+                False,
+                f"Trade #{trade_id} は既に終了しています。"
+            )
+
+        # ------------------------------------------
+        # 注文後・約定前
+        # ------------------------------------------
+        #
+        # 既に注文を発注しているため、
+        # Tradeだけを取消することはできない。
+        #
+        if trade.state in [
+            TradeState.ORDER_REQUEST,
+            TradeState.ORDER_WAIT,
+        ]:
+            message = (
+                f"Trade #{trade_id} は注文処理中のため"
+                f"CANCELできません。"
+            )
+
+            Log.event(
+                f"CANCEL TRADE REJECT (#{trade_id}) "
+                f"state={trade.state.value} "
+                f"reason=ORDER_PENDING"
+            )
+
+            return False, message
 
         Log.event(f"CANCEL TRADE (#{trade_id})")
-
 
         # ------------------------------------------
         # ENTRY前
@@ -291,7 +306,7 @@ class TradeEngineAPI:
 
             self.engine._save_trade(trade)
 
-            return True
+            return True, ""
 
         # ------------------------------------------
         # ENTRY約定後
@@ -305,26 +320,39 @@ class TradeEngineAPI:
             # PAUSE中だった場合も解除
             trade.pause_flag = False
 
+            # CANCEL時点の現在価格を取得
+            quote = self.context.cache.quotes.get(
+                trade.param.symbol
+            )
+
+            if quote is None:
+                raise QuoteNotFoundError(
+                    message=(
+                        f"QUOTE NOT FOUND (#{trade.id}) "
+                        f"symbol={trade.param.symbol} "
+                        f"in cancel_trade()"
+                    ),
+                    code="QUOTE_NOT_FOUND",
+                )
+
+            # DEBUGではCANCEL時点の現在価格をEXIT価格として使用
+            trade.runtime.exit_price = quote.price
+            trade.runtime.exit_time = datetime.now()
+
             # EXIT処理へ
             trade.change_state(TradeState.EXIT_CREATE)
 
             self.engine._save_trade(trade)
 
-            return True
+            return True, ""
 
         # その他
-        return True
+        return (
+            False,
+            f"Trade #{trade_id} は現在の状態"
+            f"({trade.state.value})ではCANCELできません。"
+        )
 
-    def cancel_trades(self, trade_ids):
-        """
-        全Trade取消
-        """
-        count = 0
-        for trade_id in trade_ids:
-            if self.cancel_trade(trade_id):
-                count += 1
-
-        return count
 
     def delete_trade(self, trade_id):
         """
@@ -338,6 +366,7 @@ class TradeEngineAPI:
         if trade.state not in [
             TradeState.CANCELED,
             TradeState.COMPLETED,
+            TradeState.ERROR,
         ]:
             return False
 
@@ -346,31 +375,6 @@ class TradeEngineAPI:
         self.engine._delete_trade(trade)
 
         return True
-
-    def delete_trades(self, trade_ids):
-        """
-        指定した取消済みTrade一括削除
-        """
-        count = 0
-        for trade_id in trade_ids:
-            trade = self.context.trades.get(trade_id)
-
-            if trade is None:
-                continue
-
-            if trade.state not in [
-                TradeState.CANCELED,
-                TradeState.COMPLETED,
-            ]:
-                return False
-
-            Log.event(f"DELETE TRADE (#{trade_id})")
-
-            self.engine._delete_trade(trade)
-
-            count += 1
-
-        return count
 
 
     def get_trade_chart_datas(self, trade_id):

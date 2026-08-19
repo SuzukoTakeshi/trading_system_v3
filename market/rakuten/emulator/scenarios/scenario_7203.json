@@ -4,7 +4,7 @@
         "price": 3000,
         "quantity": 100,
         "atr": 2.0,
-        "trade_type": "margin",
+        "trade_type": "cash",
         "margin_type": 4,
         "side": "long",
         "strategy": "daytrade"

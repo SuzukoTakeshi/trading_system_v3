@@ -19,6 +19,8 @@ from ui.utils.ui_labels import (
     ENGINE_STATE_UNKNOWN,
 )
 
+from ui.console import message_store
+
 
 def header(ctx):
 
@@ -68,10 +70,6 @@ def header(ctx):
             )
 
         with col_engine:
-            st.write(
-                f"DEBUG state={engine!r}, "
-                f"running={running!r}"
-            )
 
             engine_state_display = ENGINE_STATE_LABEL.get(
                 engine,
@@ -108,36 +106,40 @@ def header(ctx):
                         result = start_system()
 
                         if result.get("result") == "OK":
-                            st.session_state.ui_message_once = {
-                                "level": "INFO",
-                                "message": result.get(
+
+                            message_store.set(
+                                level="INFO",
+                                message=result.get(
                                     "message",
                                     "TRADE ENGINE STARTED"
                                 ),
-                            }
+                            )
 
                         else:
-                            st.session_state.ui_message_once = {
-                                "level": "WARNING",
-                                "message": result.get(
+
+                            message_store.set(
+                                level="WARNING",
+                                message=result.get(
                                     "message",
                                     "Trade Engineを開始できません。"
                                 ),
-                            }
-
-                        st.rerun()
+                            )
 
                     except Exception as e:
 
-                        st.session_state.ui_message_once = {
-                            "level": "ERROR",
-                            "message": f"START ERROR : {get_error_message(e)}",
-                        }
+                        message_store.set(
+                            level="ERROR",
+                            message=(
+                                f"START ERROR : "
+                                f"{get_error_message(e)}"
+                            ),
+                        )
 
-                        st.rerun()
+                    st.rerun()
 
 
             with btn_stop:
+
                 if st.button(
                     "■",
                     use_container_width=True,
@@ -155,28 +157,32 @@ def header(ctx):
 
                         if result.get("result") == "OK":
 
-                            st.session_state.ui_message_once = {
-                                "level": "INFO",
-                                "message": "TRADE ENGINE STOPPED",
-                            }
+                            message_store.set(
+                                level="INFO",
+                                message=result.get(
+                                    "message",
+                                    "TRADE ENGINE STOPPED"
+                                ),
+                            )
 
                         else:
 
-                            st.session_state.ui_message_once = {
-                                "level": "WARNING",
-                                "message": result.get(
+                            message_store.set(
+                                level="WARNING",
+                                message=result.get(
                                     "message",
                                     "Trade Engineを停止できません。"
                                 ),
-                            }
-
-                        st.rerun()
+                            )
 
                     except Exception as e:
 
-                        st.session_state.ui_message_once = {
-                            "level": "ERROR",
-                            "message": f"STOP ERROR : {get_error_message(e)}",
-                        }
+                        message_store.set(
+                            level="ERROR",
+                            message=(
+                                f"STOP ERROR : "
+                                f"{get_error_message(e)}"
+                            ),
+                        )
 
-                        st.rerun()
+                    st.rerun()

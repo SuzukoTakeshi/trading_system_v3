@@ -230,9 +230,8 @@ class TradeEngine:
             self.state = EngineState.RUNNING
 
             self.last_message = "Trade Engineの起動が完了しました。"
-            Log.info("TRADE ENGINE STARTED")
 
-            Log.event(f"TRADE ENGINE START (interval={self.interval}s)")
+            Log.info(f"TRADE ENGINE START (interval={self.interval}s)")
 
             while self.running:
                 self.init_cycle_error()
@@ -282,7 +281,7 @@ class TradeEngine:
             except Exception as e:
                 Log.error(f"MARKET CLOSE ERROR : {e}")
 
-            Log.event("TRADE ENGINE STOP")
+            Log.info("TRADE ENGINE STOP")
 
 
     def process(self):
@@ -296,15 +295,11 @@ class TradeEngine:
 
         self.context.cycle_time = datetime.now()
 
-
         for trade in self.context.trades.values():
-
             if trade.pause_flag:
                 continue
 
-
             try:
-
                 # Trade状態ログ
                 # ここはログ出力なのでcycle_processedはチェックしない
                 if self.check_cycle(f"state_log_{trade.id}", self.PROC_STATE_LOG_INTERVAL_SEC):
