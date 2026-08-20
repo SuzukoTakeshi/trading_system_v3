@@ -77,11 +77,26 @@ class TradeRuntime:
         # EXIT約定時刻
         self.exit_time = None
 
-
+        # EXIT理由
         #
+        # STOP:
+        #   損切ライン到達
+        #
+        # TIME:
+        #   時間制限による決済
+        #
+        # CLOSE:
+        #   指定時刻による決済
+        #
+        # MANUAL:
+        #   手動決済
+        #
+        self.exit_reason = None
+
+
+        # ---------------------------------------
         # トレーリング管理
-        #
-
+        # ---------------------------------------
         #
         # トレーリング開始管理
         #
@@ -141,6 +156,7 @@ class TradeRuntime:
                 if self.exit_time
                 else None
             ),
+            "exit_reason": self.exit_reason,
 
             # ENTRY解析
             "entry_lowest_price": self.entry_lowest_price,
@@ -167,20 +183,19 @@ class TradeRuntime:
 
         runtime = cls()
 
-        runtime.entry_price = data.get("entry_price")
+        runtime.entry_market = data.get("entry_market", 1)
 
+        runtime.entry_price = data.get("entry_price")
         entry_time = data.get("entry_time")
         if entry_time:
             runtime.entry_time = datetime.fromisoformat(entry_time)
 
-        runtime.entry_market = data.get("entry_market", 1)
-
         runtime.exit_price = data.get("exit_price")
-
         exit_time = data.get("exit_time")
         if exit_time:
             runtime.exit_time = datetime.fromisoformat(exit_time)
 
+        runtime.exit_reason = data.get("exit_reason")
 
         runtime.entry_lowest_price = data.get("entry_lowest_price")
         runtime.entry_highest_price = data.get("entry_highest_price")
@@ -194,8 +209,14 @@ class TradeRuntime:
 
         trailing_start_time = data.get("trailing_start_time")
         if trailing_start_time:
-            runtime.trailing_start_time = datetime.fromisoformat(
-                trailing_start_time
-            )
+            runtime.trailing_start_time = datetime.fromisoformat(trailing_start_time)
 
         return runtime
+
+    #
+    # EXIT実績を設定
+    #
+    def set_exit(self, price, reason):
+        self.exit_price = price
+        self.exit_time = datetime.now()
+        self.exit_reason = reason

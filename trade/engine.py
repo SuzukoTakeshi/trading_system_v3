@@ -99,11 +99,11 @@ class TradeEngine:
         self.context = EngineContext()
 
         # Store
-        self.store = TradeStore()
+        self.trade_store = TradeStore()
         self.trade_chart_data_store = TradeChartDataStore()
 
         # 復元
-        self.restore()
+        self._restore()
 
         # Cycle Process
         self.process_market = ProcessMarket(self.context, self.market)
@@ -295,7 +295,21 @@ class TradeEngine:
 
         self.context.cycle_time = datetime.now()
 
-        for trade in self.context.trades.values():
+        #
+        # Trade処理
+        #
+        # Engine処理中にAPIからTradeが追加・削除される可能性があるため、
+        # 処理対象をサイクル開始時点のスナップショットとして取得する。
+        #
+        # 新しく追加されたTradeは次のサイクルから処理される。
+        #
+        trades = list(self.context.trades.values())
+
+        for trade in trades:
+            if trade.delete_request:
+                self.delete_trade(trade)
+                continue
+
             if trade.pause_flag:
                 continue
 
@@ -436,8 +450,11 @@ class TradeEngine:
                 )
 
 
+        # 削除後のcontext.tradesから再取得
+        trades = list(self.context.trades.values())
+
         # Trade Chart Data
-        for trade in self.context.trades.values():
+        for trade in trades:
             add_trade_chart_data(self.context, trade)
 
 
@@ -516,48 +533,46 @@ class TradeEngine:
 
 
     def save(self):
-
+        #
         # Trade
-        for trade in self.context.trades.values():
-            self.store.save(trade)
+        #
+        # Engine処理中にAPIからTradeが追加・削除される可能性があるため、
+        # 保存対象をスナップショットとして取得する。
+        #
+        # これにより、保存処理中にcontext.tradesが変更されても、
+        # 保存対象の一覧は変化しない。
+        #
+        trades = list(self.context.trades.values())
+
+        for trade in trades:
+            self.trade_store.save(trade)
 
         # Trade Chart Data
-        for trade_id, chart_data_list in self.context.cache.trade_chart_datas.items():
+        chart_data_items = list(self.context.cache.trade_chart_datas.items())
+
+        for trade_id, chart_data_list in chart_data_items:
             self.trade_chart_data_store.save(trade_id, chart_data_list)
 
 
-    def _save_trade(self, trade):
-        self.store.save(trade)
-
-
     def delete_trade(self, trade):
-        self.store.delete(trade.id)
+        self.trade_store.delete(trade.id)
 
         self.trade_chart_data_store.delete_by_trade_id(trade.id)
         self.context.cache.trade_chart_datas.pop(trade.id, None)
         del self.context.trades[trade.id]
 
 
-    def restore(self):
+    def _restore(self):
         Log.event("RESTORE START")
-        self._restore_trades()
-        Log.event("RESTORE COMPLETE")
 
-
-    def _restore_trades(self):
-
-        trades = self.store.find_all()
-
+        trades = self.trade_store.find_all()
         for trade in trades:
             self.context.trades[trade.id] = trade
 
-            chart_data_list = self.trade_chart_data_store.find_by_trade_id(
-                trade.id
-            )
+            chart_data_list = self.trade_chart_data_store.find_by_trade_id(trade.id)
 
             if chart_data_list:
-                self.context.cache.trade_chart_datas[
-                    trade.id
-                ] = chart_data_list
+                self.context.cache.trade_chart_datas[trade.id] = chart_data_list
 
-        Log.event(f"RESTORE TRADES {len(trades)}")
+        Log.event(f"RESTORE COMPLETE TRADES {len(trades)}")
+

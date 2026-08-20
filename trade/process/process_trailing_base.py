@@ -105,11 +105,9 @@ class ProcessTrailingBase(ProcessBase):
         limit_time = trade.runtime.entry_time + timedelta(minutes=trade.param.time_limit_minutes)
 
         if datetime.now() >= limit_time:
-
             Log.trailing(trade.id, f"TIME EXIT")
 
-            trade.runtime.exit_price = self.price
-            trade.runtime.exit_time = datetime.now()
+            trade.runtime.set_exit(self.price, "TIME")
 
             trade.add_timeline(
                 type="EXIT",
@@ -137,8 +135,7 @@ class ProcessTrailingBase(ProcessBase):
 
             Log.trailing(trade.id, f"CLOSE TIME EXIT time={trade.param.close_time}")
 
-            trade.runtime.exit_price = self.price
-            trade.runtime.exit_time = datetime.now()
+            trade.runtime.set_exit(self.price, "CLOSE")
 
             trade.add_timeline(
                 type="EXIT",

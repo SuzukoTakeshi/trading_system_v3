@@ -75,8 +75,16 @@ class TradeModel(BaseEntity):
         # Trade作成完了
         self.state = TradeState.CREATED
 
-
+        # Trade一時停止
         self.pause_flag = False
+
+        # Engine削除要求
+        #
+        # Engine稼働中にAPIからTrade削除要求を受けた場合、
+        # APIはContextから直接削除せず、
+        # このフラグを立ててEngineに削除を要求する。
+        #
+        self.delete_request = False
 
         # Trade開始パラメータ
         self.param = TradeParam(
@@ -222,35 +230,79 @@ class TradeModel(BaseEntity):
         data.update({
             "trade_id": self.id,
             "symbol": self.param.symbol,
-            "price": self.param.price,
-
-            "entry_price": self.runtime.entry_price,
-            "current_price": self.runtime.current_price,
-            "stop_price": self.runtime.stop_price,
 
             "quantity": self.param.quantity,
             "atr": self.param.atr,
+            "price": self.param.price,
             "trade_type": self.param.trade_type.value,
             "margin_type": self.param.margin_type,
             "side": self.param.side.value,
             "strategy": self.param.strategy.value,
 
             "state": self.state.value,
-            "message": self.message,
+            "current_price": self.runtime.current_price,
 
-            "pause_flag": self.pause_flag,
 
+            "entry_price": self.runtime.entry_price,
             "entry_time": (
                 self.runtime.entry_time.isoformat()
                 if self.runtime.entry_time
                 else None
             ),
 
+            "stop_price": self.runtime.stop_price,
+
+            "exit_price": self.runtime.exit_price,
             "exit_time": (
                 self.runtime.exit_time.isoformat()
                 if self.runtime.exit_time
                 else None
             ),
+            "exit_reason": self.runtime.exit_reason,
+
+            "profit_loss": self.get_profit_loss(),
+
+            "message": self.message,
+
+            "pause_flag": self.pause_flag,
         })
 
         return data
+
+
+    def get_profit_loss(self):
+        """
+        損益計算
+
+        LONG:
+            (EXIT価格 - ENTRY価格) * 株数
+
+        SHORT:
+            (ENTRY価格 - EXIT価格) * 株数
+
+        EXIT未約定の場合はNone。
+        """
+
+        entry_price = self.runtime.entry_price
+        exit_price = self.runtime.exit_price
+        quantity = self.param.quantity
+        side = self.param.side.value
+
+        if (
+            entry_price is None
+            or exit_price is None
+            or quantity is None
+        ):
+            return None
+
+        if side == "long":
+            return (
+                exit_price - entry_price
+            ) * quantity
+
+        if side == "short":
+            return (
+                entry_price - exit_price
+            ) * quantity
+
+        return None

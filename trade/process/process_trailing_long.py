@@ -10,8 +10,6 @@
 #   ・損切り/利確判定
 #
 
-from datetime import datetime
-
 from core.logger import Log
 
 from trade.process.process_trailing_base import ProcessTrailingBase
@@ -104,11 +102,11 @@ class ProcessTrailingLong(ProcessTrailingBase):
     def is_stop_hit(self, trade, price):
         if price <= trade.runtime.stop_price:
             Log.trailing(trade.id, f"STOP HIT LONG price={price}")
-            trade.add_timeline(type="EXIT", message=f"STOP HIT price={price}")
 
             # EXIT実績
-            trade.runtime.exit_price = price
-            trade.runtime.exit_time = datetime.now()
+            trade.runtime.set_exit(price, "STOP")
+
+            trade.add_timeline(type="EXIT", message=f"STOP HIT price={price}")
 
             return True
 

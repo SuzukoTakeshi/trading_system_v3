@@ -72,7 +72,7 @@ STATE_EVENT_MAP = {
     # -------------------------
 
     "completed": "CLOSED",
-    "canceled": "CLOSED",
+    "canceled": "CANCELED",
 
     # -------------------------
     # 異常
@@ -88,13 +88,14 @@ STATE_EVENT_MAP = {
 
 EVENT_LABEL = {
     "ENTRY": "🟢 エントリー",
-    "BREAKEVEN": "🟡 建値移動",
+    "BREAKEVEN": "🟤 建値移動",
     "TRAIL": "🔵 トレール",
-    "EXIT": "🔻 決済",
+    "EXIT": "🟣 決済",
     "CLOSED": "⚪ 終了",
+    "CANCELED": "🟠 終了(CANCEL)",
     "ERROR": "🔴 エラー",
 }
-EVENT_LABEL_UNKNOWN = "🟡 UNKNOWN"
+EVENT_LABEL_UNKNOWN = "UNKNOWN"
 
 # ==================================================
 # 売買方向

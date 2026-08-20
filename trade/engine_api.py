@@ -8,8 +8,6 @@
 # ・Tradeの作成、取得、操作
 #
 
-from datetime import datetime
-
 from core.logger import Log
 from core.exception import (
     StrategySideDisabledError,
@@ -19,6 +17,7 @@ from core.exception import (
 from config.strategy_config_loader import StrategyConfig
 
 from trade.trade_enums import (
+    EngineState,
     TradeState,
     SideType,
     TradeType,
@@ -34,6 +33,21 @@ class TradeEngineAPI:
         self.engine = engine
 
         self.context = engine.context
+
+
+    def _save_trade(self, trade):
+        #
+        # Trade永続化
+        #
+        # Engine稼働中:
+        #   Engineの定期save()に任せる。
+        #
+        # Engine停止中:
+        #   Engineのsave()が動かないため、
+        #   APIから直接TradeStoreへ保存する。
+        #
+        if self.engine.state == EngineState.STOPPED:
+            self.engine.trade_store.save(trade)
 
 
     def create_trade(self, req):
@@ -113,7 +127,7 @@ class TradeEngineAPI:
             )
         )
 
-        self.engine._save_trade(trade)
+        self._save_trade(trade)
 
         Log.event(f"CREATE TRADE (#{trade.id}) {trade.param.symbol}")
 
@@ -211,7 +225,7 @@ class TradeEngineAPI:
         # 一時停止
         trade.pause_flag = True
 
-        self.engine._save_trade(trade)
+        self._save_trade(trade)
 
         return True
 
@@ -234,7 +248,7 @@ class TradeEngineAPI:
         # クリア
         trade.pause_flag = False
 
-        self.engine._save_trade(trade)
+        self._save_trade(trade)
 
         return True
 
@@ -304,7 +318,7 @@ class TradeEngineAPI:
         ]:
             trade.change_state(TradeState.CANCELED)
 
-            self.engine._save_trade(trade)
+            self._save_trade(trade)
 
             return True, ""
 
@@ -336,13 +350,12 @@ class TradeEngineAPI:
                 )
 
             # DEBUGではCANCEL時点の現在価格をEXIT価格として使用
-            trade.runtime.exit_price = quote.price
-            trade.runtime.exit_time = datetime.now()
+            trade.runtime.set_exit(quote.price, "MANUAL")
 
             # EXIT処理へ
             trade.change_state(TradeState.EXIT_CREATE)
 
-            self.engine._save_trade(trade)
+            self._save_trade(trade)
 
             return True, ""
 
