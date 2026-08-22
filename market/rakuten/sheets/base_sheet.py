@@ -10,7 +10,10 @@
 #   ・ヘッダー行指定時、列タイトル辞書作成
 #
 
-from core.exception import ExcelArgumentError
+from core.exception import (
+    ExcelArgumentError,
+    SheetColumnError,
+)
 
 
 class BaseSheet:
@@ -135,6 +138,39 @@ class BaseSheet:
 
             if title:
                 self.column_map[str(title)] = col
+
+
+    def require_column(self, column_name):
+        """
+        必須シートカラム取得
+
+        指定したカラムが存在しない場合は、
+        シート構成エラーとして例外を発生させる。
+
+        column_name:
+            列タイトル
+
+        return:
+            列番号(int)
+
+        Raises:
+            SheetColumnError:
+                指定したカラムが存在しない場合
+        """
+
+        column = self.column_map.get(column_name)
+
+        if column is None:
+            raise SheetColumnError(
+                message=(
+                    f"シートに必須カラムがありません: "
+                    f"sheet={self.sheet_name} "
+                    f"column={column_name}"
+                ),
+                code="SHEET_COLUMN_NOT_FOUND",
+            )
+
+        return column
 
 
     def find_empty_row(self, column):

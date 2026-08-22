@@ -18,13 +18,15 @@
 
 import threading
 import time
+import traceback
 
 from datetime import datetime
 
 from core.logger import Log
 from core.exception import (
 	ExcelArgumentError,
-    QuoteNotFoundError
+    QuoteNotFoundError,
+    OrderSubmitTimeoutError,
 )
 
 from config.config_loader import Config
@@ -85,6 +87,9 @@ class TradeEngine:
 
         # 稼働状態
         self.running = False
+
+        # Cycle時間
+        self.last_cycle_at = None
 
         # Engine状態
         self.state = EngineState.STOPPED
@@ -236,11 +241,9 @@ class TradeEngine:
             while self.running:
                 self.init_cycle_error()
 
-                try:
-                    self.process()
+                self.process()
 
-                except Exception as e:
-                    self.handle_cycle_error(e)
+                self.last_cycle_at = datetime.now()
 
                 time.sleep(self.interval)
 
@@ -307,7 +310,7 @@ class TradeEngine:
 
         for trade in trades:
             if trade.delete_request:
-                self.delete_trade(trade)
+                self._delete_trade_and_symbol(trade)
                 continue
 
             if trade.pause_flag:
@@ -438,16 +441,43 @@ class TradeEngine:
                     case TradeState.COMPLETED:
                         self.process_complated.process(trade)
 
-            except Exception as e:
-                trade.error_message = str(e)
 
-                trade.change_state(TradeState.ERROR)
+            except OrderSubmitTimeoutError as e:
 
                 Log.error(
                     f"(#{trade.id}) "
                     f"Trade Process Exception "
                     f"{type(e).__name__}: {e}"
                 )
+
+                trade.error_message = str(e)
+                trade.change_state(TradeState.ERROR)
+
+                continue
+
+            except Exception as e:
+
+                Log.error(
+                    f"(#{trade.id}) "
+                    f"Trade Process Exception "
+                    f"{type(e).__name__}: {e}"
+                )
+
+                Log.error(traceback.format_exc())
+
+                try:
+                    self.handle_cycle_error(e)
+
+                except Exception:
+                    trade.error_message = str(e)
+                    trade.change_state(TradeState.ERROR)
+                    raise
+
+                if self.last_error == "RECOVERABLE_ERROR":
+                    continue
+
+                trade.error_message = str(e)
+                trade.change_state(TradeState.ERROR)
 
 
         # 削除後のcontext.tradesから再取得
@@ -555,11 +585,40 @@ class TradeEngine:
 
 
     def delete_trade(self, trade):
-        self.trade_store.delete(trade.id)
 
-        self.trade_chart_data_store.delete_by_trade_id(trade.id)
-        self.context.cache.trade_chart_datas.pop(trade.id, None)
-        del self.context.trades[trade.id]
+        trade_id = trade.id
+
+        # Trade削除
+        self.trade_store.delete(trade_id)
+
+        # Trade Chart Data削除
+        self.trade_chart_data_store.delete_by_trade_id(trade_id)
+        self.context.cache.trade_chart_datas.pop(trade_id, None)
+
+        # ContextからTrade削除
+        del self.context.trades[trade_id]
+
+
+    def _delete_trade_and_symbol(self, trade):
+
+        symbol = trade.param.symbol
+
+        self.delete_trade(trade)
+
+        #
+        # 同じ銘柄を使用しているTradeが残っているか確認
+        #
+        symbol_exists = any(
+            t.param.symbol == symbol
+            for t in self.context.trades.values()
+        )
+
+        #
+        # 他のTradeが使用していなければ
+        # Quotesシートから銘柄を削除
+        #
+        if not symbol_exists:
+            self.market.remove_quote_symbol(symbol)
 
 
     def _restore(self):

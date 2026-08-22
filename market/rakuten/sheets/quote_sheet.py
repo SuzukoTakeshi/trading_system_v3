@@ -12,28 +12,56 @@ from datetime import datetime
 
 from market.rakuten.sheets.base_sheet import BaseSheet
 
+from core.exception import SheetColumnError
+
 
 class QuoteSheet(BaseSheet):
 
     SYMBOL_COLUMN = "銘柄コード"
     PRICE_COLUMN = "現在値"
 
+    HEADER_COLUMNS = [
+        "銘柄コード",
+        "現在値",
+        "現在日付",
+        "現在値時刻",
+        "現在値ティック",
+        "前日比",
+        "前日比率",
+        "始値",
+        "高値",
+        "安値",
+        "出来高",
+    ]
+
+
     def __init__(self, market, ws, mode):
         super().__init__(market, ws, mode=mode, header_row=1, stopper=None)
 
         self.debug_quote_price = None
+
+        #
+        # Quotesシート初期化
+        #
+        self.initialize()
 
 
     def initialize(self):
         """
         Quotesシート初期化
 
+        ・ヘッダー設定
         ・シート構成確認
-        ・RSS設定準備
-        ・初期数式設定
-        （将来）
         """
-        pass
+
+        for column, name in enumerate(
+            self.HEADER_COLUMNS,
+            start=1
+        ):
+            self.ws.Cells(
+                self.header_row,
+                column
+            ).Value = name
 
 
     def debug_set_quote(self, price):
@@ -48,15 +76,8 @@ class QuoteSheet(BaseSheet):
 
         result = {}
 
-        symbol_col = self.column_map.get(self.SYMBOL_COLUMN)
-        price_col = self.column_map.get(self.PRICE_COLUMN)
-
-        if symbol_col is None:
-            return result
-
-        if price_col is None:
-            return result
-
+        symbol_col = self.require_column(self.SYMBOL_COLUMN)
+        price_col = self.require_column(self.PRICE_COLUMN)
 
         max_row = self.ws.UsedRange.Rows.Count
 
@@ -86,6 +107,9 @@ class QuoteSheet(BaseSheet):
         """
         指定銘柄価格取得
 
+        Quotesシートに銘柄が存在しない場合は、
+        自動的に銘柄を追加してから価格を取得する。
+
         return:
             {
                 "price": price,
@@ -96,13 +120,37 @@ class QuoteSheet(BaseSheet):
             None
         """
 
+        # 銘柄コードを正規化
         symbol = self.normalize_symbol(symbol)
 
+        # Quotesシートから現在値を取得
         quotes = self.get_quotes()
 
+        # 指定銘柄の現在値を取得
         quote = quotes.get(symbol)
 
-        return quote
+        # 既にQuotesシートに存在する場合
+        if quote is not None:
+            return quote
+
+        #
+        # Quotesシートに存在しない銘柄
+        #
+        # Engine稼働中に追加されたTradeなど、
+        # 起動時のsync_quotes()後に追加された銘柄を
+        # Quotesシートへ追加する。
+        #
+        self.add_symbol(symbol)
+
+        #
+        # 銘柄追加直後の現在値を再取得
+        #
+        # RSSの数式設定直後は価格がまだ取得できていない
+        # 場合があるため、取得できなければNoneを返す。
+        #
+        quotes = self.get_quotes()
+
+        return quotes.get(symbol)
 
 
     def reset(self):
@@ -117,14 +165,8 @@ class QuoteSheet(BaseSheet):
 
     def add_symbol(self, symbol):
 
-        symbol_col = self.column_map.get(self.SYMBOL_COLUMN)
-        price_col = self.column_map.get(self.PRICE_COLUMN)
-
-        if symbol_col is None:
-            raise Exception("銘柄コード列がありません")
-
-        if price_col is None:
-            raise Exception("現在値列がありません")
+        symbol_col = self.require_column(self.SYMBOL_COLUMN)
+        price_col = self.require_column(self.PRICE_COLUMN)
 
         symbol = self.normalize_symbol(symbol)
 
@@ -141,11 +183,21 @@ class QuoteSheet(BaseSheet):
         symbol_cell = f"${symbol_letter}{row}"
         item_cell = f"{price_letter}${self.header_row}"
 
-
         if self.is_real() or self.is_simulator():
-            self.ws.Cells(row, price_col).Formula = (
-                f"=RssMarket({symbol_cell},{item_cell})"
-            )
+
+            for column_name in self.HEADER_COLUMNS:
+
+                if column_name == self.SYMBOL_COLUMN:
+                    continue
+
+                column = self.require_column(column_name)
+
+                item_letter = self.get_column_letter(column)
+                item_cell = f"{item_letter}${self.header_row}"
+
+                self.ws.Cells(row, column).Formula = (
+                    f"=RssMarket({symbol_cell},{item_cell})"
+                )
 
         elif self.is_emulator():
             self.ws.Cells(row, price_col).Value = ""

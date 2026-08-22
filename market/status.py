@@ -25,13 +25,13 @@ class MarketStatus:
                 "state": "OPEN/CLOSED/HOLIDAY",
                 "is_open": True/False,
                 "message": "",
-                "updated": "YYYY-MM-DD HH:MM:SS"
+                "updated": datetime
             }
         """
 
         now = datetime.now()
 
-        updated = now.strftime("%Y-%m-%d %H:%M:%S")
+        updated = now
 
         #
         # 土日

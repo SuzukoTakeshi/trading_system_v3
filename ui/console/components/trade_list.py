@@ -17,6 +17,7 @@ from ui.utils.ui_labels import (
     SIDE_LABEL,
     TRADE_TYPE_LABEL,
     TRADE_TYPE_UNKNOWN,
+    STRATEGY_LABEL,
     STATE_EVENT_MAP,
     EVENT_LABEL,
     EVENT_LABEL_UNKNOWN,
@@ -44,25 +45,13 @@ def list_button_action(action, trade_id, success_message):
         response_message = response.get("message", "")
 
         if result == "OK":
-
-            message_store.set(
-                level="INFO",
-                message=response_message or success_message,
-            )
+            message_store.set(level="INFO", message=response_message or success_message)
 
         elif result == "REJECTED":
-
-            message_store.set(
-                level="WARNING",
-                message=response_message or "操作が拒否されました。",
-            )
+            message_store.set(level="WARNING", message=response_message or "操作が拒否されました。")
 
         else:
-
-            message_store.set(
-                level="ERROR",
-                message=response_message or "処理に失敗しました。",
-            )
+            message_store.set(level="ERROR", message=response_message or "処理に失敗しました。")
 
     except Exception as e:
 
@@ -92,7 +81,7 @@ def trade_list():
         )
 
         title_col, select_col, monitor_col, pause_col, resume_col, cancel_col, delete_col = st.columns(
-            [4, 1, 1, 1, 1, 1, 1]
+            [2, 1, 1, 1, 1, 1, 1]
         )
 
         with title_col:
@@ -109,6 +98,13 @@ def trade_list():
 
             row = trade.copy()
 
+            # 銘柄
+            row["symbol_name"] = (
+                f'{row.get("symbol", "")}　{row.get("name", "")}'
+            )
+            row.pop("symbol", None)
+            row.pop("name", None)
+
             # 売買方向
             row["side"] = SIDE_LABEL.get(
                 row.get("side", ""),
@@ -119,6 +115,12 @@ def trade_list():
             row["trade_type"] = TRADE_TYPE_LABEL.get(
                 row.get("trade_type", ""),
                 TRADE_TYPE_UNKNOWN
+            )
+
+            # 戦略
+            row["strategy"] = STRATEGY_LABEL.get(
+                row.get("strategy", ""),
+                row.get("strategy", "")
             )
 
             # Trade State → UI Event
@@ -154,12 +156,12 @@ def trade_list():
             trades = [
                 {
                     "trade_id": None,
-                    "symbol": "",
-                    "name": "",
-                    "price": None,
+                    "symbol_name": "",
+                    "current_price": None,
                     "quantity": None,
                     "atr": None,
                     "trade_type": "",
+                    "strategy": "",
                     "side": "",
                     "state": "",
                     "message": "",
@@ -203,12 +205,12 @@ def trade_list():
             column_order=[
                 "select",
                 "trade_id",
-                "symbol",
-                "name",
-                "price",
+                "symbol_name",
+                "current_price",
                 "quantity",
                 "atr",
                 "trade_type",
+                "strategy",
                 "side",
                 "state",
                 "message",
@@ -224,16 +226,12 @@ def trade_list():
                     "ID",
                     width="small",
                 ),
-                "symbol": st.column_config.TextColumn(
+                "symbol_name": st.column_config.TextColumn(
                     "銘柄",
-                    width="small",
-                ),
-                "name": st.column_config.TextColumn(
-                    "銘柄名",
                     width="medium",
                 ),
-                "price": st.column_config.NumberColumn(
-                    "指値",
+                "current_price": st.column_config.NumberColumn(
+                    "現在値",
                     width="small",
                     format="%,.2f",
                 ),
@@ -249,6 +247,10 @@ def trade_list():
                 ),
                 "trade_type": st.column_config.TextColumn(
                     "取引",
+                    width="small",
+                ),
+                "strategy": st.column_config.TextColumn(
+                    "戦略",
                     width="small",
                 ),
                 "side": st.column_config.TextColumn(
@@ -272,15 +274,15 @@ def trade_list():
             #
             # 編集禁止
             #
-
             disabled=[
                 "trade_id",
-                "symbol",
-                "name",
+                "symbol_name",
+                "current_price",
                 "price",
                 "quantity",
                 "atr",
                 "trade_type",
+                "strategy",
                 "side",
                 "state",
                 "message",
@@ -291,7 +293,6 @@ def trade_list():
         #
         # 選択Trade ID取得
         #
-
         selected_ids = [
             row["trade_id"]
             for row in edited
@@ -299,18 +300,13 @@ def trade_list():
             and row["trade_id"] is not None
         ]
 
-        st.session_state["trade_list_selected_ids"] = set(
-            selected_ids
-        )
+        st.session_state["trade_list_selected_ids"] = set(selected_ids)
 
-        selected_placeholder.markdown(
-            f"選択 : {len(selected_ids)} 件"
-        )
+        selected_placeholder.markdown(f"選択 : {len(selected_ids)} 件")
 
         #
         # Monitor
         #
-
         with monitor_col:
 
             if st.button(
@@ -318,7 +314,6 @@ def trade_list():
                 width="stretch",
                 disabled=len(selected_ids) == 0,
             ):
-
                 trade_ids = ",".join(
                     str(trade_id)
                     for trade_id in selected_ids
@@ -337,11 +332,7 @@ def trade_list():
                 width="stretch",
                 disabled=len(selected_ids) != 1,
             ):
-                list_button_action(
-                    pause_trade,
-                    selected_ids[0],
-                    "PAUSE 完了",
-                )
+                list_button_action(pause_trade, selected_ids[0], "PAUSE 完了")
 
         #
         # Resume
@@ -352,12 +343,7 @@ def trade_list():
                 width="stretch",
                 disabled=len(selected_ids) != 1,
             ):
-                list_button_action(
-                    resume_trade,
-                    selected_ids[0],
-                    "RESUME 完了",
-                )
-
+                list_button_action(resume_trade, selected_ids[0], "RESUME 完了")
 
         #
         # Cancel
@@ -368,11 +354,7 @@ def trade_list():
                 width="stretch",
                 disabled=len(selected_ids) != 1,
             ):
-                list_button_action(
-                    cancel_trade,
-                    selected_ids[0],
-                    "CANCEL 完了",
-                )
+                list_button_action(cancel_trade, selected_ids[0], "CANCEL 完了")
 
         #
         # Delete
@@ -383,8 +365,4 @@ def trade_list():
                 width="stretch",
                 disabled=len(selected_ids) != 1,
             ):
-                list_button_action(
-                    delete_trade,
-                    selected_ids[0],
-                    "DELETE 完了",
-                )
+                list_button_action(delete_trade, selected_ids[0], "DELETE 完了")

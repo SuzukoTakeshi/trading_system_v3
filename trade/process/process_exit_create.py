@@ -2,6 +2,8 @@
 # trade/process/process_exit_create.py
 #
 
+from datetime import datetime
+
 from core.logger import Log
 
 from trade.trade_enums import SideType
@@ -12,9 +14,16 @@ from market.order_enums import (
     OrderState,
 )
 
-from core.exception import StrategySideDisabledError
+from trade.process.process_order_base import (
+    ProcessOrderBase,
+    ORDER_SUBMIT_TIMEOUT_SEC,
+)
 
-from trade.process.process_order_base import ProcessOrderBase
+from core.exception import (
+    InternalError,
+    StrategySideDisabledError,
+    OrderSubmitTimeoutError,
+)
 
 
 class ProcessExitCreate(ProcessOrderBase):
@@ -43,10 +52,33 @@ class ProcessExitCreate(ProcessOrderBase):
                     if not result:
                         return False
 
+                    # 発注受付待ち開始時刻
+                    # Orderのタイムアウトチェックの為、
+                    # SUBMITTEDへ移行する直前に時刻を保存する。
+                    order.submitted_at = datetime.now()
+
                     order.change_state(OrderState.SUBMITTED)
 
                 case OrderState.SUBMITTED:
-                    order.order_no = self.market.get_order_no(order.id)
+
+                    # 発注受付待ちタイムアウト
+                    if order.submitted_at is None:
+                        raise InternalError(
+                            message=f"@({order.id}) Order submitted_at is None at ProcessExitCreate",
+                            code="ORDER_SUBMIT_TIMESTAMP_MISSING",
+                        )
+
+                    elapsed = (datetime.now() - order.submitted_at).total_seconds()
+
+                    if elapsed >= ORDER_SUBMIT_TIMEOUT_SEC:
+                        raise OrderSubmitTimeoutError(
+                            message=f"@({order.id}) Order submit timeout at ProcessExitCreate: elapsed={elapsed:.1f}s",
+                            code="ORDER_SUBMIT_TIMEOUT",
+                        )
+
+                    order.order_no = self.get_order_no(trade, order)
+                    if order.order_no is None:
+                        return False
 
                     order.change_state(OrderState.REQUESTED)
 

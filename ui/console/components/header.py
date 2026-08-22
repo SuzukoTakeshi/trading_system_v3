@@ -21,6 +21,11 @@ from ui.utils.ui_labels import (
 
 from ui.console import message_store
 
+from ui.utils.formatters import (
+	fmt_dt,
+    format_datetime_jp
+)
+
 
 def header(ctx):
 
@@ -29,22 +34,34 @@ def header(ctx):
     if status is None:
         status = {}
 
-    trade_engine = status.get("trade_engine", {})
-    engine = trade_engine.get("state", "UNKNOWN")
-    running = trade_engine.get("running", False)
-    mode = status.get("mode", "UNKNOWN")
-
     market = status.get("market", {})
     market_state = market.get("state", "UNKNOWN")
-    market_updated = market.get("updated", "")
+
+    trade_engine = status.get("trade_engine", {})
+    engine = trade_engine.get("state", "UNKNOWN")
+    last_cycle_at = trade_engine.get("last_cycle_at")
+    running = trade_engine.get("running", False)
+
+    mode = status.get("mode", "UNKNOWN")
 
     with st.container(border=True):
 
-        col_refresh, col_market, _, _, _, col_engine = st.columns(
-            [2, 2, 2, 2, 2, 2]
+        col_refresh, col_market, col_engine, _, _, col_engine_action = st.columns(
+            [1, 1, 1, 1, 6, 1]
         )
 
         with col_refresh:
+
+            st.markdown(
+                f"""
+                <div style="line-height:1.0;">
+                    <b>MODE: </b>
+                    {mode.upper()}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
             auto_refresh = st.toggle(
                 "AUTO REFRESH",
                 value=st.session_state.auto_refresh,
@@ -58,12 +75,18 @@ def header(ctx):
                 MARKET_STATE_UNKNOWN
             )
 
+            market_updated = market.get("updated", "")
+            if market_updated:
+                market_updated_text = format_datetime_jp(market_updated)
+            else:
+                market_updated_text = "-"
+
             st.markdown(
                 f"""
                 <div style="line-height:1.5;">
                     <b>MARKET</b><br>
                     {market_display}<br>
-                    <small>{market_updated}</small>
+                    <small>{market_updated_text}</small>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -76,16 +99,28 @@ def header(ctx):
                 ENGINE_STATE_UNKNOWN
             )
 
+            if engine == "stopped":
+                last_cycle_text = "-"
+            else:
+                last_cycle_at = trade_engine.get("last_cycle_at")
+
+                if last_cycle_at:
+                    last_cycle_text = fmt_dt(last_cycle_at)
+                else:
+                    last_cycle_text = "-"
+
             st.markdown(
                 f"""
-                <div>
-                    <b>{engine_state_display}</b>
-                    <b style="margin-left:8px;">MODE: {mode.upper()}</b>
+                <div style="line-height:1.5;">
+                    <b>ENGINE</b><br>
+                    {engine_state_display}<br>
+                    <small>Cycle: {last_cycle_text}</small>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
+        with col_engine_action:
 
             btn_start, btn_stop = st.columns(2)
 

@@ -1,5 +1,5 @@
 #
-# market/rakuten/macro/margin_order.py
+# market/rakuten/macro/margin_open_order.py
 #
 # Rakuten RSS Margin Order
 #
@@ -8,10 +8,14 @@
 #   ・RssMarginOpenOrder_V 呼出
 #
 
-class MarginOrder:
+
+from market.rakuten.macro.macro_base import MacroBase
+
+
+class MarginOpenOrder(MacroBase):
 
     def __init__(self, client):
-        self.client = client
+        super().__init__(client)
 
 
     def submit(self, request):
@@ -145,7 +149,9 @@ class MarginOrder:
         # RSS実行
         # ------------------------------------------
 
-        order_result = self.client.run_macro(
+        result, macro_result = self.run(
+            order_id, symbol,
+
             "RssMarginOpenOrder_V",
             order_id,
             symbol,
@@ -170,33 +176,15 @@ class MarginOrder:
             set_order_expire,
         )
 
-        self.client.add_internal_log(
-            level="DEBUG",
-            message="RssMarginOpenOrder_V RESULT",
-            data={
-                "order_id": order_id,
-                "symbol": symbol,
-                "status": order_result,
-                "margin_type": margin_type,
-            },
-        )
+        #
+        # 正常
+        #
+        if macro_result == "":
+            return True, None
 
-        if order_result == "":
-            result = True
+        #
+        # RSSエラー
+        #
+        result_code = self.get_result_code(macro_result)
 
-        else:
-            self.client.set_last_error(
-                code="ORDER_REJECTED",
-                message=order_result,
-                source="RSS",
-                data={
-                    "macro": "RssMarginOpenOrder_V",
-                    "order_id": order_id,
-                    "symbol": symbol,
-                    "margin_type": margin_type,
-                },
-            )
-
-            result = False
-
-        return result, order_result
+        return False, result_code

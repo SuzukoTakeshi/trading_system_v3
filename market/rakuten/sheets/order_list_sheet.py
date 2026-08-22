@@ -77,7 +77,10 @@ class OrderListSheet(BaseSheet):
             1行分のデータ(tuple)
             見つからない場合はNone
         """
-        row = self.find_row(self.column_map[self.ORDER_NO_COLUMN], str(order_no))
+
+        order_no_column = self.require_column(self.ORDER_NO_COLUMN)
+
+        row = self.find_row(order_no_column, str(order_no))
 
         if row is None:
             return None
@@ -101,17 +104,22 @@ class OrderListSheet(BaseSheet):
         注文結果取得
         """
 
-        row = self.find_row(self.column_map[self.ORDER_NO_COLUMN], str(order_no))
+        order_no_column = self.require_column(self.ORDER_NO_COLUMN)
+        status_column = self.require_column(self.ORDER_STATUS_COLUMN)
+        order_datetime_column = self.require_column(self.ORDER_DATETIME_COLUMN)
+        filled_quantity_column = self.require_column(self.FILLED_QUANTITY_COLUMN)
+        order_price_column = self.require_column(self.ORDER_PRICE_COLUMN)
 
+        row = self.find_row(order_no_column, str(order_no))
         if row is None:
             return None
 
         data = {
-            "order_no": self.get_value(row, self.column_map[self.ORDER_NO_COLUMN]),
-            "status": self.get_value(row, self.column_map[self.ORDER_STATUS_COLUMN]),
-            "order_datetime": self.get_value(row, self.column_map[self.ORDER_DATETIME_COLUMN]),
-            "quantity": self.get_value(row, self.column_map[self.FILLED_QUANTITY_COLUMN]),
-            "price": self.get_value(row, self.column_map[self.ORDER_PRICE_COLUMN]),
+            "order_no": self.get_value(row, order_no_column),
+            "status": self.get_value(row, status_column),
+            "order_datetime": self.get_value(row, order_datetime_column),
+            "quantity": self.get_value(row, filled_quantity_column),
+            "price": self.get_value(row, order_price_column),
         }
 
         return data

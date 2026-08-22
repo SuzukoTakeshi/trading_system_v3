@@ -13,19 +13,15 @@ from ui.console.auditor.auditor_panel import auditor_panel
 def body(ctx):
 
     col_list, col_entry, col_auditor = st.columns(
-        [3, 1, 1]
+        [4, 1, 1]
     )
 
     with col_list:
-
         trade_list()
-
         system_log()
-
 
     with col_entry:
         trade_panel()
-
 
     with col_auditor:
         auditor_panel()

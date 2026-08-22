@@ -36,7 +36,7 @@ class OrderIDListSheet(BaseSheet):
             見つからない場合はNone
         """
 
-        column = self.column_map[self.ORDER_ID_COLUMN]
+        column = self.require_column(self.ORDER_ID_COLUMN)
 
         row = self.find_row(column, order_id)
 
@@ -58,12 +58,17 @@ class OrderIDListSheet(BaseSheet):
         return order_no
         """
 
-        column = self.column_map[self.ORDER_ID_COLUMN]
-        row = self.find_row(column, order_id)
+        order_id_column = self.require_column(self.ORDER_ID_COLUMN)
+
+        result_column = self.require_column(self.ORDER_RESULT_COLUMN)
+
+        order_no_column = self.require_column(self.ORDER_NO_COLUMN)
+
+        row = self.find_row(order_id_column, order_id)
         if row is None:
             return None
 
-        result = self.get_value(row, self.column_map[self.ORDER_RESULT_COLUMN])
+        result = self.get_value(row, result_column)
 
         # result値
         # 発注済み
@@ -85,7 +90,7 @@ class OrderIDListSheet(BaseSheet):
         if result != "発注済み":
             return None
 
-        order_no = self.get_value(row, self.column_map[self.ORDER_NO_COLUMN])
+        order_no = self.get_value(row, order_no_column)
 
         if order_no is None:
             return None

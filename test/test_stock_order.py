@@ -43,7 +43,9 @@ from market.rakuten.market import RakutenMarket
 def main():
 
     # debug環境の楽天RSSクライアントを生成
-    market = RakutenMarket("debug")
+    #   real=本番運用 / simulator=楽天RSS価格・仮想売買
+    #   emulator=仮想市場環境 / debug=内部デバッグ"
+    market = RakutenMarket("simulator")
 
     try:
 
@@ -94,8 +96,8 @@ def main():
 
         args = (
 
-            358,        #  1 発注ID
-            # "7203",     #  2 銘柄コード       「銘柄コード.市場」の形式で入力。市場は省略可。市場は、T：東証（省略時東証）、JAX、JAX、JNX、JNX
+            1,          #  1 発注ID
+            # "7203",   #  2 銘柄コード       「銘柄コード.市場」の形式で入力。市場は省略可。市場は、T：東証（省略時東証）、JAX、JAX、JNX、JNX
             "9432",     #  2 銘柄コード (NTT)  「銘柄コード.市場」の形式で入力。市場は省略可。市場は、T：東証（省略時東証）、JAX、JAX、JNX、JNX
 
             3,          #  3 売買区分         1：売り、3：買い

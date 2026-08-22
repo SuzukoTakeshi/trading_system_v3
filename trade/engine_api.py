@@ -198,6 +198,7 @@ class TradeEngineAPI:
             "running": self.engine.running,
             "state": self.engine.state.value,
             "trade_count": len(self.context.trades),
+            "last_cycle_at": self.engine.last_cycle_at,
             "last_error": self.engine.last_error,
             "last_message": self.engine.last_message
         }
@@ -368,9 +369,7 @@ class TradeEngineAPI:
 
 
     def delete_trade(self, trade_id):
-        """
-        Trade削除
-        """
+
         trade = self.context.trades.get(trade_id)
 
         if trade is None:
@@ -385,9 +384,31 @@ class TradeEngineAPI:
 
         Log.event(f"DELETE TRADE (#{trade_id})")
 
+        #
+        # Engine稼働中
+        #
+        # APIから直接削除せず、
+        # TradeModelに削除要求を設定する。
+        #
+        if self.engine.state == EngineState.RUNNING:
+
+            trade.delete_request = True
+
+            # 削除要求を永続化
+            self.engine.trade_store.save(trade)
+
+            return True
+
+        #
+        # Engine停止中
+        #
+        # Engineが動いていないので、
+        # APIから直接削除する。
+        #
         self.engine.delete_trade(trade)
 
         return True
+
 
 
     def get_trade_chart_datas(self, trade_id):

@@ -80,11 +80,17 @@ header[data-testid="stHeader"] {
     display: none;
 }
 
+/* ページ余白 */
 .block-container {
     padding-top: 0rem;
     padding-bottom: 1rem;
     padding-left: 1rem;
     padding-right: 1rem;
+}
+
+/* columns 下の余白を詰める */
+div[data-testid="stHorizontalBlock"] {
+    margin-bottom: 0 !important;
 }
 
 </style>
@@ -129,9 +135,7 @@ def system_header(status):
     now = datetime.now()
     datetime_text = format_datetime_jp(now)
 
-    #
     # Backendメッセージ
-    #
     backend_message = status.get("message")
 
     if backend_message:
@@ -142,9 +146,7 @@ def system_header(status):
             timestamp=backend_message.get("time"),
         )
 
-    #
     # 最新メッセージ
-    #
     system_message = message_store.get()
 
     message_level = None
@@ -176,9 +178,7 @@ def system_header(status):
             message_time = ""
 
             if system_message.get("timestamp"):
-                message_time = system_message["timestamp"].strftime(
-                    "%H:%M:%S"
-                )
+                message_time = system_message["timestamp"].strftime("%H:%M:%S")
 
             st.markdown(
                 f"""

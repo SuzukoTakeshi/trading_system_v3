@@ -160,11 +160,11 @@ def trade_panel():
             margin_type = None
 
 
-        # Strategy
+        # 戦略
         col1, col2 = st.columns([1, 3])
 
         with col1:
-            st.write("Strategy")
+            st.write("戦略")
 
         with col2:
             strategy_options = [

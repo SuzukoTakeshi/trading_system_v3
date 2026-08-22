@@ -215,6 +215,7 @@ class TradeModel(BaseEntity):
         trade.timeline = data.get("timeline", [])
         trade.message = data.get("message")
         trade.pause_flag = data.get("pause_flag", False)
+        trade.delete_request = False
         trade.created_at = datetime.fromisoformat(data["created_at"])
         trade.updated_at = datetime.fromisoformat(data["updated_at"])
 

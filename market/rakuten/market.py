@@ -18,8 +18,9 @@ from config.config_loader import Config
 
 from market.rakuten.config.config_loader import MarketConfig
 
+from market.rakuten.order_executor import OrderExecutor
+
 from market.rakuten.sheets.quote_sheet import QuoteSheet
-from market.rakuten.sheets.order_sheet import OrderSheet
 from market.rakuten.sheets.order_id_list_sheet import OrderIDListSheet
 from market.rakuten.sheets.order_list_sheet import OrderListSheet
 
@@ -62,9 +63,10 @@ class RakutenMarket:
         self.book = None
 
         self.quote_sheet = None
-        self.order_sheet = None
+        self.order_executor = None
         self.order_id_list_sheet = None
         self.order_list_sheet = None
+
 
     def set_last_error(
         self,
@@ -99,11 +101,13 @@ class RakutenMarket:
         message,
         data=None,
     ):
+        timestamp = datetime.now()
+        
         self.internal_logs.append({
             "level": level,
             "message": message,
             "data": data or {},
-            "timestamp": datetime.now(),
+            "timestamp": timestamp,
         })
 
         if len(self.internal_logs) > self.internal_log_limit:
@@ -122,16 +126,23 @@ class RakutenMarket:
         self.last_error = None
 
         self.quote_sheet = None
-        self.order_sheet = None
+        self.order_executor = None
         self.order_id_list_sheet = None
         self.order_list_sheet = None
 
         pythoncom.CoInitialize()
 
-        self.add_internal_log(level="EVENT", message="EXCEL OPEN", data={"path": self.path})
+        self.add_internal_log(
+            level="EVENT",
+            message="EXCEL OPEN",
+            data={"path": self.path},
+        )
 
         try:
-            self.app = win32com.client.GetObject(None, "Excel.Application")
+            self.app = win32com.client.GetObject(
+                None,
+                "Excel.Application",
+            )
 
         except Exception:
             raise Exception("Excel(RSS)が起動していません。")
@@ -142,21 +153,52 @@ class RakutenMarket:
                 break
 
         if self.book is None:
-            raise Exception(f"Workbookが見つかりません: {self.path}")
+            raise Exception(
+                f"Workbookが見つかりません: {self.path}"
+            )
 
-        self.quote_sheet = QuoteSheet(self, self.get_sheet(self.sheets["quote"]), self.mode)
+        #
+        # Quote
+        #
+        self.quote_sheet = QuoteSheet(
+            self,
+            self.get_sheet(self.sheets["quote"]),
+            self.mode,
+        )
 
-        self.order_sheet = OrderSheet(self, self.get_sheet(self.sheets["order"]), self.mode)
+        #
+        # Order Executor
+        #
+        self.order_executor = OrderExecutor(
+            self,
+            self.mode,
+        )
 
-        self.order_id_list_sheet = OrderIDListSheet(self, self.get_sheet(self.sheets["order_id_list"]), self.mode)
+        #
+        # Order ID List
+        #
+        self.order_id_list_sheet = OrderIDListSheet(
+            self,
+            self.get_sheet(self.sheets["order_id_list"]),
+            self.mode,
+        )
 
-        self.order_list_sheet = OrderListSheet(self, self.get_sheet(self.sheets["order_list"]), self.mode)
+        #
+        # Order List
+        #
+        self.order_list_sheet = OrderListSheet(
+            self,
+            self.get_sheet(self.sheets["order_list"]),
+            self.mode,
+        )
 
         if self.mode == "debug":
             price = self.debug_settings.get("quote_price")
 
             if price is None:
-                raise Exception("debug_settings.quote_price が設定されていません")
+                raise Exception(
+                    "debug_settings.quote_price が設定されていません"
+                )
 
             self.quote_sheet.debug_set_quote(price)
 
@@ -170,7 +212,7 @@ class RakutenMarket:
         """
 
         self.quote_sheet = None
-        self.order_sheet = None
+        self.order_executor = None
         self.order_id_list_sheet = None
         self.order_list_sheet = None
 
@@ -180,7 +222,10 @@ class RakutenMarket:
         # COM解放
         pythoncom.CoUninitialize()
 
-        self.add_internal_log(level="EVENT", message="EXCEL CLOSE")
+        self.add_internal_log(
+            level="EVENT",
+            message="EXCEL CLOSE",
+        )
 
 
     def get_sheet(self, name):
@@ -189,7 +234,9 @@ class RakutenMarket:
             return self.book.Worksheets(name)
 
         except Exception:
-            raise Exception(f"Worksheetが見つかりません: {name}")
+            raise Exception(
+                f"Worksheetが見つかりません: {name}"
+            )
 
 
     def sync_quotes(self, symbols):
@@ -202,6 +249,10 @@ class RakutenMarket:
 
     def get_quote(self, symbol):
         return self.quote_sheet.get_quote(symbol)
+
+
+    def remove_quote_symbol(self, symbol):
+        self.quote_sheet.remove_symbol(symbol)
 
 
     def request_order(self, request_order_dto):
@@ -247,10 +298,13 @@ class RakutenMarket:
             "open_market": request_order_dto.open_market,
         }
 
-        result, rss_result = self.order_sheet.request_order(request)
+        #
+        # Order実行
+        #
+        result, result_code = self.order_executor.request_order(request)
 
         if not result:
-            return result, rss_result
+            return result, result_code
 
 
         #
@@ -263,18 +317,31 @@ class RakutenMarket:
         #   order_enabled=false の場合だけ作成
         #
         if self.mode == "simulator":
-            order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
-            self.order_list_sheet.debug_add_order(order_no, request)
+
+            order_no = self.order_id_list_sheet.debug_add_order(
+                request_order_dto.order_id
+            )
+
+            self.order_list_sheet.debug_add_order(
+                order_no,
+                request,
+            )
 
         elif (
             self.mode == "debug"
             and not self.debug_settings.get("order_enabled", False)
         ):
-            order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
 
-            self.order_list_sheet.debug_add_order(order_no, request)
+            order_no = self.order_id_list_sheet.debug_add_order(
+                request_order_dto.order_id
+            )
 
-        return True, ""
+            self.order_list_sheet.debug_add_order(
+                order_no,
+                request,
+            )
+
+        return True, result_code
 
 
     #
@@ -285,11 +352,25 @@ class RakutenMarket:
     #
     def run_macro(self, macro_name, *args):
 
-        self.add_internal_log(level="DEBUG", message="RUN MACRO", data={"name": macro_name, "args": args})
+        self.add_internal_log(
+            level="DEBUG",
+            message="RUN MACRO",
+            data={
+                "name": macro_name,
+                "args": args,
+            },
+        )
 
         result = self.app.Run(macro_name, *args)
 
-        self.add_internal_log(level="DEBUG", message="RUN MACRO RESULT", data={"name": macro_name, "result": result})
+        self.add_internal_log(
+            level="DEBUG",
+            message="RUN MACRO RESULT",
+            data={
+                "name": macro_name,
+                "result": result,
+            },
+        )
 
         return result
 
@@ -303,7 +384,10 @@ class RakutenMarket:
         """
         発注ID一覧データ取得
         """
-        return self.order_id_list_sheet.get_order_id_data(order_id)
+        return self.order_id_list_sheet.get_order_id_data(
+            order_id
+        )
+
 
     #
     # 注文番号取得
@@ -314,7 +398,9 @@ class RakutenMarket:
         """
         注文番号取得
         """
-        return self.order_id_list_sheet.get_order_no(order_id)
+        return self.order_id_list_sheet.get_order_no(
+            order_id
+        )
 
 
     #
@@ -326,7 +412,9 @@ class RakutenMarket:
         """
         注文一覧データ取得
         """
-        return self.order_list_sheet.get_order_list_data(order_no)
+        return self.order_list_sheet.get_order_list_data(
+            order_no
+        )
 
 
     #
@@ -339,7 +427,9 @@ class RakutenMarket:
         注文結果取得
         """
 
-        result = self.order_list_sheet.get_order_result(order_no)
+        result = self.order_list_sheet.get_order_result(
+            order_no
+        )
 
         if result is None:
             self.set_last_error(
@@ -353,6 +443,7 @@ class RakutenMarket:
             return None
 
         status = result["status"]
+
         # 1 ： 訂正取消可能注文
         # 2 ： 執行待ち
         # 3 ： 執行中
@@ -367,6 +458,7 @@ class RakutenMarket:
         # 12 ： 訂正済
         # 13 ： -（逆指値･アルゴ）
         # 注) 数字はRssOrderListでの取得パラメータ
+
         if status == "約定" or status == "出来有":
             return result
 

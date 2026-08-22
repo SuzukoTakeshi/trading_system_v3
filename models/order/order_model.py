@@ -41,6 +41,23 @@ class OrderModel(BaseEntity):
             generate_id=generate_id
         )
 
+        # 発注ID枝番
+        #
+        # 楽天RSSでは、使用済みの発注IDを再利用すると
+        # 「注文ID=xxxx は既に使用済みです。」となる。
+        #
+        # その場合、同じOrderのまま発注IDだけを変更して
+        # 再発注するために枝番を使用する。
+        #
+        # RSS発注ID:
+        #   Order ID 345
+        #   3450 ～ 3459
+        #
+        # 枝番:
+        #   0 ～ 9
+        #
+        self.order_id_sub_no = 0
+
         # 親Trade
         self.trade = trade
 
@@ -80,6 +97,13 @@ class OrderModel(BaseEntity):
         #   ProcessOrderRequest.create_order()で生成された注文要求
         #
         self.state = None
+
+        # 発注受付待ち開始時刻
+        #
+        # submitted状態になった時刻
+        # OrderWaitのタイムアウト判定に使用
+        #
+        self.submitted_at = None
 
         # 注文結果
         #

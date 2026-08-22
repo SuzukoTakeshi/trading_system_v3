@@ -8,10 +8,13 @@
 #   ・RssMarginCloseOrder_V 呼出
 #
 
-class MarginCloseOrder:
+from market.rakuten.macro.macro_base import MacroBase
+
+
+class MarginCloseOrder(MacroBase):
 
     def __init__(self, client):
-        self.client = client
+        super().__init__(client)
 
 
     def submit(self, request):
@@ -115,7 +118,9 @@ class MarginCloseOrder:
         # RSS実行
         # ------------------------------------------
 
-        order_result = self.client.run_macro(
+        result, macro_result = self.run(
+            order_id, symbol,
+
             "RssMarginCloseOrder_V",
             order_id,
             symbol,
@@ -138,50 +143,18 @@ class MarginCloseOrder:
             trigger_order_price,
         )
 
-        # ------------------------------------------
-        # Internal Log
-        # ------------------------------------------
+        #
+        # 正常
+        #
+        if macro_result == "":
+            return True, None
 
-        self.client.add_internal_log(
-            level="DEBUG",
-            message="RssMarginCloseOrder_V RESULT",
-            data={
-                "order_id": order_id,
-                "symbol": symbol,
-                "margin_type": margin_type,
-                "open_date": open_date,
-                "open_price": open_price,
-                "open_market": open_market,
-                "status": order_result,
-            },
-        )
+        #
+        # RSSエラー
+        #
+        result_code = self.get_result_code(macro_result)
 
-        # ------------------------------------------
-        # RSS結果
-        # ------------------------------------------
-
-        if order_result == "":
-            result = True
-
-        else:
-            self.client.set_last_error(
-                code="ORDER_REJECTED",
-                message=order_result,
-                source="RSS",
-                data={
-                    "macro": "RssMarginCloseOrder_V",
-                    "order_id": order_id,
-                    "symbol": symbol,
-                    "margin_type": margin_type,
-                    "open_date": open_date,
-                    "open_price": open_price,
-                    "open_market": open_market,
-                },
-            )
-
-            result = False
-
-        return result, order_result
+        return False, result_code
 
 
 # 楽天資料より

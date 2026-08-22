@@ -43,6 +43,22 @@ class SystemError(Exception):
         self.code = code
 
 
+class InternalError(SystemError):
+    """
+    システム内部不整合エラー
+
+    原因:
+        ・プログラム上の想定外状態
+        ・状態遷移の不整合
+        ・必須データの欠落
+        ・内部ロジックのバグ
+
+    このエラーは回復を試みず、
+    TradeEngineを停止する。
+    """
+    pass
+
+
 class StoreError(SystemError):
     """
     Store関連エラー
@@ -73,6 +89,20 @@ class ExcelArgumentError(ExcelError):
     例:
         column="注文番号"
         row="5"
+    """
+    pass
+
+
+class SheetColumnError(ExcelError):
+    """
+    Excelシートの必須カラム定義エラー
+
+    原因:
+        ・必要なカラムがシートに存在しない
+        ・Excelシート構成が想定と異なる
+
+    発生箇所:
+        BaseSheet.require_column()
     """
     pass
 
@@ -187,6 +217,27 @@ class OrderNotFoundError(OrderError):
         ProcessOrderWait.process()
     """
     pass
+
+
+class OrderSubmitTimeoutError(OrderError):
+    """
+    注文受付タイムアウトエラー
+
+    原因:
+        ・発注後、一定時間経過しても
+          楽天RSSから発注ID/注文番号が返らない
+        ・楽天RSS / Excel / MarketSpeed2 の応答停止
+        ・発注処理の通信またはCOM処理異常
+
+    発生箇所:
+        ProcessOrderRequest.process()
+        ProcessExitCreate.process()
+
+    対象状態:
+        OrderState.SUBMITTED
+    """
+    pass
+
 
 class CancelOrderResult(OrderError):
     """

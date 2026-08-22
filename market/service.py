@@ -58,6 +58,10 @@ class MarketService:
         return self.market.get_quote(symbol)
 
 
+    def remove_quote_symbol(self, symbol):
+        self.market.remove_quote_symbol(symbol)
+
+
     def request_order(self, request_dto):
         """
         発注依頼

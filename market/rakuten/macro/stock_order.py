@@ -7,11 +7,44 @@
 #   ・現物注文
 #   ・RssStockOrder_V 呼出
 #
+# RESULT:
+#   RESULT : (正常)
+#            ※正常であってもOrderListの発注結果ではエラーとなる可能性あり。
+#               エラー[成行の場合、値幅制限上限までの買付可能額が必要です。
+#                   1,093円以内で発注可能な指値を入力してください。]
+#   RESULT : 注文ID=345 は既に使用済みです。
+#   RESULT : 発注ロック中(発注を行うには発注機能を有効にしてください)
+#
+#
+# 以下のステータスは楽天資料からの抜粋で、確認はされてない。
+# |    No | ステータス                      | 意味                   |
+# | ----: | ------------------------------ | -------------------    |
+# |     1 | `発注ID=xxxx`                  | 既に使用済みの発注ID     |
+# |     2 | `待機中`                       | 発注トリガーがFalse      |
+# |     3 | `発注ロック中`                  | 発注機能がOFF           |
+# |     4 | `接続待ち`                      | サーバ未接続            |
+# |     5 | `応答待ち`                      | 電文応答待ち            |
+# |     6 | `キャンセル`                    | 注文確認画面でキャンセル |
+# |     7 | `発注済み(発注ID=xxxx)`         | 発注済み                |
+# |     8 | `引数チェックエラーメッセージ`    | 引数エラー             |
+# |     9 | `サーバチェックエラーメッセージ`  | サーバ側エラー          |
+#
+#
+# 注意:
+#   Excel編集中は以下のエラーが出た。(test/test_stock_order.py結果)
+#       EVENT EXCEL OPEN {'path': 'C:\\StockProjects\\TradingData\\楽天RSS_v3.xlsm'}
+#       ERROR
+#       AttributeError
+#       Excel.Application.Workbooks
+#
 
-class StockOrder:
+from market.rakuten.macro.macro_base import MacroBase
+
+
+class StockOrder(MacroBase):
 
     def __init__(self, client):
-        self.client = client
+        super().__init__(client)
 
 
     def submit(self, request):
@@ -143,7 +176,9 @@ class StockOrder:
         #
         # ------------------------------------------
 
-        order_result = self.client.run_macro(
+        result, macro_result = self.run(
+            order_id, symbol,
+
             "RssStockOrder_V",
             order_id,
             symbol,
@@ -166,31 +201,15 @@ class StockOrder:
             set_order_expire,
         )
 
-        self.client.add_internal_log(
-            level="DEBUG",
-            message="RssStockOrder_V RESULT",
-            data={
-                "order_id": order_id,
-                "symbol": symbol,
-                "status": order_result,
-            },
-        )
+        #
+        # 正常
+        #
+        if macro_result == "":
+            return True, None
 
-        if order_result == "":
-            result = True
+        #
+        # RSSエラー
+        #
+        result_code = self.get_result_code(macro_result)
 
-        else:
-            self.client.set_last_error(
-                code="ORDER_REJECTED",
-                message=order_result,
-                source="RSS",
-                data={
-                    "macro": "RssStockOrder_V",
-                    "order_id": order_id,
-                    "symbol": symbol,
-                },
-            )
-
-            result = False
-
-        return result, order_result
+        return False, result_code
