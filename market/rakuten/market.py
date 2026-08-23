@@ -9,7 +9,7 @@
 #   ・Excel管理
 #
 
-from datetime import datetime
+from datetime import datetime, time
 
 import pythoncom
 import win32com.client
@@ -20,6 +20,7 @@ from market.rakuten.config.config_loader import MarketConfig
 
 from market.rakuten.order_executor import OrderExecutor
 
+from market.rakuten.sheets.market_des_sheet import MarketDesSheet
 from market.rakuten.sheets.quote_sheet import QuoteSheet
 from market.rakuten.sheets.order_id_list_sheet import OrderIDListSheet
 from market.rakuten.sheets.order_list_sheet import OrderListSheet
@@ -27,34 +28,13 @@ from market.rakuten.sheets.order_list_sheet import OrderListSheet
 
 class RakutenMarket:
 
+    MARKET_OPEN_TIME = time(9, 0)
+
     def __init__(self, mode="debug"):
         self.mode = mode
 
-        #
-        # Last Error
-        #
-        self.last_error = None
-
-        #
-        # Internal Log
-        #
-        self.internal_logs = []
-        self.internal_log_limit = 1000
-
         system_config = Config.instance().data
         self.debug_settings = system_config.get("debug_settings", {})
-
-        market_config = MarketConfig.instance().data
-
-        excel_paths = market_config["excel"]["path"]
-
-        if self.mode not in excel_paths:
-            raise Exception(
-                f"Excel pathが設定されていません: mode={self.mode}"
-            )
-
-        self.path = excel_paths[self.mode]
-        self.sheets = market_config["excel"]["sheets"]
 
         # Excel Application
         self.app = None
@@ -62,19 +42,37 @@ class RakutenMarket:
         # Workbook
         self.book = None
 
+        market_config = MarketConfig.instance().data
+
+        excel_paths = market_config["excel"]["path"]
+
+        if self.mode not in excel_paths:
+            raise Exception(f"Excel pathが設定されていません: mode={self.mode}")
+
+        self.path = excel_paths[self.mode]
+        self.sheets = market_config["excel"]["sheets"]
+
+        self.market_des_sheet = None
         self.quote_sheet = None
         self.order_executor = None
         self.order_id_list_sheet = None
         self.order_list_sheet = None
 
+        # MarketDes
+        self.market_des_cleared_at = None
 
-    def set_last_error(
-        self,
-        code,
-        message,
-        source,
-        data=None,
-    ):
+        # Last Error
+        self.last_error = None
+
+        # Internal Log
+        self.internal_logs = []
+        self.internal_log_limit = 1000
+
+
+    def clear_last_error(self):
+        self.last_error = None
+
+    def set_last_error(self, code, message, source, data=None):
         self.last_error = {
             "code": code,
             "message": message,
@@ -82,25 +80,17 @@ class RakutenMarket:
             "data": data or {},
         }
 
-
     def get_last_error(self):
         return self.last_error
-
-
-    def clear_last_error(self):
-        self.last_error = None
 
 
     # ========================
     # Internal Log
     # ========================
+    def clear_internal_logs(self):
+        self.internal_logs.clear()
 
-    def add_internal_log(
-        self,
-        level,
-        message,
-        data=None,
-    ):
+    def add_internal_log(self, level, message, data=None):
         timestamp = datetime.now()
         
         self.internal_logs.append({
@@ -113,18 +103,17 @@ class RakutenMarket:
         if len(self.internal_logs) > self.internal_log_limit:
             self.internal_logs.pop(0)
 
-
     def get_internal_logs(self, limit=100):
         return self.internal_logs[-limit:]
 
 
-    def clear_internal_logs(self):
-        self.internal_logs.clear()
-
-
+    # ==========================================
+    # Excel接続
+    # ==========================================
     def open(self):
         self.last_error = None
 
+        self.market_des_sheet = None
         self.quote_sheet = None
         self.order_executor = None
         self.order_id_list_sheet = None
@@ -139,10 +128,7 @@ class RakutenMarket:
         )
 
         try:
-            self.app = win32com.client.GetObject(
-                None,
-                "Excel.Application",
-            )
+            self.app = win32com.client.GetObject(None, "Excel.Application")
 
         except Exception:
             raise Exception("Excel(RSS)が起動していません。")
@@ -153,44 +139,21 @@ class RakutenMarket:
                 break
 
         if self.book is None:
-            raise Exception(
-                f"Workbookが見つかりません: {self.path}"
-            )
+            raise Exception(f"Workbookが見つかりません: {self.path}")
 
-        #
+        self.market_des_sheet = MarketDesSheet(self, self.get_sheet(self.sheets["market_des"]), self.mode)
+
         # Quote
-        #
-        self.quote_sheet = QuoteSheet(
-            self,
-            self.get_sheet(self.sheets["quote"]),
-            self.mode,
-        )
+        self.quote_sheet = QuoteSheet(self, self.get_sheet(self.sheets["quote"]), self.mode)
 
-        #
         # Order Executor
-        #
-        self.order_executor = OrderExecutor(
-            self,
-            self.mode,
-        )
+        self.order_executor = OrderExecutor(self, self.mode)
 
-        #
         # Order ID List
-        #
-        self.order_id_list_sheet = OrderIDListSheet(
-            self,
-            self.get_sheet(self.sheets["order_id_list"]),
-            self.mode,
-        )
+        self.order_id_list_sheet = OrderIDListSheet(self, self.get_sheet(self.sheets["order_id_list"]), self.mode)
 
-        #
         # Order List
-        #
-        self.order_list_sheet = OrderListSheet(
-            self,
-            self.get_sheet(self.sheets["order_list"]),
-            self.mode,
-        )
+        self.order_list_sheet = OrderListSheet(self, self.get_sheet(self.sheets["order_list"]), self.mode)
 
         if self.mode == "debug":
             price = self.debug_settings.get("quote_price")
@@ -202,15 +165,19 @@ class RakutenMarket:
 
             self.quote_sheet.debug_set_quote(price)
 
+        # 国内株式銘柄情報クリア
+        self.market_des_sheet.clear()
 
+        self.market_des_cleared_at = None
+
+
+    # ==========================================
+    # Excel切断
+    #   ・参照解放のみ
+    #   ・Excelは終了しない
+    # ==========================================
     def close(self):
-        """
-        Excel切断
-
-        ・参照解放のみ
-        ・Excelは終了しない
-        """
-
+        self.market_des_sheet = None
         self.quote_sheet = None
         self.order_executor = None
         self.order_id_list_sheet = None
@@ -222,29 +189,41 @@ class RakutenMarket:
         # COM解放
         pythoncom.CoUninitialize()
 
-        self.add_internal_log(
-            level="EVENT",
-            message="EXCEL CLOSE",
-        )
+        self.add_internal_log(level="EVENT", message="EXCEL CLOSE")
 
 
     def get_sheet(self, name):
-
         try:
             return self.book.Worksheets(name)
 
         except Exception:
-            raise Exception(
-                f"Worksheetが見つかりません: {name}"
-            )
+            raise Exception(f"Worksheetが見つかりません: {name}")
 
 
     def sync_quotes(self, symbols):
-
         self.quote_sheet.reset()
 
         for symbol in symbols:
             self.quote_sheet.add_symbol(symbol)
+
+
+    def get_market_des(self, symbol):
+
+        now = datetime.now()
+
+        # 開場前はMarketDesを取得しない
+        if now.time() < self.MARKET_OPEN_TIME:
+            return None
+
+        # 今日の開場後クリアがまだなら実施
+        if (
+            self.market_des_cleared_at is None
+            or self.market_des_cleared_at.date() != now.date()
+        ):
+            self.market_des_sheet.clear()
+            self.market_des_cleared_at = now
+
+        return self.market_des_sheet.get_market_des(symbol)
 
 
     def get_quote(self, symbol):
@@ -255,10 +234,11 @@ class RakutenMarket:
         self.quote_sheet.remove_symbol(symbol)
 
 
+
+    # ==========================================
+    # 発注依頼
+    # ==========================================
     def request_order(self, request_order_dto):
-        """
-        発注依頼
-        """
 
         request = {
             "order_id": request_order_dto.order_id,
@@ -298,9 +278,7 @@ class RakutenMarket:
             "open_market": request_order_dto.open_market,
         }
 
-        #
         # Order実行
-        #
         result, result_code = self.order_executor.request_order(request)
 
         if not result:
@@ -318,38 +296,23 @@ class RakutenMarket:
         #
         if self.mode == "simulator":
 
-            order_no = self.order_id_list_sheet.debug_add_order(
-                request_order_dto.order_id
-            )
+            order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
 
-            self.order_list_sheet.debug_add_order(
-                order_no,
-                request,
-            )
+            self.order_list_sheet.debug_add_order(order_no, request)
 
-        elif (
-            self.mode == "debug"
-            and not self.debug_settings.get("order_enabled", False)
-        ):
+        elif (self.mode == "debug" and not self.debug_settings.get("order_enabled", False)):
+            order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
 
-            order_no = self.order_id_list_sheet.debug_add_order(
-                request_order_dto.order_id
-            )
-
-            self.order_list_sheet.debug_add_order(
-                order_no,
-                request,
-            )
+            self.order_list_sheet.debug_add_order(order_no, request)
 
         return True, result_code
 
 
-    #
+    # ==========================================
     # Excel VBAマクロ実行
-    #
-    # macro_name: VBAマクロ名
-    # args:       VBAマクロ引数
-    #
+    #   macro_name: VBAマクロ名
+    #   args:       VBAマクロ引数
+    # ==========================================
     def run_macro(self, macro_name, *args):
 
         self.add_internal_log(
@@ -375,61 +338,40 @@ class RakutenMarket:
         return result
 
 
-    #
+    # ==========================================
     # 発注ID一覧データ取得
-    #
-    # return: 発注ID一覧の1行分データ
-    #
+    #   return: 発注ID一覧の1行分データ
+    # ==========================================
     def get_order_id_data(self, order_id):
-        """
-        発注ID一覧データ取得
-        """
-        return self.order_id_list_sheet.get_order_id_data(
-            order_id
-        )
+        return self.order_id_list_sheet.get_order_id_data(order_id)
 
 
-    #
+    # ==========================================
     # 注文番号取得
-    #
-    # return: 注文番号
-    #
+    #   return: 注文番号
+    # ==========================================
     def get_order_no(self, order_id):
         """
         注文番号取得
         """
-        return self.order_id_list_sheet.get_order_no(
-            order_id
-        )
+        return self.order_id_list_sheet.get_order_no(order_id)
 
 
-    #
+    # ==========================================
     # 注文一覧データ取得
-    #
-    # return: 注文一覧の1行分データ
-    #
+    #   return: 注文一覧の1行分データ
+    # ==========================================
     def get_order_list_data(self, order_no):
-        """
-        注文一覧データ取得
-        """
-        return self.order_list_sheet.get_order_list_data(
-            order_no
-        )
+        return self.order_list_sheet.get_order_list_data(order_no)
 
 
-    #
-    # 約定確認
-    #
-    # return: 約定結果データ
-    #
+    # ==========================================
+    # 注文結果取得
+    #   return: 約定結果データ
+    # ==========================================
     def get_order_result(self, order_no):
-        """
-        注文結果取得
-        """
 
-        result = self.order_list_sheet.get_order_result(
-            order_no
-        )
+        result = self.order_list_sheet.get_order_result(order_no)
 
         if result is None:
             self.set_last_error(

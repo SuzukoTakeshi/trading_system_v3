@@ -9,6 +9,12 @@
 #   実行中に変化しない情報を保持する。
 #
 
+from trade.trade_enums import (
+    TradeType,
+    SideType,
+    StrategyType,
+)
+
 class TradeParam:
 
     def __init__(
@@ -31,7 +37,7 @@ class TradeParam:
         close_time,
 
         # チャートデータ保存間隔
-        chart_interval_seconds,
+        chart_interval_seconds=5,
     ):
 
         # 銘柄
@@ -68,6 +74,21 @@ class TradeParam:
 
         self.chart_interval_seconds = chart_interval_seconds
 
+        #
+        # MarketDes
+        #
+        # 銘柄の市場情報
+        #
+
+        # 売買単位
+        self.trading_unit = None
+
+        # 制限値幅下限
+        self.lower_limit = None
+
+        # 制限値幅上限
+        self.upper_limit = None
+
 
     def to_dict(self):
 
@@ -91,17 +112,25 @@ class TradeParam:
             "close_time": self.close_time,
 
             "chart_interval_seconds": self.chart_interval_seconds,
+
+            # MarketDes
+            "trading_unit": self.trading_unit,
+            "lower_limit": self.lower_limit,
+            "upper_limit": self.upper_limit,
         }
+
+
+    def set_market_des(self, data):
+        """
+        MarketDesデータを設定
+        """
+        self.trading_unit = data.get("trading_unit")
+        self.lower_limit = data.get("lower_limit")
+        self.upper_limit = data.get("upper_limit")
 
 
     @classmethod
     def from_dict(cls, data):
-
-        from trade.trade_enums import (
-            TradeType,
-            SideType,
-            StrategyType,
-        )
 
         return cls(
             symbol=data.get("symbol"),

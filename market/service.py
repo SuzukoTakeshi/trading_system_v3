@@ -24,29 +24,19 @@ class MarketService:
         # Market
         self.market = RakutenMarket(self.mode)
 
-
+    # ==========================================
+    # Market開始
+    # ==========================================
     def open(self):
-        """
-        Market開始
-
-        ・楽天RSS Excel接続
-        ・Market利用準備
-        """
-
-        Log.event("MARKET OPEN")
-
+        Log.debug("MARKET OPEN")
         self.market.open()
 
 
+    # ==========================================
+    # Market終了
+    # ==========================================
     def close(self):
-        """
-        Market終了
-
-        ・楽天RSS Excel切断
-        """
-
-        Log.event("MARKET CLOSE")
-
+        Log.debug("MARKET CLOSE")
         self.market.close()
 
 
@@ -58,70 +48,62 @@ class MarketService:
         return self.market.get_quote(symbol)
 
 
+    def get_market_des(self, symbol):
+        return self.market.get_market_des(symbol)
+
+
     def remove_quote_symbol(self, symbol):
         self.market.remove_quote_symbol(symbol)
 
 
+    # ==========================================
+    # 発注依頼
+    #   ・Marketへ注文を依頼する
+    #   ・Trade層とはDTOで分離
+    # ==========================================
     def request_order(self, request_dto):
-        """
-        発注依頼
-
-        ・Marketへ注文を依頼する
-        ・Trade層とはDTOで分離
-        """
-
-        return self.market.request_order(request_dto)
+         return self.market.request_order(request_dto)
 
 
+    # ==========================================
+    # 発注ID一覧データ取得
+    #   ・Marketから発注ID一覧シートの1行分データを取得する
+    #   ・Trade層とはデータで分離
+    # ==========================================
     def get_order_id_data(self, order_id):
-        """
-        発注ID一覧データ取得
-
-        ・Marketから発注ID一覧シートの1行分データを取得する
-        ・Trade層とはデータで分離
-        """
-
         return self.market.get_order_id_data(order_id)
 
 
+    # ==========================================
+    # 注文一覧データ取得
+    #   ・Marketから注文一覧シートの1行分の生データを取得する
+    #   ・Trade層とはデータで分離
+    # ==========================================
     def get_order_list_data(self, order_no):
-        """
-        注文一覧データ取得
-
-        ・Marketから注文一覧シートの1行分の生データを取得する
-        ・Trade層とはデータで分離
-        """
-
         return self.market.get_order_list_data(order_no)
 
 
+    # ==========================================
+    # 注文番号取得
+    #   ・Marketから注文番号を取得する
+    #   ・Trade層とはDTOで分離
+    # ==========================================
     def get_order_no(self, order_id):
-        """
-        注文番号取得
-
-        ・Marketから注文番号を取得する
-        ・Trade層とはDTOで分離
-        """
-
         return self.market.get_order_no(order_id)
 
 
+    # ==========================================
+    # 注文結果取得
+    # ==========================================
     def get_order_result(self, order_no):
-        """
-        注文結果取得
-        """
 
         data = self.market.get_order_result(order_no)
         if data is None:
-            raise Exception(
-                f"ORDER RESULT NOT FOUND order_no={order_no}"
-            )
+            raise Exception(f"[@({order_no}) ORDER RESULT NOT FOUND")
 
         order_result = OrderResultModel(
             order_no=data["order_no"],
-            status=OrderResultStatus(
-                data["status"]
-            ),
+            status=OrderResultStatus(data["status"]),
             order_datetime=data["order_datetime"],
             quantity=data["quantity"],
             price=data["price"],

@@ -8,6 +8,7 @@
         },
 
         "sheets": {
+            "market_des": "MarketDes",
             "quote": "Quotes",
             "order": "Order",
             "order_id_list": "OrderIDList",
@@ -20,6 +21,7 @@
         "excel": "楽天RSS Excel設定",
         "path": "modeごとに使用する楽天RSS Excelブックのパス",
         "sheets": "楽天RSSで使用するシート設定",
+        "market_des": "国内株式銘柄シート名",
         "quote": "現在値取得用シート名",
         "order": "注文書込用シート名",
         "order_id_list": "注文番号一覧取得シート",

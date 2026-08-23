@@ -64,11 +64,7 @@ class TradeModel(BaseEntity):
 
         generate_id=True,
     ):
-
-        super().__init__(
-            self.ID_FILE,
-            generate_id=generate_id
-        )
+        super().__init__(self.ID_FILE, generate_id=generate_id)
 
         # Trade状態
         #
@@ -113,15 +109,13 @@ class TradeModel(BaseEntity):
         # Trade履歴
         self.timeline = []
 
-        # Tradeエラーメッセージ
-        self.message = None
+        # Tradeメッセージ
+        self.message = ""
 
-
+    # ==================================================
+    # Trade Timeline message追加
+    #
     def add_timeline(self, type, message, **kwargs):
-        """
-        Trade Timeline message追加
-        """
-
         item = {
             "time": datetime.now().isoformat(),
             "type": type,
@@ -133,11 +127,10 @@ class TradeModel(BaseEntity):
         self.timeline.append(item)
 
 
+    # ==================================================
+    # Trade状態変更
+    #
     def change_state(self, new_state):
-        """
-        Trade状態変更
-        """
-
         if self.state == new_state:
             return False
 
@@ -157,10 +150,10 @@ class TradeModel(BaseEntity):
         return True
 
 
+    # ==================================================
+    # Timeline種別取得
+    #
     def get_timeline_by_type(self, event_type):
-        """
-        Timeline種別取得
-        """
 
         return [
             item
@@ -169,11 +162,10 @@ class TradeModel(BaseEntity):
         ]
 
 
+    # ==================================================
+    # 状態履歴確認
+    #
     def has_state(self, state):
-        """
-        状態履歴確認
-        """
-
         state_value = state.value
 
         for item in self.timeline:
@@ -263,6 +255,8 @@ class TradeModel(BaseEntity):
 
             "profit_loss": self.get_profit_loss(),
 
+            "current_profit_loss": self.get_current_profit_loss(),
+
             "message": self.message,
 
             "pause_flag": self.pause_flag,
@@ -271,39 +265,51 @@ class TradeModel(BaseEntity):
         return data
 
 
+    # ==================================================
+    # 最終損益計算
+    #
+    # LONG:  (EXIT価格 - ENTRY価格) * 株数
+    # SHORT: (ENTRY価格 - EXIT価格) * 株数
+    # EXIT未約定の場合はNone。
+    #
     def get_profit_loss(self):
-        """
-        損益計算
-
-        LONG:
-            (EXIT価格 - ENTRY価格) * 株数
-
-        SHORT:
-            (ENTRY価格 - EXIT価格) * 株数
-
-        EXIT未約定の場合はNone。
-        """
-
         entry_price = self.runtime.entry_price
         exit_price = self.runtime.exit_price
         quantity = self.param.quantity
         side = self.param.side.value
 
-        if (
-            entry_price is None
-            or exit_price is None
-            or quantity is None
-        ):
+        if (entry_price is None or exit_price is None or quantity is None):
             return None
 
         if side == "long":
-            return (
-                exit_price - entry_price
-            ) * quantity
+            return (exit_price - entry_price) * quantity
 
         if side == "short":
-            return (
-                entry_price - exit_price
-            ) * quantity
+            return (entry_price - exit_price) * quantity
+
+        return None
+
+
+    # ==================================================
+    # 現在価格損益計算
+    #
+    # LONG:  (EXIT価格 - ENTRY価格) * 株数
+    # SHORT: (ENTRY価格 - EXIT価格) * 株数
+    # EXIT未約定の場合はNone。
+    #
+    def get_current_profit_loss(self):
+        entry_price = self.runtime.entry_price
+        current_price = self.runtime.current_price
+        quantity = self.param.quantity
+        side = self.param.side.value
+
+        if (entry_price is None or current_price is None or quantity is None):
+            return None
+
+        if side == "long":
+            return (current_price - entry_price) * quantity
+
+        if side == "short":
+            return (entry_price - current_price) * quantity
 
         return None

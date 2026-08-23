@@ -132,21 +132,14 @@ def trade_list():
             else:
                 state = row.get("state", "")
 
-                event = STATE_EVENT_MAP.get(
-                    state
-                )
+                event = STATE_EVENT_MAP.get(state)
 
-                row["state"] = EVENT_LABEL.get(
-                    event,
-                    EVENT_LABEL_UNKNOWN
-                )
+                row["state"] = EVENT_LABEL.get(event, EVENT_LABEL_UNKNOWN)
 
             row["message"] = row.get("message", "")
 
             # 登録日時
-            row["created_at"] = fmt_dt(
-                row.get("created_at")
-            )
+            row["created_at"] = fmt_dt(row.get("created_at"))
 
             display_trades.append(row)
 
@@ -163,16 +156,14 @@ def trade_list():
                     "trade_type": "",
                     "strategy": "",
                     "side": "",
+                    "current_profit_loss": None,
                     "state": "",
                     "message": "",
                     "created_at": "",
                 }
             ]
 
-        #
         # 選択チェック列
-        #
-
         current_trade_ids = {
             trade["trade_id"]
             for trade in trades
@@ -180,10 +171,7 @@ def trade_list():
         }
 
         selected_trade_ids = (
-            st.session_state.get(
-                "trade_list_selected_ids",
-                set()
-            )
+            st.session_state.get("trade_list_selected_ids", set())
             & current_trade_ids
         )
 
@@ -192,10 +180,7 @@ def trade_list():
                 trade["trade_id"] in selected_trade_ids
             )
 
-        #
         # Trade一覧
-        #
-
         edited = st.data_editor(
             trades,
             width="stretch",
@@ -212,6 +197,7 @@ def trade_list():
                 "trade_type",
                 "strategy",
                 "side",
+                "current_profit_loss",
                 "state",
                 "message",
                 "created_at",
@@ -257,6 +243,11 @@ def trade_list():
                     "トレード区分",
                     width="small",
                 ),
+                "current_profit_loss": st.column_config.NumberColumn(
+                    "損益",
+                    width="small",
+                    format="%,.2f",
+                ),
                 "state": st.column_config.TextColumn(
                     "状態",
                     width="medium",
@@ -271,9 +262,7 @@ def trade_list():
                 ),
             },
 
-            #
             # 編集禁止
-            #
             disabled=[
                 "trade_id",
                 "symbol_name",
@@ -284,6 +273,7 @@ def trade_list():
                 "trade_type",
                 "strategy",
                 "side",
+                "current_profit_loss",
                 "state",
                 "message",
                 "created_at",

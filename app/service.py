@@ -13,8 +13,6 @@ from fastapi import HTTPException
 from core.logger import Log
 from core.response import Response
 
-from trade.trade_enums import EngineState
-
 from market.status import MarketStatus
 
 from storage.symbol_store import SymbolStore
@@ -44,7 +42,7 @@ class AppService:
         try:
             self.trade_engine.start()
 
-            if self.trade_engine.state == EngineState.RUNNING:
+            if self.trade_engine.is_running():
                 return Response.ok(message="TRADE ENGINE STARTED")
 
             return Response.rejected(
@@ -62,7 +60,7 @@ class AppService:
         try:
             self.trade_engine.stop()
 
-            if self.trade_engine.state == EngineState.STOPPED:
+            if not self.trade_engine.is_running():
                 return Response.ok(message="TRADE ENGINE STOPPED")
 
             return Response.rejected(
@@ -236,6 +234,8 @@ class AppService:
                 "exit_time": trade["exit_time"],
 
                 "profit_loss": trade["profit_loss"],
+
+                "current_profit_loss": trade["current_profit_loss"],
 
                 # ---------------------
                 # System

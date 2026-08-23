@@ -17,7 +17,6 @@ from core.exception import (
 from config.strategy_config_loader import StrategyConfig
 
 from trade.trade_enums import (
-    EngineState,
     TradeState,
     SideType,
     TradeType,
@@ -34,34 +33,30 @@ class TradeEngineAPI:
 
         self.context = engine.context
 
-
+    # ==================================================
+    # Trade保存
+    #
+    # Engine稼働中:
+    #   Engineの定期save()に任せる。
+    #
+    # Engine停止中:
+    #   Engineのsave()が動かないため、
+    #   APIから直接TradeStoreへ保存する。
+    #
     def _save_trade(self, trade):
-        #
-        # Trade永続化
-        #
-        # Engine稼働中:
-        #   Engineの定期save()に任せる。
-        #
-        # Engine停止中:
-        #   Engineのsave()が動かないため、
-        #   APIから直接TradeStoreへ保存する。
-        #
-        if self.engine.state == EngineState.STOPPED:
+        if not self.engine.is_running():
             self.engine.trade_store.save(trade)
 
 
+    # ==================================================
+    # Trade作成
+    #
     def create_trade(self, req):
-        """
-        TradeModel作成
-        """
-
         side = SideType(req.side)
         strategy = StrategyType(req.strategy)
 
         # Strategy Side Check
-        #
-        # strategy_config.json
-        #
+        #   strategy_config.json
         strategy_cfg = StrategyConfig.instance().get_strategy(strategy.value)
 
         side_cfg = strategy_cfg["side"]
@@ -74,7 +69,6 @@ class TradeEngineAPI:
                 code="SIDE_DISABLED",
             )
 
-
         trade = TradeModel(
             symbol=req.symbol,
             price=req.price,
@@ -85,30 +79,14 @@ class TradeEngineAPI:
             side=side,
             strategy=strategy,
 
-            initial_stop_delay_seconds=(
-                strategy_cfg["exit"]["initial_stop_delay_seconds"]
-            ),
-            stop_atr_multiplier=(
-                strategy_cfg["exit"]["stop"]["atr_multiplier"]
-            ),
-            trail_atr_multiplier=(
-                strategy_cfg["exit"]["trail"]["atr_multiplier"]
-            ),
-            time_enabled=(
-                strategy_cfg["exit"]["time"]["enabled"]
-            ),
-            time_limit_minutes=(
-                strategy_cfg["exit"]["time"]["limit_minutes"]
-            ),
-            close_enabled=(
-                strategy_cfg["exit"]["close"]["enabled"]
-            ),
-            close_time=(
-                strategy_cfg["exit"]["close"]["time"]
-            ),
-            chart_interval_seconds=(
-                strategy_cfg["chart"]["interval_seconds"]
-            ),
+            initial_stop_delay_seconds=(strategy_cfg["exit"]["initial_stop_delay_seconds"] ),
+            stop_atr_multiplier=(strategy_cfg["exit"]["stop"]["atr_multiplier"]),
+            trail_atr_multiplier=(strategy_cfg["exit"]["trail"]["atr_multiplier"]),
+            time_enabled=(strategy_cfg["exit"]["time"]["enabled"]),
+            time_limit_minutes=(strategy_cfg["exit"]["time"]["limit_minutes"]),
+            close_enabled=(strategy_cfg["exit"]["close"]["enabled"]),
+            close_time=(strategy_cfg["exit"]["close"]["time"]),
+            chart_interval_seconds=(strategy_cfg["chart"]["interval_seconds"]),
         )
 
         self.context.trades[trade.id] = trade
@@ -384,14 +362,10 @@ class TradeEngineAPI:
 
         Log.event(f"DELETE TRADE (#{trade_id})")
 
-        #
         # Engine稼働中
+        #   APIから直接削除せず、TradeModelに削除要求を設定する。
         #
-        # APIから直接削除せず、
-        # TradeModelに削除要求を設定する。
-        #
-        if self.engine.state == EngineState.RUNNING:
-
+        if self.engine.is_running():
             trade.delete_request = True
 
             # 削除要求を永続化
@@ -399,16 +373,12 @@ class TradeEngineAPI:
 
             return True
 
-        #
         # Engine停止中
-        #
-        # Engineが動いていないので、
-        # APIから直接削除する。
+        #   Engineが動いていないので、APIから直接削除する。
         #
         self.engine.delete_trade(trade)
 
         return True
-
 
 
     def get_trade_chart_datas(self, trade_id):
