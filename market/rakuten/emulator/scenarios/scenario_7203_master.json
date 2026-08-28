@@ -7,17 +7,17 @@
         "trade_type": "margin",
         "margin_type": 4,
         "side": "long",
-        "strategy": "daytrade"
+        "strategy": "scalping"
     },
 
     "market": {
         "mode": "scenario",
-        "interval": 2.0,
+        "interval": 4.0,
         "scenario": [
             {
                 "comment": [
                     "=== TEST CONDITION ===",
-                    "Strategy : DAYTRADE",
+                    "Strategy : SCALPING",
                     "Side     : LONG",
                     "ATR      : 2.0",
                     "Pullback : 2.0 ATR",
@@ -31,7 +31,6 @@
 
             { "comment": "開始" },
 
-            { "price": 3000.0 },
             { "price": 3000.0 },
             { "price": 3000.5 },
             { "price": 3001.0 },
@@ -54,15 +53,19 @@
             { "price": 2998.6 },
             { "price": 2998.8 },
 
-
             { "comment": "再度下落" },
-            { "price": 2998.6 },
+            { "price": 2998.4 },
+            { "price": 2998.0 },
+            { "price": 2997.6 },
+            { "price": 2997.2 },
 
             { "comment": "売り成立" },
-            { "price": 2998.4 },
-            { "price": 2998.3 },
-            { "price": 2998.2 },
-            { "price": 2998.1 },
+            { "price": 2996.8 },
+
+            { "price": 2996.6 },
+            { "price": 2996.4 },
+            { "price": 2996.2 },
+            { "price": 2996.0 },
 
             { "end": true },
 

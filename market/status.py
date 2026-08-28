@@ -7,35 +7,30 @@
 #   ・現在の市場状態を取得
 #   ・RSS接続とは独立
 #
-#
 
 from datetime import datetime
 
 import jpholiday
 
-
 class MarketStatus:
 
+    # ==========================================
+    # 市場状態取得
+    #
+    # 戻り値:
+    #     {
+    #         "state": "OPEN/CLOSED/HOLIDAY",
+    #         "is_open": True/False,
+    #         "message": "",
+    #         "updated": datetime
+    #     }
+    # ==========================================
     def get(self):
-        """
-        市場状態取得
-
-        戻り値:
-            {
-                "state": "OPEN/CLOSED/HOLIDAY",
-                "is_open": True/False,
-                "message": "",
-                "updated": datetime
-            }
-        """
-
         now = datetime.now()
 
         updated = now
 
-        #
         # 土日
-        #
         if now.weekday() >= 5:
             return {
                 "state": "CLOSED",
@@ -44,9 +39,7 @@ class MarketStatus:
                 "updated": updated,
             }
 
-        #
         # 祝日
-        #
         if jpholiday.is_holiday(now.date()):
             return {
                 "state": "HOLIDAY",
@@ -55,9 +48,7 @@ class MarketStatus:
                 "updated": updated,
             }
 
-        #
         # 東京市場時間
-        #
         current = now.hour * 60 + now.minute
 
         if (
@@ -72,9 +63,7 @@ class MarketStatus:
                 "updated": updated,
             }
 
-        #
         # 時間外
-        #
         return {
             "state": "CLOSED",
             "is_open": False,

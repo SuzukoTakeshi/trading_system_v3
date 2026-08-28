@@ -116,7 +116,17 @@ class TradeType(str, Enum):
     CASH = "cash"
     MARGIN = "margin"
 
+
 #
+# 信用取引区分
+#
+class MarginType(str, Enum):
+    SYSTEM = "system"
+    UNLIMITED = "unlimited"
+    TWO_WEEKS = "two_weeks"
+    DAY = "day"
+
+
 # 取引戦略
 #
 # SCALPING : 超短期売買（秒～数分）
@@ -129,7 +139,6 @@ class StrategyType(str, Enum):
     SWING = "swing"
 
 
-#
 # Entry State
 #
 # ENTRY判定状態
@@ -148,3 +157,18 @@ class EntryState(str, Enum):
     WAITING = "waiting"
     PULLBACK = "pullback"
     REVERSAL = "reversal"
+
+
+# EXIT理由
+#   STOP  : 損切ライン到達
+#   TIME  : 時間制限による決済
+#   CLOSE : 指定時刻による決済
+#   MARGIN_DAY_CLOSE: 1日信用大引け
+#   MANUAL: 手動決済
+#
+class ExitReason(str, Enum):
+    STOP = "stop"
+    TIME = "time"
+    CLOSE = "close"
+    MARGIN_DAY_CLOSE = "margin_day_close"
+    MANUAL = "manual"

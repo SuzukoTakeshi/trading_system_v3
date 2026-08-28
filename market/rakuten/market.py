@@ -9,7 +9,7 @@
 #   ・Excel管理
 #
 
-from datetime import datetime, time
+from datetime import datetime
 
 import pythoncom
 import win32com.client
@@ -27,8 +27,6 @@ from market.rakuten.sheets.order_list_sheet import OrderListSheet
 
 
 class RakutenMarket:
-
-    MARKET_OPEN_TIME = time(9, 0)
 
     def __init__(self, mode="debug"):
         self.mode = mode
@@ -210,10 +208,6 @@ class RakutenMarket:
     def get_market_des(self, symbol):
 
         now = datetime.now()
-
-        # 開場前はMarketDesを取得しない
-        if now.time() < self.MARKET_OPEN_TIME:
-            return None
 
         # 今日の開場後クリアがまだなら実施
         if (

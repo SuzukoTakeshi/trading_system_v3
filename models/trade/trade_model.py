@@ -66,6 +66,8 @@ class TradeModel(BaseEntity):
     ):
         super().__init__(self.ID_FILE, generate_id=generate_id)
 
+        Log.create("TradeModel", f"symbol={symbol}")
+
         # Trade状態
         #
         # Trade作成完了
@@ -74,13 +76,21 @@ class TradeModel(BaseEntity):
         # Trade一時停止
         self.pause_flag = False
 
-        # Engine削除要求
+        # Engine 削除要求
         #
         # Engine稼働中にAPIからTrade削除要求を受けた場合、
         # APIはContextから直接削除せず、
         # このフラグを立ててEngineに削除を要求する。
         #
         self.delete_request = False
+
+        # Engine CANCEL要求
+        #
+        # Engine稼働中にAPIからTradeCANCEL要求を受けた場合、
+        # APIは直接CANCELせず、
+        # このフラグを立ててEngineにCANCELを要求する。
+        #
+        self.cancel_request = False
 
         # Trade開始パラメータ
         self.param = TradeParam(
@@ -188,6 +198,7 @@ class TradeModel(BaseEntity):
             "timeline": self.timeline,
             "message": self.message,
             "pause_flag": self.pause_flag,
+            "cancel_request": self.cancel_request,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }
@@ -198,16 +209,24 @@ class TradeModel(BaseEntity):
 
         trade = cls.__new__(cls)
 
-        super(TradeModel, trade).__init__(cls.ID_FILE, generate_id=False)
+        super(TradeModel, trade).__init__(
+            cls.ID_FILE,
+            generate_id=False
+        )
 
         trade.id = data["id"]
         trade.param = TradeParam.from_dict(data["param"])
-        trade.runtime = TradeRuntime.from_dict(data.get("runtime", {}))
+
+        trade.runtime = TradeRuntime.from_dict(
+            data.get("runtime", {})
+        )
+
         trade.state = TradeState(data["state"])
         trade.timeline = data.get("timeline", [])
         trade.message = data.get("message")
         trade.pause_flag = data.get("pause_flag", False)
         trade.delete_request = False
+        trade.cancel_request = data.get("cancel_request", False)
         trade.created_at = datetime.fromisoformat(data["created_at"])
         trade.updated_at = datetime.fromisoformat(data["updated_at"])
 
@@ -218,6 +237,7 @@ class TradeModel(BaseEntity):
         """
         API/UI表示用変換
         """
+       
         data = super().to_dict()
 
         data.update({
@@ -233,8 +253,11 @@ class TradeModel(BaseEntity):
             "strategy": self.param.strategy.value,
 
             "state": self.state.value,
-            "current_price": self.runtime.current_price,
-
+            "current_price": (
+                self.runtime.quote.current_price
+                if self.runtime.quote is not None
+                else None
+            ),
 
             "entry_price": self.runtime.entry_price,
             "entry_time": (
@@ -251,7 +274,11 @@ class TradeModel(BaseEntity):
                 if self.runtime.exit_time
                 else None
             ),
-            "exit_reason": self.runtime.exit_reason,
+            "exit_reason": (
+                self.runtime.exit_reason.value
+                if self.runtime.exit_reason
+                else None
+            ),
 
             "profit_loss": self.get_profit_loss(),
 
@@ -299,12 +326,19 @@ class TradeModel(BaseEntity):
     #
     def get_current_profit_loss(self):
         entry_price = self.runtime.entry_price
-        current_price = self.runtime.current_price
+        quote = self.runtime.quote
         quantity = self.param.quantity
         side = self.param.side.value
 
-        if (entry_price is None or current_price is None or quantity is None):
+        if (
+            entry_price is None
+            or quote is None
+            or quote.current_price is None
+            or quantity is None
+        ):
             return None
+
+        current_price = quote.current_price
 
         if side == "long":
             return (current_price - entry_price) * quantity

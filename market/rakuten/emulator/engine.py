@@ -65,6 +65,27 @@ class EmulatorEngine:
         self.thread = None
 
 
+    def normalize_margin_type(self, value):
+        if value is None:
+            return None
+
+        mapping = {
+            1: "system",
+            2: "unlimited",
+            3: "two_weeks",
+            4: "day",
+            "1": "system",
+            "2": "unlimited",
+            "3": "two_weeks",
+            "4": "day",
+            "system": "system",
+            "unlimited": "unlimited",
+            "two_weeks": "two_weeks",
+            "day": "day",
+        }
+
+        return mapping.get(value, value)
+
     # ==================================================
     # Start
     # ==================================================
@@ -158,15 +179,13 @@ class EmulatorEngine:
             #
             # 現物の場合は None
             #
-            # 例:
-            #   1 : 制度（6ヶ月）
-            #   2 : 一般（無期限）
-            #   3 : 一般（14日）
-            #   4 : 一般（1日）
+            # 例: 数字または文字
+            #   1 "system"    : 制度（6ヶ月）
+            #   2 "unlimited" : 一般（無期限）
+            #   3 "two_weeks" : 一般（14日）
+            #   4 "day"       : 一般（1日）
             #
-            "margin_type": trade.get(
-                "margin_type"
-            ),
+            "margin_type": self.normalize_margin_type(trade.get("margin_type")),
 
             "side": trade["side"].lower(),
             "strategy": trade["strategy"]

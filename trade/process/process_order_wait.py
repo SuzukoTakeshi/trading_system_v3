@@ -35,6 +35,8 @@ class ProcessOrderWait(ProcessBase):
     #
     def process(self, trade):
 
+        Log.flow(f"(#{trade.id}) ProcessOrderWait:process")
+
         order = self.get_order(trade)
 
         if order is None:

@@ -2,6 +2,13 @@
   "mode": "debug",
   "market": "rakuten",
 
+  "market_rules": {
+    "margin_day_close": {
+      "enabled": true,
+      "time": "15:20"
+    }
+  },
+
   "emulator_settings": {
     "interval": 1.0
   },
@@ -18,6 +25,13 @@
   "description": {
     "mode": "動作モード。real=本番運用 / simulator=楽天RSS価格・仮想売買 / emulator=仮想市場環境 / debug=内部デバッグ",
     "market": "使用するMarket。rakuten=楽天RSS",
+
+    "market_rules": {
+      "margin_day_close": {
+        "enabled": "1日信用の強制手仕舞い。true=有効 / false=無効",
+        "time": "1日信用の強制手仕舞い時刻"
+      }
+    },
 
     "emulator_settings": {
       "interval": "Emulatorの価格更新ループ間隔（秒）"

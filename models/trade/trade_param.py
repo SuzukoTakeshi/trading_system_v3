@@ -37,7 +37,7 @@ class TradeParam:
         close_time,
 
         # チャートデータ保存間隔
-        chart_interval_seconds=5,
+        chart_interval_seconds,
     ):
 
         # 銘柄

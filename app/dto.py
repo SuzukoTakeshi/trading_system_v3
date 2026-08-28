@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from trade.trade_enums import (
     TradeType,
     SideType,
+    MarginType,
     StrategyType,
 )
 
@@ -25,7 +26,7 @@ class TradeRequestDTO(BaseModel):
     quantity: int
     atr: float
     trade_type: TradeType
-    margin_type: Optional[int] = None
+    margin_type: Optional[MarginType] = None
     side: SideType
     strategy: StrategyType = StrategyType.DAYTRADE
 

@@ -65,6 +65,12 @@ def trade_options():
     return app_service.get_trade_options()
 
 
+@app.get("/trade/params")
+def trade_params(symbol: str):
+
+    return app_service.get_trade_params(symbol)
+
+
 @app.post("/trade")
 def trade(req: TradeRequestDTO):
 
@@ -90,9 +96,12 @@ def resume_trade(trade_id: int):
 
 
 @app.post("/trade/{trade_id}/cancel")
-def cancel_trade(trade_id: int):
+def cancel_trade(trade_id: int, force: bool = False):
 
-    return app_service.cancel_trade(trade_id)
+    return app_service.cancel_trade(
+        trade_id,
+        force=force,
+    )
 
 
 @app.delete("/trade/{trade_id}/delete")

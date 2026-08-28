@@ -64,7 +64,7 @@ class ProcessOrderBase(ProcessBase):
             if o.state in (OrderState.CREATED, OrderState.SUBMITTED):
                 if order:
                     raise DuplicateOrderError(
-                        message=f"MULTIPLE ACTIVE ORDER trade={trade.id}",
+                        message=f"(#{trade.id}) MULTIPLE ACTIVE ORDER",
                         code="MULTIPLE_ACTIVE_ORDER",
                     )
                 order = o

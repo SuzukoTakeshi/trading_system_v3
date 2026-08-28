@@ -26,27 +26,25 @@ class ProcessExitWait(ProcessBase):
         Log.create("ProcessExitWait")
 
 
-    #
+    # ==========================================
     # EXIT注文約定待ち
-    #
-    # TradeState.EXIT_WAITで呼ばれる
-    #
+    #   TradeState.EXIT_WAITで呼ばれる
+    # ==========================================
     def process(self, trade):
+
+        Log.flow(f"(#{trade.id}) ProcessExitWait:process")
 
         order = self.get_order(trade)
 
         if order is None:
             raise OrderNotFoundError(
-                message=f"ORDER NOT FOUND (#{trade.id})",
+                message=f"(#{trade.id}) ORDER NOT FOUND",
                 code="ORDER_NOT_FOUND",
             )
 
-
-        #
         # 注文受付済み
-        #
         if order.state == OrderState.REQUESTED:
-            Log.trace(f"EXIT WAIT (#{trade.id}) order_id={order.id} state={order.state.name}")
+            Log.trace("EXIT_WAIT", f"(#{trade.id}) (@{order.id}) EXIT WAIT state={order.state.name}")
 
             # 確認用：OrderListの生データを取得
             order.order_list_sheet_data = self.market.get_order_list_data(order.order_no)
@@ -62,15 +60,12 @@ class ProcessExitWait(ProcessBase):
 
                 order.change_state(OrderState.FILLED)
 
-                Log.event(
-                    f"EXIT ORDER FILLED (#{trade.id}) (@{order.id}) symbol={order.symbol} "
+                text = (
+                    f"(@{order.id}) EXIT ORDER FILLED symbol={order.symbol} "
                     f"order_no={order.order_no} price={order_result.price}"
                 )
-
-                trade.add_timeline(
-                    type="EXIT",
-                    message=f"FILLED (#{order.id}) (@{order.id}) order_no={order.order_no} price={order_result.price}"
-                )
+                Log.event(f"(#{trade.id}) {text}")
+                trade.add_timeline(type="EXIT", message=text)
 
                 return True
 
@@ -101,7 +96,7 @@ class ProcessExitWait(ProcessBase):
                 OrderResultStatus.NOT_FILLED_UNFILLED,
             ):
                 raise NotFilledOrderResult(
-                    message=f"NOT FILLED ORDER (#{trade.id}) @({order.order_no})",
+                    message=f"(#{trade.id}) (@{order.order_no}) NOT FILLED ORDER",
                     code="NOT_FILLED_ORDER",
                 )
 
@@ -113,30 +108,24 @@ class ProcessExitWait(ProcessBase):
         return False
 
 
-    #
+    # ==========================================
     # Tradeに紐づく未完了Order取得
-    #
+    # ==========================================
     def get_order(self, trade):
 
         order = None
-
         for o in self.context.cache.orders.values():
-
             if o.trade.id != trade.id:
                 continue
 
-            #
             # CLOSED済みOrderは除外
-            #
             if o.state == OrderState.CLOSED:
                 continue
 
-            #
             # 2件以上存在したら異常
-            #
             if order is not None:
                 raise DuplicateOrderError(
-                    message=f"MULTIPLE ORDER trade={trade.id}",
+                    message=f"(#{trade.id}) MULTIPLE ORDER",
                     code="MULTIPLE_ORDER",
                 )
 

@@ -17,7 +17,6 @@
 #   ・warn()       ：警告
 #   ・error()      ：エラー
 #   ・debug()      ：デバッグ情報
-#   ・trace()      ：開発・調査用ログ（log_idで個別制御）
 #
 #   [機能別]
 #   ・create()     ：クラス生成
@@ -25,10 +24,13 @@
 #   ・market()     ：マーケット処理
 #   ・trailing()   ：Trailing情報
 #   ・asset()      ：資産処理
-
+#
+#   ・trace()      ：開発・調査用ログ（log_idで個別制御）
+#   ・flow()       ：処理経路確認
+#
 #   ・emulator()   ：Emulator関連
 
-#   ・flow()       ：処理経路確認
+
 #   ・check()      ：判定・条件確認
 #   ・trade()      ：売買情報
 #   ・order()      ：注文処理
@@ -108,9 +110,10 @@ class Log:
         "TRAILING": Fore.BLUE,
         "ASSET": Fore.MAGENTA,
 
+        "FLOW": Fore.CYAN,
+
         "EMULATOR": Fore.MAGENTA,
 
-        "FLOW": Fore.CYAN,
         "CHECK": Fore.YELLOW,
         "TRADE": Fore.GREEN,
         "ORDER": Fore.MAGENTA,
@@ -280,9 +283,7 @@ class Log:
         cls._write_log("CREATE", class_name, *args)
 
     # ========================
-    # STATE
-    #
-    # 状態変更
+    # STATE 状態変更
     # ========================
     @classmethod
     def state(cls, trade_id, old, new):
@@ -290,9 +291,7 @@ class Log:
 
 
     # ========================
-    # MARKET
-    #
-    # マーケット処理
+    # MARKET マーケット処理
     # ========================
     @classmethod
     def market(cls, *args):
@@ -300,9 +299,7 @@ class Log:
 
 
     # ========================
-    # TRAILING
-    #
-    # Trailing情報
+    # TRAILING Trailing情報
     # ========================
     @classmethod
     def trailing(cls, trade_id, *args):
@@ -310,9 +307,7 @@ class Log:
 
 
     # ========================
-    # ASSET
-    #
-    # 資産処理
+    # ASSET 資産処理
     # ========================
     @classmethod
     def asset(cls, trade_id, *args):
@@ -320,9 +315,7 @@ class Log:
 
 
     # ========================
-    # trace
-    #
-    # 開発・調査用ログ
+    # trace 開発・調査用ログ
     #
     # log_idは
     # logging.json制御用
@@ -336,10 +329,18 @@ class Log:
     # )
     #
     # ========================
-
     @classmethod
     def trace(cls, log_id, *args):
         cls._write_log(log_id, *args)
+
+
+    # ========================
+    # FLOW 処理経路確認
+    # ========================
+    @classmethod
+    def flow(cls,  *args):
+        cls._write_log("FLOW", *args)
+
 
     # ========================
     # EMULATOR
@@ -350,19 +351,9 @@ class Log:
 
 
 
-    # ========================
-    # FLOW
-    #
-    # 処理経路確認
-    # ========================
-    @classmethod
-    def flow(cls,  *args):
-        cls._write_log("FLOW", *args)
 
     # ========================
-    # CHECK
-    #
-    # 判定確認
+    # CHECK 判定確認
     # ========================
     @classmethod
     def check(cls, *args):
@@ -420,9 +411,7 @@ class Log:
         cls._write_log("BREAKEVEN", symbol, f"stop={stop:.2f}")
 
     # ========================
-    # RSS PRICE
-    #
-    # RSS価格更新
+    # RSS PRICE RSS価格更新
     # ========================
     @classmethod
     def rss_price(cls, *args):

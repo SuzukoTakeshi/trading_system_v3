@@ -39,14 +39,10 @@ class ProcessTrailing(ProcessBase):
     def process(self, trade):
 
         if trade.param.side == SideType.LONG:
-
             return self.long.process(trade)
 
-
         elif trade.param.side == SideType.SHORT:
-
             return self.short.process(trade)
-
 
         else:
             raise StrategySideDisabledError(

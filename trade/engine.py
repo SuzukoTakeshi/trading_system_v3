@@ -36,6 +36,7 @@ from market.service import MarketService
 from trade.trade_enums import (
     EngineState,
     TradeState,
+    ExitReason,
 )
 
 from models.trade.trade_store import TradeStore
@@ -63,9 +64,6 @@ from trade.trade_chart_data import add_trade_chart_data
 
 class TradeEngine:
 
-    # cycle loop
-    CYCLE_INTERVAL_SEC = 0.5
-
     # proc interval
     PROC_MARKET_INTERVAL_SEC = 0.5
     PROC_ORDER_INTERVAL_SEC = 0.5
@@ -81,9 +79,17 @@ class TradeEngine:
 
         # System Mode
         config = Config.instance().data
+
+        # 共通管理データ
+        self.context = EngineContext(config)
+
         self.mode = config["mode"]
 
+        # Engine Loop Interval (sec)
+        self.interval = config["engine"]["interval_sec"]
+
         # Market Service
+        #   Marketによって変わるのでmodeのみ渡している
         self.market = MarketService(self.mode)
 
         # 稼働状態
@@ -101,9 +107,6 @@ class TradeEngine:
         # 最終メッセージ
         self.last_message = ""
 
-        # 共通管理データ
-        self.context = EngineContext()
-
         # Store
         self.trade_store = TradeStore()
         self.trade_chart_data_store = TradeChartDataStore()
@@ -111,7 +114,7 @@ class TradeEngine:
         # 復元
         self._restore()
 
-        self.trade_ready = TradeReady(self.market)
+        self.trade_ready = TradeReady(self.context, self.market)
 
         # Cycle Process
         self.process_market = ProcessMarket(self.context, self.market)
@@ -131,9 +134,6 @@ class TradeEngine:
 
         # Engine Thread
         self.thread = None
-
-        # Engine Loop Interval (sec)
-        self.interval = self.CYCLE_INTERVAL_SEC
 
 
     # ==========================================
@@ -164,10 +164,6 @@ class TradeEngine:
 
         # 起動中
         self.change_state(EngineState.STARTING)
-
-        # 設定読込
-        config = Config.instance().data
-        self.interval = config["engine"]["interval_sec"]
 
         self.running = True
 
@@ -261,10 +257,12 @@ class TradeEngine:
 
 
         except Exception as e:
+            import traceback
             self.change_state(EngineState.ERROR, str(e))
 
             self.last_error = f"TRADE_ENGINE_ERROR : {e}"
             Log.error(self.last_error)
+            traceback.print_exc()
 
 
         finally:
@@ -298,14 +296,35 @@ class TradeEngine:
         for trade in trades:
 
             try:
+
+                # ------------------------------------------
+                # 削除要求
+                # ------------------------------------------
                 # API(UI)からのTrade削除要求によりTradeデータを削除する
+                #
                 if trade.delete_request:
                     self._delete_trade_and_symbol(trade)
                     continue
 
+                # ------------------------------------------
+                # CANCEL要求
+                # ------------------------------------------
+                # API(UI)からのTrade取消要求によりTradeをCANCEL処理する
+                #
+                if trade.cancel_request:
+                    self._cancel_trade(trade)
+
+                # ------------------------------------------
+                # PAUSE中
+                # ------------------------------------------
                 if trade.pause_flag:
                     continue
 
+                # ------------------------------------------
+                # Trade実行条件チェック
+                # ------------------------------------------
+                # 現在価格取得/市場情報取得/値幅制限　等のチェック
+                #
                 if not self.trade_ready.is_trade_ready(trade):
                     continue
 
@@ -313,7 +332,6 @@ class TradeEngine:
                 # ここはログ出力なのでcycle_processedはチェックしない
                 if self.check_cycle(f"state_log_{trade.id}", self.PROC_STATE_LOG_INTERVAL_SEC):
                     Log.debug(f"TRADE STATE (#{trade.id}) symbol={trade.param.symbol} state={trade.state.name}")
-
 
                 match trade.state:
 
@@ -332,7 +350,6 @@ class TradeEngine:
                     # ・ENTRY監視開始準備
                     # ==========================================
                     case TradeState.ENTRY_WAIT:
-                        self.process_market.process(trade)
                         if self.process_entry_wait.process(trade):
                             trade.change_state(TradeState.ENTRY_PULLBACK)
 
@@ -343,7 +360,6 @@ class TradeEngine:
                     # ・ENTRY成立判定
                     # ==========================================
                     case TradeState.ENTRY_PULLBACK:
-                        self.process_market.process(trade)
                         if self.process_entry_pullback.process(trade):
                             trade.change_state(TradeState.ENTRY_REVERSAL)
 
@@ -353,7 +369,6 @@ class TradeEngine:
                     # ・ENTRY成立判定
                     # ==========================================
                     case TradeState.ENTRY_REVERSAL:
-                        self.process_market.process(trade)
                         if self.process_entry_reversal.process(trade):
                             trade.change_state(TradeState.ORDER_REQUEST)
 
@@ -385,7 +400,6 @@ class TradeEngine:
                     # ・利益側はTrailで追う
                     # ==========================================
                     case TradeState.TRAILING:
-                        self.process_market.process(trade)
                         if self.process_trailing.process(trade):
                             trade.change_state(TradeState.EXIT_CREATE)
 
@@ -394,6 +408,7 @@ class TradeEngine:
                     # ・EXIT注文生成
                     # ==========================================
                     case TradeState.EXIT_CREATE:
+                        print("TradeState.EXIT_CREATE")
                         if self.process_exit_create.process(trade):
                             trade.change_state(TradeState.EXIT_WAIT)
 
@@ -424,11 +439,11 @@ class TradeEngine:
                 continue
 
             except Exception as e:
-                Log.error(f"(#{trade.id}) Trade Process Exception {type(e).__name__}: {e}")
-                Log.error(traceback.format_exc())
-
                 if self.is_recoverable_cycle_error(e):
                     continue
+
+                Log.error(f"(#{trade.id}) Trade Process Exception {type(e).__name__}: {e}")
+                Log.error(traceback.format_exc())
 
                 trade.error_message = str(e)
                 trade.change_state(TradeState.ERROR)
@@ -578,6 +593,52 @@ class TradeEngine:
         del self.context.trades[trade_id]
 
         Log.debug(f"(#{trade_id}) TRADE DELETED")
+
+
+    def _cancel_trade(self, trade):
+
+        # CANCEL要求をクリア
+        trade.cancel_request = False
+
+        # PAUSE中を解除しサイクルで処理させる。
+        trade.pause_flag = False
+
+        Log.event(f"(#{trade.id}) CANCEL TRADE")
+
+        # ------------------------------------------
+        # ENTRY前
+        # ------------------------------------------
+        #
+        # まだENTRY約定していないので、
+        # Tradeだけを取消する。
+        #
+        if trade.state in [
+            TradeState.CREATED,
+            TradeState.ENTRY_WAIT,
+            TradeState.ENTRY_PULLBACK,
+            TradeState.ENTRY_REVERSAL,
+        ]:
+            trade.change_state(TradeState.CANCELED)
+
+        # ------------------------------------------
+        # ENTRY約定後
+        # ------------------------------------------
+        #
+        # 既にポジションを保有しているので、
+        # Tradeを直接CANCELEDにはしない。
+        #
+        elif trade.state == TradeState.TRAILING:
+
+            # CANCEL時点の現在価格を取得
+            quote = self.context.cache.quotes.get(trade.param.symbol)
+
+            # DEBUGではCANCEL時点の現在価格をEXIT価格として使用
+            trade.runtime.set_exit(quote.current_price, ExitReason.MANUAL)
+
+            # EXIT処理へ
+            trade.change_state(TradeState.EXIT_CREATE)
+
+        self.trade_store.save(trade)
 
 
     # ==========================================

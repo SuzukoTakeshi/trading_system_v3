@@ -44,3 +44,5 @@ dist/
 storage/json/*.json
 storage/json/trade_chart_data/*.json
 storage/logs/*.log
+
+ui/console/auditor/images/

@@ -9,9 +9,11 @@ from ui.utils.ui_labels import (
     SIDE_LABEL,
     STRATEGY_LABEL,
     TRADE_TYPE_LABEL,
+    EXIT_REASON_LABEL,
     STATE_EVENT_MAP,
     EVENT_LABEL,
     EVENT_LABEL_UNKNOWN,
+    get_exit_reason_label,
 )
 
 from ui.utils.formatters import (
@@ -47,6 +49,7 @@ def render_trail_card(trade: dict):
 
     # ---------------------
     # Strategy
+    # 上部のラインを表示する為、ここで色を取得
     # ---------------------
 
     strategy = trade.get("strategy", "")
@@ -56,8 +59,6 @@ def render_trail_card(trade: dict):
         "daytrade": "#293F5A",
         "swing": "#295A3A",
     }.get(strategy, "#444444")
-
-    strategy_text = STRATEGY_LABEL.get(strategy, "")
 
     # ---------------------
     # CSS
@@ -195,33 +196,32 @@ def render_trail_card(trade: dict):
         # Position
         # ---------------------
 
-        col1, col2, col3, col4 = st.columns(4)
+        # 未使用
+        # render_item(
+        #     "指値価格",
+        #     fmt_price(trade.get("price"))
+        # )
 
-        with col1:
+        current_price_col, entry_price_col, stop_price_col, atr_col = st.columns(4)
+
+        with current_price_col:
             render_item("現在値", fmt_price(trade.get("current_price")))
 
-        with col2:
+        with entry_price_col:
             render_item("取得価格", fmt_price(trade.get("entry_price")))
 
-        with col3:
+        with stop_price_col:
             render_item("損切ライン", fmt_price(trade.get("stop_price")))
 
-        with col4:
+        with atr_col:
             render_item("ATR", fmt_price(trade.get("atr")))
 
         # ---------------------
         # Trade Info
         # ---------------------
+        quantity_col, trade_type_col, strategy_col, col4 = st.columns(4)
 
-        col1, col2, col3, col4 = st.columns(4)
-
-        with col1:
-            render_item(
-                "指値価格",
-                fmt_price(trade.get("price"))
-            )
-
-        with col2:
+        with quantity_col:
             quantity = trade.get("quantity")
 
             render_item(
@@ -229,12 +229,9 @@ def render_trail_card(trade: dict):
                 f"{quantity}株" if quantity is not None else ""
             )
 
-        with col3:
+        with trade_type_col:
             trade_type = trade.get("trade_type", "-")
-            trade_type_text = TRADE_TYPE_LABEL.get(
-                trade_type,
-                ""
-            )
+            trade_type_text = TRADE_TYPE_LABEL.get(trade_type, "-") if trade_type else "-"
 
             trade_type_bg_color = {
                 "margin": "#4A3A5A",
@@ -265,7 +262,9 @@ def render_trail_card(trade: dict):
                 unsafe_allow_html=True
             )
 
-        with col4:
+        with strategy_col:
+            strategy_text = STRATEGY_LABEL.get(strategy, "-") if strategy else "-"
+
             st.markdown(
                 f"""
                 <div class="trail-item">
@@ -287,21 +286,23 @@ def render_trail_card(trade: dict):
                 unsafe_allow_html=True
             )
 
+        with col4:
+            render_item("", "")
 
         # ---------------------
         # Time Info
         # ---------------------
 
-        col1, col2, col3, col4 = st.columns(4)
+        created_at_col, entry_time_col, entry_price_col, col4 = st.columns(4)
 
-        with col1:
+        with created_at_col:
             render_item("登録日時", fmt_dt(trade.get("created_at")))
 
-        with col2:
+        with entry_time_col:
             render_item("取得日時", fmt_dt(trade.get("entry_time")))
 
-        with col3:
-            render_item("", "")
+        with entry_price_col:
+            render_item("取得価格", fmt_price(trade.get("entry_price")))
 
         with col4:
             render_item("", "")
@@ -321,7 +322,13 @@ def render_trail_card(trade: dict):
             unsafe_allow_html=True
         )
 
-        exit_reason = trade.get("exit_reason", "-")
+        exit_reason = trade.get("exit_reason")
+        profit_loss = trade.get("profit_loss")
+
+        exit_reason_text = get_exit_reason_label(
+            exit_reason,
+            profit_loss,
+        )
 
         st.markdown(
             f"""
@@ -331,24 +338,24 @@ def render_trail_card(trade: dict):
                 align-items: center;
                 margin: 10px 0 8px 0;
                 font-weight: bold;
-            "><span>EXIT</span><span>決済理由：{exit_reason}</span></div>
+            "><span>EXIT</span><span>決済理由：{exit_reason_text}</span></div>
             """,
             unsafe_allow_html=True
         )
 
-        col1, col2, col3, col4 = st.columns(4)
+        exit_price_col, exit_time_col, holding_seconds_col, profit_loss_col = st.columns(4)
 
-        with col1:
+        with exit_price_col:
             exit_price = trade.get("exit_price")
             render_item("決済価格", fmt_price(exit_price) if exit_price is not None else "-")
 
-        with col2:
+        with exit_time_col:
             render_item("決済日時", fmt_dt(trade.get("exit_time")))
 
-        with col3:
+        with holding_seconds_col:
             render_item("保有時間", fmt_duration(holding_seconds))
 
-        with col4:
+        with profit_loss_col:
             profit_loss = trade.get("profit_loss")
 
             if profit_loss is None:

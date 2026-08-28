@@ -17,10 +17,14 @@ from ui.utils.ui_labels import (
     SIDE_LABEL,
     TRADE_TYPE_LABEL,
     TRADE_TYPE_UNKNOWN,
+    MARGIN_TYPE_LABEL,
+    MARGIN_TYPE_UNKNOWN,
     STRATEGY_LABEL,
     STATE_EVENT_MAP,
     EVENT_LABEL,
     EVENT_LABEL_UNKNOWN,
+    EXIT_REASON_LABEL,
+    get_exit_reason_label,
 )
 
 from ui.api.client import (
@@ -34,24 +38,38 @@ from ui.api.client import (
 
 from ui.console import message_store
 
-
-def list_button_action(action, trade_id, success_message):
+def list_button_action(action, trade_id, success_message, cancel_confirm=False):
 
     try:
-
         response = action(trade_id)
 
         result = response.get("result")
         response_message = response.get("message", "")
 
         if result == "OK":
-            message_store.set(level="INFO", message=response_message or success_message)
+
+            message_store.set(
+                level="INFO",
+                message=response_message or success_message
+            )
 
         elif result == "REJECTED":
-            message_store.set(level="WARNING", message=response_message or "操作が拒否されました。")
+
+            if cancel_confirm:
+                st.session_state["cancel_confirm_trade_id"] = trade_id
+                st.session_state["cancel_confirm_message"] = response_message
+            else:
+                message_store.set(
+                    level="WARNING",
+                    message=response_message or "操作が拒否されました。"
+                )
 
         else:
-            message_store.set(level="ERROR", message=response_message or "処理に失敗しました。")
+
+            message_store.set(
+                level="ERROR",
+                message=response_message or "処理に失敗しました。"
+            )
 
     except Exception as e:
 
@@ -63,7 +81,55 @@ def list_button_action(action, trade_id, success_message):
     st.rerun()
 
 
+@st.dialog("CANCEL確認")
+def cancel_confirm_dialog(trade_id, message):
+
+    st.warning(message)
+
+    st.write(
+        f"Trade #{trade_id} をそれでもCANCELしますか？"
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("はい", width="stretch"):
+
+            # CANCEL実行
+            cancel_trade(trade_id, force=True)
+
+            # 確認状態をクリア
+            st.session_state["cancel_confirm_trade_id"] = None
+            st.session_state["cancel_confirm_message"] = None
+
+            st.rerun()
+
+    with col2:
+        if st.button("いいえ", width="stretch"):
+
+            # CANCELせずに確認状態だけクリア
+            st.session_state["cancel_confirm_trade_id"] = None
+            st.session_state["cancel_confirm_message"] = None
+
+            st.rerun()
+
+
 def trade_list():
+
+    confirm_trade_id = st.session_state.get(
+        "cancel_confirm_trade_id"
+    )
+
+    if confirm_trade_id is not None:
+
+        cancel_confirm_dialog(
+            confirm_trade_id,
+            st.session_state.get(
+                "cancel_confirm_message",
+                "このTradeは現在CANCELできません。"
+            ),
+        )
+
 
     with st.container(border=True):
 
@@ -95,21 +161,16 @@ def trade_list():
         display_trades = []
 
         for trade in trades:
-
             row = trade.copy()
 
             # 銘柄
-            row["symbol_name"] = (
-                f'{row.get("symbol", "")}　{row.get("name", "")}'
-            )
+            row["symbol_name"] = f'{row.get("symbol", "")}　{row.get("name", "")}'
+
             row.pop("symbol", None)
             row.pop("name", None)
 
             # 売買方向
-            row["side"] = SIDE_LABEL.get(
-                row.get("side", ""),
-                row.get("side", "")
-            )
+            row["side"] = SIDE_LABEL.get(row.get("side", ""), row.get("side", ""))
 
             # 取引区分
             row["trade_type"] = TRADE_TYPE_LABEL.get(
@@ -117,18 +178,19 @@ def trade_list():
                 TRADE_TYPE_UNKNOWN
             )
 
+            # 信用区分
+            if trade.get("trade_type") == "margin":
+                row["margin_type"] = MARGIN_TYPE_LABEL.get(row.get("margin_type", ""), MARGIN_TYPE_UNKNOWN)
+            else:
+                row["margin_type"] = ""
+
             # 戦略
-            row["strategy"] = STRATEGY_LABEL.get(
-                row.get("strategy", ""),
-                row.get("strategy", "")
-            )
+            row["strategy"] = STRATEGY_LABEL.get(row.get("strategy", ""), row.get("strategy", ""))
 
             # Trade State → UI Event
             pause_flag = row.get("pause_flag", False)
-
             if pause_flag:
                 row["state"] = "⏸ PAUSE"
-
             else:
                 state = row.get("state", "")
 
@@ -136,7 +198,12 @@ def trade_list():
 
                 row["state"] = EVENT_LABEL.get(event, EVENT_LABEL_UNKNOWN)
 
-            row["message"] = row.get("message", "")
+
+            exit_reason = row.get("exit_reason")
+            row["message"] = get_exit_reason_label(
+                exit_reason,
+                row.get("profit_loss"),
+            )
 
             # 登録日時
             row["created_at"] = fmt_dt(row.get("created_at"))
@@ -154,6 +221,7 @@ def trade_list():
                     "quantity": None,
                     "atr": None,
                     "trade_type": "",
+                    "margin_type": "",
                     "strategy": "",
                     "side": "",
                     "current_profit_loss": None,
@@ -176,9 +244,7 @@ def trade_list():
         )
 
         for trade in trades:
-            trade["select"] = (
-                trade["trade_id"] in selected_trade_ids
-            )
+            trade["select"] = (trade["trade_id"] in selected_trade_ids)
 
         # Trade一覧
         edited = st.data_editor(
@@ -195,6 +261,7 @@ def trade_list():
                 "quantity",
                 "atr",
                 "trade_type",
+                "margin_type",
                 "strategy",
                 "side",
                 "current_profit_loss",
@@ -204,62 +271,20 @@ def trade_list():
             ],
 
             column_config={
-                "select": st.column_config.CheckboxColumn(
-                    "選択",
-                    width="small",
-                ),
-                "trade_id": st.column_config.NumberColumn(
-                    "ID",
-                    width="small",
-                ),
-                "symbol_name": st.column_config.TextColumn(
-                    "銘柄",
-                    width="medium",
-                ),
-                "current_price": st.column_config.NumberColumn(
-                    "現在値",
-                    width="small",
-                    format="%,.2f",
-                ),
-                "quantity": st.column_config.NumberColumn(
-                    "数量",
-                    width="small",
-                    format="%,d",
-                ),
-                "atr": st.column_config.NumberColumn(
-                    "ATR",
-                    width="small",
-                    format="%.1f",
-                ),
-                "trade_type": st.column_config.TextColumn(
-                    "取引",
-                    width="small",
-                ),
-                "strategy": st.column_config.TextColumn(
-                    "戦略",
-                    width="small",
-                ),
-                "side": st.column_config.TextColumn(
-                    "トレード区分",
-                    width="small",
-                ),
-                "current_profit_loss": st.column_config.NumberColumn(
-                    "損益",
-                    width="small",
-                    format="%,.2f",
-                ),
-                "state": st.column_config.TextColumn(
-                    "状態",
-                    width="medium",
-                ),
-                "message": st.column_config.TextColumn(
-                    "メッセージ",
-                    width="large",
-                ),
-                "created_at": st.column_config.TextColumn(
-                    "登録日時",
-                    width="medium",
-                ),
+                "select": st.column_config.CheckboxColumn("選択", width="small"),
+                "trade_id": st.column_config.NumberColumn("ID", width="small"),
+                "symbol_name": st.column_config.TextColumn("銘柄", width="medium"),
+                "current_price": st.column_config.NumberColumn("現在値", width="small", format="%,.2f"),
+                "quantity": st.column_config.NumberColumn("数量", width="small", format="%,d"),
+                "atr": st.column_config.NumberColumn("ATR", width="small", format="%.1f"),
+                "trade_type": st.column_config.TextColumn("取引", width="small"),
+                "margin_type": st.column_config.TextColumn("信用区分", width="small"),
+                "strategy": st.column_config.TextColumn("戦略", width="small"),
+                "side": st.column_config.TextColumn("トレード区分", width="small"),
+                "current_profit_loss": st.column_config.NumberColumn("損益", width="small", format="%,.2f"),
+                "state": st.column_config.TextColumn("状態", width="small"),
+                "message": st.column_config.TextColumn("メッセージ", width="large"),
+                "created_at": st.column_config.TextColumn("登録日時", width="medium")
             },
 
             # 編集禁止
@@ -271,6 +296,7 @@ def trade_list():
                 "quantity",
                 "atr",
                 "trade_type",
+                "margin_type",
                 "strategy",
                 "side",
                 "current_profit_loss",
@@ -298,7 +324,6 @@ def trade_list():
         # Monitor
         #
         with monitor_col:
-
             if st.button(
                 "👁 Monitor",
                 width="stretch",
@@ -310,7 +335,6 @@ def trade_list():
                 )
 
                 url = f"{MONITOR_URL}?trade_ids={trade_ids}"
-
                 webbrowser.open_new_tab(url)
 
         #
@@ -322,7 +346,8 @@ def trade_list():
                 width="stretch",
                 disabled=len(selected_ids) != 1,
             ):
-                list_button_action(pause_trade, selected_ids[0], "PAUSE 完了")
+                trade_id = selected_ids[0]
+                list_button_action(pause_trade, trade_id, f"(#{trade_id}) PAUSE 完了")
 
         #
         # Resume
@@ -333,7 +358,8 @@ def trade_list():
                 width="stretch",
                 disabled=len(selected_ids) != 1,
             ):
-                list_button_action(resume_trade, selected_ids[0], "RESUME 完了")
+                trade_id = selected_ids[0]
+                list_button_action(resume_trade, trade_id, f"(#{trade_id}) RESUME 完了")
 
         #
         # Cancel
@@ -344,7 +370,8 @@ def trade_list():
                 width="stretch",
                 disabled=len(selected_ids) != 1,
             ):
-                list_button_action(cancel_trade, selected_ids[0], "CANCEL 完了")
+                trade_id = selected_ids[0]
+                list_button_action(cancel_trade, trade_id, f"(#{trade_id}) CANCEL 完了", cancel_confirm=True)
 
         #
         # Delete
@@ -355,4 +382,5 @@ def trade_list():
                 width="stretch",
                 disabled=len(selected_ids) != 1,
             ):
-                list_button_action(delete_trade, selected_ids[0], "DELETE 完了")
+                trade_id = selected_ids[0]
+                list_button_action(delete_trade, trade_id, f"(#{trade_id}) DELETE 完了")

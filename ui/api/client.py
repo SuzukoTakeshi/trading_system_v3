@@ -1,7 +1,6 @@
 #
 # ui/api/client.py
 #
-# Trading System V2
 # API Client
 #
 # 役割:
@@ -17,6 +16,7 @@ from ui.config.ui import (
 )
 
 def get_error_message(e):
+
     if isinstance(e, requests.ConnectionError):
         return "Trading System本体に接続できません。"
 
@@ -24,6 +24,27 @@ def get_error_message(e):
         return "Trading System本体からの応答がありません。"
 
     if isinstance(e, requests.HTTPError):
+
+        response = e.response
+
+        if response is not None:
+
+            try:
+                data = response.json()
+
+                message = data.get("message")
+
+                if message:
+                    return message
+
+                detail = data.get("detail")
+
+                if detail:
+                    return str(detail)
+
+            except ValueError:
+                pass
+
         return "Trading System本体でエラーが発生しました。"
 
     return "システムエラーが発生しました。"
@@ -35,10 +56,7 @@ def get_error_message(e):
 
 def get(path):
 
-    response = requests.get(
-        f"{BASE_URL}{path}",
-        timeout=API_TIMEOUT_SEC,
-    )
+    response = requests.get(f"{BASE_URL}{path}", timeout=API_TIMEOUT_SEC)
 
     response.raise_for_status()
 
@@ -48,12 +66,12 @@ def get(path):
 # ==================================================
 # 共通POST
 # ==================================================
-
-def post(path, json=None):
+def post(path, json=None, params=None):
 
     response = requests.post(
         f"{BASE_URL}{path}",
         json=json,
+        params=params,
         timeout=API_TIMEOUT_SEC,
     )
 
@@ -67,7 +85,6 @@ def post(path, json=None):
 # ==================================================
 
 def get_status():
-
     try:
         return get("/status")
 
@@ -84,10 +101,6 @@ def get_status():
 # ==================================================
 
 def get_logs(limit=20):
-    """
-    System Log取得
-    """
-
     return get(f"/logs?limit={limit}")
 
 
@@ -108,48 +121,55 @@ def stop_system():
 # ==================================================
 
 def get_trade_options():
-
     return get("/trade/options")
 
 
-def register_trade(payload):
+# ==================================================
+# Trade Params
+# ==================================================
 
+def get_trade_params(symbol):
+    return get(f"/trade/params?symbol={symbol}")
+
+
+def register_trade(payload):
     return post("/trade", json=payload)
 
 
 def get_trades():
-
     return get("/trades")
 
 
+# ==========================================
+# Trade一時停止
+# ==========================================
 def pause_trade(trade_id):
-    """
-    Trade一時停止
-    """
-
     return post(f"/trade/{trade_id}/pause")
 
 
+# ==========================================
+# Trade再開
+# ==========================================
 def resume_trade(trade_id):
-    """
-    Trade再開
-    """
-
     return post(f"/trade/{trade_id}/resume")
 
 
-def cancel_trade(trade_id):
-    """
-    Trade取消
-    """
+# ==========================================
+# Trade取消
+# ==========================================
+def cancel_trade(trade_id, force=False):
+    return post(
+        f"/trade/{trade_id}/cancel",
+        params={
+            "force": force,
+        },
+    )
 
-    return post(f"/trade/{trade_id}/cancel")
 
-
+# ==========================================
+# CANCELED Trade削除
+# ==========================================
 def delete_trade(trade_id):
-    """
-    CANCELED Trade削除
-    """
 
     response = requests.delete(f"{BASE_URL}/trade/{trade_id}/delete", timeout=API_TIMEOUT_SEC)
 
@@ -158,10 +178,10 @@ def delete_trade(trade_id):
     return response.json()
 
 
+# ==========================================
+# 複数TradeのChart Data取得
+# ==========================================
 def get_trade_chart_datas(trade_ids):
-    """
-    複数TradeのChart Data取得
-    """
 
     return post(
         "/trade/chart_datas",

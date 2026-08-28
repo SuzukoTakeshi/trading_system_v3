@@ -12,6 +12,8 @@ from datetime import datetime
 
 from market.rakuten.sheets.base_sheet import BaseSheet
 
+from trade.trade_enums import MarginType
+
 
 class OrderListSheet(BaseSheet):
 
@@ -154,9 +156,9 @@ class OrderListSheet(BaseSheet):
         #   弁済期限 = ""
         #
         # 信用:
-        #   取引     = 信用新規
+        #   取引     = 信用新規 / 信用返済
         #   信用区分 = 制度 / 一般
-        #   弁済期限 = 6ヶ月(1) / 無期限(2) / 14日(3) / 1日(4)
+        #   弁済期限 = 6ヶ月 / 無期限 / 14日 / 1日
         # ------------------------------------------
 
         if request["trade_type"] == "margin":
@@ -171,31 +173,33 @@ class OrderListSheet(BaseSheet):
                 raise Exception(f"未対応order_role: {request['order_role']}")
 
 
-            margin_type_value = request["margin_type"]
+            margin_type = request["margin_type"]
 
-            if margin_type_value == 1:
-                margin_type = "制度"
-                repayment_period = "6ヶ月"
+            match margin_type:
 
-            elif margin_type_value == 2:
-                margin_type = "一般"
-                repayment_period = "無期限"
+                case MarginType.SYSTEM:
+                    margin_type_display = "制度"
+                    repayment_period = "6ヶ月"
 
-            elif margin_type_value == 3:
-                margin_type = "一般"
-                repayment_period = "14日"
+                case MarginType.UNLIMITED:
+                    margin_type_display = "一般"
+                    repayment_period = "無期限"
 
+                case MarginType.TWO_WEEKS:
+                    margin_type_display = "一般"
+                    repayment_period = "14日"
 
-            elif margin_type_value == 4:
-                margin_type = "一般"
-                repayment_period = "1日"
+                case MarginType.DAY:
+                    margin_type_display = "一般"
+                    repayment_period = "1日"
 
-            else:
-                raise Exception(f"未対応margin_type: {margin_type_value}")
+                case _:
+                    raise Exception(f"未対応margin_type: {margin_type}")
 
         elif request["trade_type"] == "cash":
             trade_type = "現物"
-            margin_type = ""
+            margin_type = None
+            margin_type_display = ""
             repayment_period = ""
 
         else:
@@ -213,21 +217,17 @@ class OrderListSheet(BaseSheet):
             self.SYMBOL_COLUMN: request["symbol"],
             self.SYMBOL_NAME_COLUMN: "DEBUG",
             self.ACCOUNT_TYPE_COLUMN: "特定",
-            self.ORDER_DATETIME_COLUMN:
-                datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
+            self.ORDER_DATETIME_COLUMN: datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
             self.SIDE_COLUMN: side,
 
             self.TRADE_TYPE_COLUMN: trade_type,
 
-            self.MARGIN_TYPE_COLUMN:
-                margin_type,
+            self.MARGIN_TYPE_COLUMN: margin_type_display,
 
-            self.REPAYMENT_PERIOD_COLUMN:
-                repayment_period,
+            self.REPAYMENT_PERIOD_COLUMN: repayment_period,
 
             self.EXECUTION_CONDITION_COLUMN: "本日中",
-            self.ORDER_EXPIRATION_COLUMN:
-                datetime.now().strftime("%Y%m%d"),
+            self.ORDER_EXPIRATION_COLUMN: datetime.now().strftime("%Y%m%d"),
             self.ORDER_QUANTITY_COLUMN: request["quantity"],
             self.FILLED_QUANTITY_COLUMN: request["quantity"],
             self.ORDER_PRICE_COLUMN: request["price"],

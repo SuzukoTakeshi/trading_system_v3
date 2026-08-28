@@ -13,8 +13,6 @@ from core.logger import Log
 
 from trade.process.process_base import ProcessBase
 
-from trade.trade_enums import TradeState
-
 
 class ProcessEntryWait(ProcessBase):
 
@@ -26,19 +24,18 @@ class ProcessEntryWait(ProcessBase):
 
     def process(self, trade):
 
-        quote = self.context.cache.quotes.get(trade.param.symbol)
+        Log.flow(f"(#{trade.id}) ProcessEntryWait:process")
 
-        if quote is None:
-            return False
-
+        quote = trade.runtime.quote
+        current_price = quote.current_price
 
         # 初回価格取得完了
-        trade.runtime.entry_previous_price = quote.price
+        trade.runtime.entry_previous_price = current_price
 
         Log.event(
-            f"ENTRY WAIT COMPLETE (#{trade.id}) "
+            f"(#{trade.id}) ENTRY WAIT COMPLETE "
             f"symbol={trade.param.symbol} "
-            f"price={quote.price}"
+            f"current_price={current_price}"
         )
 
         return True

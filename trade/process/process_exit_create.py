@@ -36,6 +36,8 @@ class ProcessExitCreate(ProcessOrderBase):
 
     def process(self, trade):
 
+        Log.flow(f"(#{trade.id}) ProcessExitCreate:process")
+
         order = self.find_order(trade)
 
         if order is None:
@@ -91,9 +93,9 @@ class ProcessExitCreate(ProcessOrderBase):
         return False
 
 
-    #
+    # ==========================================
     # Exit Order生成
-    #
+    # ==========================================
     def create_exit_order(self, trade):
         if trade.param.side == SideType.LONG:
             order_action = OrderAction.SELL

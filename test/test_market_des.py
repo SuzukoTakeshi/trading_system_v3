@@ -1,10 +1,10 @@
 #
-# test/test_market_des_clear.py
+# test/test_market_des.py
 #
 # MarketDes RSS Test
 #
 # 実行:
-#   python -m test.test_market_des_clear
+#   python -m test.test_market_des
 #
 import time
 
@@ -38,7 +38,7 @@ def main():
     )
 
     workbook = excel.Workbooks(
-        "楽天RSS_v3_Debug.xlsm"
+        "楽天RSS_v3.xlsm"
     )
 
     ws = workbook.Worksheets(

@@ -26,22 +26,22 @@ class ProcessEntryReversalShort(ProcessEntryBase):
         Log.create("ProcessEntryReversalShort")
 
 
-    #
+    # ==========================================
     # Process入口
-    #
-    # EngineからENTRY_REVERSAL状態で呼ばれる
-    #
+    #   EngineからENTRY_REVERSAL状態で呼ばれる
+    # ==========================================
     def process(self, trade, quote):
+
+        Log.flow(f"(#{trade.id}) ProcessEntryReversalShort:process")
 
         # 共通初期処理
         self.process_base(trade, quote)
 
         # 現在価格
-        price = self.quote.price
+        current_price = self.quote.current_price
 
         # Entry設定
         cfg = self.get_entry_config()
-
 
         previous_count = trade.runtime.entry_reversal_count
 
@@ -53,18 +53,20 @@ class ProcessEntryReversalShort(ProcessEntryBase):
 
 
         # 下落確認
-        if price < trade.runtime.entry_previous_price:
+        if current_price < trade.runtime.entry_previous_price:
             # 反転カウント加算
             trade.runtime.entry_reversal_count += 1
-        elif price > trade.runtime.entry_previous_price:
+        elif current_price > trade.runtime.entry_previous_price:
             trade.runtime.entry_reversal_count = 0
 
         if previous_count != trade.runtime.entry_reversal_count:
-            Log.debug(f"REVERSAL ENTRY SHORT (#{trade.id}) count={trade.runtime.entry_reversal_count}")
-            self.add_entry_timeline(f"REVERSAL ENTRY SHORT count={trade.runtime.entry_reversal_count}")
+            text = f"REVERSAL ENTRY SHORT count={trade.runtime.entry_reversal_count}"
+            Log.debug(f"(#{trade.id}) {text}")
+            trade.add_timeline(type="ENTRY", message=text)
+
 
         # 前回価格更新
-        trade.runtime.entry_previous_price = price
+        trade.runtime.entry_previous_price = current_price
 
         # 反転確定確認
         if (
@@ -72,16 +74,14 @@ class ProcessEntryReversalShort(ProcessEntryBase):
             >=
             cfg["reversal_confirm_count"]
         ):
-            Log.event(f"REVERSAL COMPLETE SHORT (#{trade.id}) symbol={trade.param.symbol} price={price}")
-            self.add_entry_timeline(
-                (
-                    f"REVERSAL COMPLETE SHORT "
-                    f"count={trade.runtime.entry_reversal_count} "
-                    f"price={price}"
-                )
+            text = (
+                f"REVERSAL COMPLETE SHORT symbol={trade.param.symbol} "
+                f"count={trade.runtime.entry_reversal_count} "
+                f"current_price={current_price}"
             )
+            Log.event(f"(#{trade.id}) {text}")
+            trade.add_timeline(type="ENTRY", message=text)
 
             return True
-
 
         return False

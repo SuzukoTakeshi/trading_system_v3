@@ -12,26 +12,37 @@ from datetime import datetime
 
 from market.rakuten.sheets.base_sheet import BaseSheet
 
-from core.exception import SheetColumnError
-
 
 class QuoteSheet(BaseSheet):
 
     SYMBOL_COLUMN = "銘柄コード"
-    PRICE_COLUMN = "現在値"
+
+    CURRENT_PRICE_COLUMN = "現在値"
+    CURRENT_DATE_COLUMN = "現在日付"
+    CURRENT_TIME_COLUMN = "現在値時刻"
+    CURRENT_TICK_COLUMN = "現在値ティック"
+
+    CHANGE_COLUMN = "前日比"
+    CHANGE_RATE_COLUMN = "前日比率"
+
+    OPEN_PRICE_COLUMN = "始値"
+    HIGH_PRICE_COLUMN = "高値"
+    LOW_PRICE_COLUMN = "安値"
+
+    VOLUME_COLUMN = "出来高"
 
     HEADER_COLUMNS = [
-        "銘柄コード",
-        "現在値",
-        "現在日付",
-        "現在値時刻",
-        "現在値ティック",
-        "前日比",
-        "前日比率",
-        "始値",
-        "高値",
-        "安値",
-        "出来高",
+        SYMBOL_COLUMN,
+        CURRENT_PRICE_COLUMN,
+        CURRENT_DATE_COLUMN,
+        CURRENT_TIME_COLUMN,
+        CURRENT_TICK_COLUMN,
+        CHANGE_COLUMN,
+        CHANGE_RATE_COLUMN,
+        OPEN_PRICE_COLUMN,
+        HIGH_PRICE_COLUMN,
+        LOW_PRICE_COLUMN,
+        VOLUME_COLUMN,
     ]
 
 
@@ -40,9 +51,7 @@ class QuoteSheet(BaseSheet):
 
         self.debug_quote_price = None
 
-        #
         # Quotesシート初期化
-        #
         self.initialize()
 
 
@@ -53,31 +62,32 @@ class QuoteSheet(BaseSheet):
         ・ヘッダー設定
         ・シート構成確認
         """
-
-        for column, name in enumerate(
-            self.HEADER_COLUMNS,
-            start=1
-        ):
-            self.ws.Cells(
-                self.header_row,
-                column
-            ).Value = name
+        for column, name in enumerate(self.HEADER_COLUMNS, start=1):
+            self.ws.Cells(self.header_row, column).Value = name
 
 
-    def debug_set_quote(self, price):
+    def debug_set_quote(self, current_price):
         """
         DEBUG用現在値設定
         """
-
-        self.debug_quote_price = price
+        self.debug_quote_price = current_price
 
 
     def get_quotes(self):
-
         result = {}
 
         symbol_col = self.require_column(self.SYMBOL_COLUMN)
-        price_col = self.require_column(self.PRICE_COLUMN)
+
+        current_price_col = self.require_column(self.CURRENT_PRICE_COLUMN)
+        current_date_col = self.require_column(self.CURRENT_DATE_COLUMN)
+        current_time_col = self.require_column(self.CURRENT_TIME_COLUMN)
+        current_tick_col = self.require_column(self.CURRENT_TICK_COLUMN)
+        change_col = self.require_column(self.CHANGE_COLUMN)
+        change_rate_col = self.require_column(self.CHANGE_RATE_COLUMN)
+        open_price_col = self.require_column(self.OPEN_PRICE_COLUMN)
+        high_price_col = self.require_column(self.HIGH_PRICE_COLUMN)
+        low_price_col = self.require_column(self.LOW_PRICE_COLUMN)
+        volume_col = self.require_column(self.VOLUME_COLUMN)
 
         max_row = self.ws.UsedRange.Rows.Count
 
@@ -90,35 +100,35 @@ class QuoteSheet(BaseSheet):
             if symbol is None:
                 continue
 
-            price = self.ws.Cells(row, price_col).Value
+            current_price = self.ws.Cells(row, current_price_col).Value
 
-            if price in ("", None):
+            if current_price in ("", None):
                 continue
 
             result[symbol] = {
-                "price": price,
+                "current_price": current_price,
+                "current_date": self.ws.Cells(row, current_date_col).Value,
+                "current_time": self.ws.Cells(row, current_time_col).Value,
+                "current_tick": self.ws.Cells(row, current_tick_col).Value,
+                "change": self.ws.Cells(row, change_col).Value,
+                "change_rate": self.ws.Cells(row, change_rate_col).Value,
+                "open_price": self.ws.Cells(row, open_price_col).Value,
+                "high_price": self.ws.Cells(row, high_price_col).Value,
+                "low_price": self.ws.Cells(row, low_price_col).Value,
+                "volume": self.ws.Cells(row, volume_col).Value,
+
                 "updated": updated,
             }
 
         return result
 
-
+    # ==========================================
+    # 指定銘柄価格取得
+    #   Quotesシートに銘柄が存在しない場合は、
+    #   自動的に銘柄を追加してから価格を取得する。
+    #
+    # ==========================================
     def get_quote(self, symbol):
-        """
-        指定銘柄価格取得
-
-        Quotesシートに銘柄が存在しない場合は、
-        自動的に銘柄を追加してから価格を取得する。
-
-        return:
-            {
-                "price": price,
-                "updated": datetime
-            }
-
-        取得不可:
-            None
-        """
 
         # 銘柄コードを正規化
         symbol = self.normalize_symbol(symbol)
@@ -133,7 +143,6 @@ class QuoteSheet(BaseSheet):
         if quote is not None:
             return quote
 
-        #
         # Quotesシートに存在しない銘柄
         #
         # Engine稼働中に追加されたTradeなど、
@@ -142,7 +151,6 @@ class QuoteSheet(BaseSheet):
         #
         self.add_symbol(symbol)
 
-        #
         # 銘柄追加直後の現在値を再取得
         #
         # RSSの数式設定直後は価格がまだ取得できていない
@@ -154,7 +162,6 @@ class QuoteSheet(BaseSheet):
 
 
     def reset(self):
-
         max_row = self.ws.UsedRange.Rows.Count
 
         if max_row <= self.header_row:
@@ -166,7 +173,7 @@ class QuoteSheet(BaseSheet):
     def add_symbol(self, symbol):
 
         symbol_col = self.require_column(self.SYMBOL_COLUMN)
-        price_col = self.require_column(self.PRICE_COLUMN)
+        current_price_col = self.require_column(self.CURRENT_PRICE_COLUMN)
 
         symbol = self.normalize_symbol(symbol)
 
@@ -178,15 +185,14 @@ class QuoteSheet(BaseSheet):
         self.ws.Cells(row, symbol_col).Value = symbol
 
         symbol_letter = self.get_column_letter(symbol_col)
-        price_letter = self.get_column_letter(price_col)
+        price_letter = self.get_column_letter(current_price_col)
 
         symbol_cell = f"${symbol_letter}{row}"
         item_cell = f"{price_letter}${self.header_row}"
 
         if self.is_real() or self.is_simulator():
-
+            # 銘柄コード以外の列にRSSマクロを設定する
             for column_name in self.HEADER_COLUMNS:
-
                 if column_name == self.SYMBOL_COLUMN:
                     continue
 
@@ -195,19 +201,18 @@ class QuoteSheet(BaseSheet):
                 item_letter = self.get_column_letter(column)
                 item_cell = f"{item_letter}${self.header_row}"
 
-                self.ws.Cells(row, column).Formula = (
-                    f"=RssMarket({symbol_cell},{item_cell})"
-                )
+                self.ws.Cells(row, column).Formula = (f"=RssMarket({symbol_cell},{item_cell})")
 
         elif self.is_emulator():
-            self.ws.Cells(row, price_col).Value = ""
+            self.ws.Cells(row, current_price_col).Value = ""
     
         elif self.is_debug():
-            price = self.debug_quote_price
-            if price is None:
-                raise Exception("debug quote price が設定されていません")
-            elif price > 0:
-                self.ws.Cells(row, price_col).Value = price
+            pass
+            # current_price = self.debug_quote_price
+            # if current_price is None:
+            #     raise Exception("debug quote current_price が設定されていません")
+            # elif current_price > 0:
+            #     self.ws.Cells(row, current_price_col).Value = current_price
 
         else:
             raise Exception(f"未対応mode: {self.mode}")

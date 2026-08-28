@@ -23,7 +23,10 @@
         "exit.trail.atr_multiplier": "トレーリングSTOP更新幅に使用するATR倍率",
 
         "exit.time.enabled": "時間決済の有効/無効",
-        "exit.time.limit_minutes": "保有時間上限（分）"
+        "exit.time.limit_minutes": "保有時間上限（分）",
+
+        "exit.close.enabled": "閉場時刻による決済の有効/無効",
+        "exit.close.time": "閉場決済を行う時刻"
     },
 
     "strategy": {
@@ -68,7 +71,7 @@
             },
 
             "chart": {
-                "interval_seconds": 0.5
+                "interval_seconds": 10
             }
         },
 
@@ -111,7 +114,7 @@
             },
 
             "chart": {
-                "interval_seconds": 5
+                "interval_seconds": 60
             }
         },
 
@@ -154,7 +157,7 @@
             },
 
             "chart": {
-                "interval_seconds": 60
+                "interval_seconds": 600
             }
        }
     }

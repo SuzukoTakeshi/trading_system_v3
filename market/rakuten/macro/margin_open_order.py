@@ -11,6 +11,8 @@
 
 from market.rakuten.macro.macro_base import MacroBase
 
+from trade.trade_enums import MarginType
+
 
 class MarginOpenOrder(MacroBase):
 
@@ -85,7 +87,7 @@ class MarginOpenOrder(MacroBase):
         # 2：一般（無期限）
         # 3：一般（14日）
         # 4：一般（1日）
-        margin_type = 4
+        margin_type = self._get_margin_type_code(request["margin_type"])
 
         # 7: 注文数量
         quantity = request["quantity"]
@@ -188,3 +190,23 @@ class MarginOpenOrder(MacroBase):
         result_code = self.get_result_code(macro_result)
 
         return False, result_code
+
+
+    def _get_margin_type_code(margin_type):
+        match margin_type:
+            case MarginType.SYSTEM:
+                return 1
+
+            case MarginType.UNLIMITED:
+                return 2
+
+            case MarginType.TWO_WEEKS:
+                return 3
+
+            case MarginType.DAY:
+                return 4
+
+            case _:
+                raise ValueError(
+                    f"Unsupported margin type: {margin_type}"
+                )

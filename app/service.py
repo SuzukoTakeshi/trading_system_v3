@@ -18,6 +18,8 @@ from market.status import MarketStatus
 from storage.symbol_store import SymbolStore
 
 from trade.trade_symbol_store import TradeSymbolStore
+from trade.trade_params_store import TradeParamsStore
+
 from trade.engine import TradeEngine
 
 from config.strategy_config_loader import StrategyConfig
@@ -33,6 +35,8 @@ class AppService:
         self.symbol_store = SymbolStore()
 
         self.trade_symbol_store = TradeSymbolStore()
+
+        self.trade_params_store = TradeParamsStore()
 
         # Trade Engine
         self.trade_engine = TradeEngine()
@@ -140,6 +144,14 @@ class AppService:
 
 
     # ---------------------
+    # Trade Params取得
+    # ---------------------
+    def get_trade_params(self, symbol):
+
+        return self.trade_params_store.get(symbol)
+
+
+    # ---------------------
     # Trade登録
     # ---------------------
     def register_trade(self, req):
@@ -152,6 +164,20 @@ class AppService:
 
             # Trade登録
             trade_id = self.trade_engine.api.create_trade(req)
+
+            # Trade開始パラメータ保存
+            self.trade_params_store.set(
+                req.symbol,
+                {
+                    "price": req.price,
+                    "quantity": req.quantity,
+                    "atr": req.atr,
+                    "trade_type": req.trade_type,
+                    "margin_type": req.margin_type,
+                    "side": req.side,
+                    "strategy": req.strategy,
+                },
+            )
 
             # トレード開始の銘柄選択に表示される銘柄リストに追加
             self.trade_symbol_store.save(req.symbol)
@@ -201,6 +227,7 @@ class AppService:
                 "quantity": trade["quantity"],
                 "atr": trade["atr"],
                 "trade_type": trade["trade_type"],
+                "margin_type": trade["margin_type"],
                 "side": trade["side"],
                 "strategy": trade["strategy"],
 
@@ -232,6 +259,7 @@ class AppService:
 
                 "exit_price": trade["exit_price"],
                 "exit_time": trade["exit_time"],
+                "exit_reason": trade["exit_reason"],
 
                 "profit_loss": trade["profit_loss"],
 
@@ -289,10 +317,10 @@ class AppService:
     # ---------------------
     # Trade取消
     # ---------------------
-    def cancel_trade(self, trade_id):
-        Log.debug(f"APP SERVICE CANCEL TRADE (#{trade_id})")
+    def cancel_trade(self, trade_id, force=False):
+        Log.debug(f"APP SERVICE CANCEL TRADE (#{trade_id}) force={force}")
 
-        result, message = self.trade_engine.api.cancel_trade(trade_id)
+        result, message = self.trade_engine.api.cancel_trade(trade_id, force=force)
 
         if result:
             return Response.ok(
@@ -303,11 +331,12 @@ class AppService:
 
         return Response.rejected(message=message)
 
+
     # ---------------------
     # CANCELED Trade削除
     # ---------------------
     def delete_trade(self, trade_id):
-        Log.debug(f"APP SERVICE DELETE CANCELED TRADE (#{trade_id})")
+        Log.debug(f" (#{trade_id}) APP SERVICE DELETE CANCELED TRADE")
 
         result = self.trade_engine.api.delete_trade(trade_id)
 
@@ -321,6 +350,7 @@ class AppService:
         return Response.rejected(
             message=f"Trade #{trade_id} をDELETEできません。"
         )
+
 
     # ---------------------
     # 複数TradeのChart Data取得

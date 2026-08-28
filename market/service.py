@@ -10,6 +10,8 @@
 
 from core.logger import Log
 
+from market.status import MarketStatus
+
 from market.order_enums import OrderResultStatus
 from market.rakuten.market import RakutenMarket
 
@@ -21,8 +23,24 @@ class MarketService:
     def __init__(self, mode):
         self.mode = mode
 
+        self.market_status = MarketStatus()
+
         # Market
         self.market = RakutenMarket(self.mode)
+
+
+    def is_real(self):
+        return self.mode == "real"
+
+    def is_simulator(self):
+        return self.mode == "simulator"
+
+    def is_emulator(self):
+        return self.mode == "emulator"
+
+    def is_debug(self):
+        return self.mode == "debug"
+
 
     # ==========================================
     # Market開始
@@ -39,6 +57,8 @@ class MarketService:
         Log.debug("MARKET CLOSE")
         self.market.close()
 
+    def get_status(self):
+        return self.market_status.get()
 
     def sync_market(self, symbols):
         self.market.sync_quotes(symbols)
