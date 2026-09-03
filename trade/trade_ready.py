@@ -21,8 +21,6 @@
 #   MarketDesが取得できない場合はTradeを進めない。
 #
 
-from datetime import datetime
-
 from core.logger import Log
 
 from models.quote.quote_model import QuoteModel
@@ -46,8 +44,14 @@ class TradeReady:
     # 判定:
     #   ・市場情報
     #   ・値幅制限
+    #
+    # ※COMPLETEDは後処理を実行するためチェックは不要。
     # ==========================================
     def is_trade_ready(self, trade):
+
+        if trade.state == TradeState.COMPLETED:
+            return True
+
 
         # Trade状態チェック
         if not self._is_trade_status_ready(trade):
@@ -85,7 +89,7 @@ class TradeReady:
     # ==========================================
     def _is_trade_status_ready(self, trade):
         return trade.state not in (
-            TradeState.COMPLETED,
+            TradeState.CLOSED,
             TradeState.CANCELED,
             TradeState.ERROR,
         )
@@ -100,7 +104,6 @@ class TradeReady:
     #
     # ==========================================
     def _is_trade_time_ready(self, trade):
-        now = datetime.now()
 
         if self.market.mode == "debug":
             return True
@@ -156,8 +159,7 @@ class TradeReady:
         #
         # 実際のMarketDesを取得する。
         #
-        # MarketDesが取得できない場合は、
-        # 売買単位や制限値幅が不明なため、
+        # MarketDesが取得できない場合は、売買単位や制限値幅が不明なため、
         # Tradeを次の処理へ進めない。
         #
         else:

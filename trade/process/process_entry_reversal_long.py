@@ -31,7 +31,7 @@ class ProcessEntryReversalLong(ProcessEntryBase):
     # ==========================================
     def process(self, trade, quote):
 
-        Log.flow(f"(#{trade.id}) ProcessEntryReversalLong:process")
+        # Log.flow(f"(#{trade.id}) ProcessEntryReversalLong:process")
 
         # 共通初期処理
         self.process_base(trade, quote)
@@ -46,7 +46,7 @@ class ProcessEntryReversalLong(ProcessEntryBase):
 
         if trade.runtime.entry_previous_price is None:
             raise EntryPreviousPriceNotFoundError(
-                message="entry_previous_price is None",
+                message="entry_previous_price is None (LONG)",
                 code="ENTRY_PREVIOUS_PRICE_NOT_FOUND",
             )
 
@@ -79,6 +79,9 @@ class ProcessEntryReversalLong(ProcessEntryBase):
             )
             Log.event(f"(#{trade.id}) {text}")
             trade.add_timeline(type="ENTRY", message=text)
+
+            # 通知
+            self.notify(trade, "REVERSAL COMPLETE LONG")
 
             return True
 

@@ -17,6 +17,7 @@
 #   ・warn()       ：警告
 #   ・error()      ：エラー
 #   ・debug()      ：デバッグ情報
+#   ・trace()指定 ：開発・調査用
 #
 #   [機能別]
 #   ・create()     ：クラス生成
@@ -25,13 +26,12 @@
 #   ・trailing()   ：Trailing情報
 #   ・asset()      ：資産処理
 #
-#   ・trace()      ：開発・調査用ログ（log_idで個別制御）
 #   ・flow()       ：処理経路確認
+#   ・check()      ：判定・条件確認
 #
 #   ・emulator()   ：Emulator関連
 
 
-#   ・check()      ：判定・条件確認
 #   ・trade()      ：売買情報
 #   ・order()      ：注文処理
 #   ・execution()  ：約定処理
@@ -47,7 +47,6 @@
 #   ・WARN        ：警告
 #   ・ERROR       ：エラー
 #   ・DEBUG       ：デバッグ情報
-#   ・trace()指定 ：開発・調査用
 #
 #   [機能別]
 #   ・CREATE      ：クラス生成
@@ -56,15 +55,15 @@
 #   ・TRAILING    ：Trailing
 #   ・ASSET       ：資産処理
 
-#   ・EMULATOR    ：Emulator専用
-
 #   ・FLOW        ：処理経路確認
 #   ・CHECK       ：判定確認
+
+#   ・EMULATOR    ：Emulator専用
+
 #   ・TRADE       ：売買情報
 #   ・ORDER       ：注文処理
 #   ・EXECUTION   ：約定処理
 #   ・BREAKEVEN   ：BreakEven
-#   ・RSS PRICE   ：楽天RSS価格
 #
 # ========================
 
@@ -77,8 +76,9 @@ from datetime import datetime
 from pathlib import Path
 import json
 
-from core.enums import ExitReason
 from core.log_writer import LogWriter
+
+from trade.trade_enums import ExitReason
 
 
 init(autoreset=True)
@@ -111,16 +111,16 @@ class Log:
         "ASSET": Fore.MAGENTA,
 
         "FLOW": Fore.CYAN,
+        "CHECK": Fore.YELLOW,
 
         "EMULATOR": Fore.MAGENTA,
 
-        "CHECK": Fore.YELLOW,
+
         "TRADE": Fore.GREEN,
         "ORDER": Fore.MAGENTA,
         "EXECUTION": Fore.GREEN,
         "BREAKEVEN": Fore.MAGENTA,
 
-        "RSS PRICE": Fore.LIGHTBLUE_EX,
         "ORDER_WAIT": Fore.LIGHTBLACK_EX,
     }
 
@@ -231,13 +231,23 @@ class Log:
         if not cls.SOUND:
             return
 
-        if ExitReason.STOP_LOSS.value in msg:
-            cls._beep(500, 500)
-
-        elif ExitReason.BREAKEVEN_EXIT.value in msg:
+        # 1日信用大引けによる決済
+        if ExitReason.MARGIN_DAY_CLOSE.value in msg:
             cls._beep(900, 120)
 
-        elif ExitReason.TRAIL_EXIT.value in msg:
+        # 時間制限による決済
+        elif ExitReason.TIME_EXIT.value in msg:
+            cls._beep(900, 120)
+
+        # 指定時刻による決済
+        elif ExitReason.CLOSE_EXIT.value in msg:
+            cls._beep(900, 120)
+
+        elif ExitReason.MANUAL_EXIT.value in msg:
+            cls._beep(900, 120)
+
+        # 損切ライン到達による決済
+        elif ExitReason.STOP_LINE_EXIT.value in msg:
             cls._beep(1200, 80)
             cls._beep(1600, 100)
 
@@ -301,9 +311,19 @@ class Log:
     # ========================
     # TRAILING Trailing情報
     # ========================
+    _last_trailing_message = None
+
     @classmethod
     def trailing(cls, trade_id, *args):
-        cls._write_log("TRAILING", f"(#{trade_id})", *args)
+        message = " ".join(str(arg) for arg in args)
+        current_message = (trade_id, message)
+
+        if current_message == cls._last_trailing_message:
+            return
+
+        cls._last_trailing_message = current_message
+
+        cls._write_log("TRAILING", f"(#{trade_id})", message)
 
 
     # ========================
@@ -341,6 +361,14 @@ class Log:
     def flow(cls,  *args):
         cls._write_log("FLOW", *args)
 
+    # ========================
+    # CHECK 判定確認
+    # ========================
+    @classmethod
+    def check(cls, *args):
+        cls._write_log("CHECK", *args)
+
+
 
     # ========================
     # EMULATOR
@@ -351,13 +379,6 @@ class Log:
 
 
 
-
-    # ========================
-    # CHECK 判定確認
-    # ========================
-    @classmethod
-    def check(cls, *args):
-        cls._write_log("CHECK", *args)
 
     # ========================
     # TRADE
@@ -409,13 +430,6 @@ class Log:
     @classmethod
     def breakeven(cls, symbol, stop):
         cls._write_log("BREAKEVEN", symbol, f"stop={stop:.2f}")
-
-    # ========================
-    # RSS PRICE RSS価格更新
-    # ========================
-    @classmethod
-    def rss_price(cls, *args):
-        cls._write_log("RSS PRICE", *args)
 
 
     # ========================

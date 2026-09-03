@@ -32,7 +32,7 @@ class ProcessEntryReversalShort(ProcessEntryBase):
     # ==========================================
     def process(self, trade, quote):
 
-        Log.flow(f"(#{trade.id}) ProcessEntryReversalShort:process")
+        # Log.flow(f"(#{trade.id}) ProcessEntryReversalShort:process")
 
         # 共通初期処理
         self.process_base(trade, quote)
@@ -47,7 +47,7 @@ class ProcessEntryReversalShort(ProcessEntryBase):
 
         if trade.runtime.entry_previous_price is None:
             raise EntryPreviousPriceNotFoundError(
-                message="entry_previous_price is None",
+                message="entry_previous_price is None (SHORT)",
                 code="ENTRY_PREVIOUS_PRICE_NOT_FOUND",
             )
 
@@ -81,6 +81,9 @@ class ProcessEntryReversalShort(ProcessEntryBase):
             )
             Log.event(f"(#{trade.id}) {text}")
             trade.add_timeline(type="ENTRY", message=text)
+
+            # 通知
+            self.notify(trade, "REVERSAL COMPLETE SHORT")
 
             return True
 

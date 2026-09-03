@@ -13,7 +13,7 @@ from ui.console.auditor.auditor_panel import auditor_panel
 def body(ctx):
 
     col_list, col_entry, col_auditor = st.columns(
-        [4, 1, 1]
+        [10, 3, 2]
     )
 
     with col_list:

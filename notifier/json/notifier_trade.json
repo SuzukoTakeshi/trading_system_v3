@@ -1,0 +1,97 @@
+{
+    "ENTRY WAIT": {
+        "message": "偵察を開始しました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "entry_wait.wav"
+    },
+    "PULLBACK ENTRY LONG": {
+        "message": "作戦Aに移行しました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "strategy_a.wav"
+    },
+    "PULLBACK ENTRY SHORT": {
+        "message": "作戦Aに移行しました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "strategy_a.wav"
+    },
+    "PULLBACK END LONG": {
+        "message": "戦闘を開始しました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "fight.wav"
+    },
+    "PULLBACK END SHORT": {
+        "message": "戦闘を開始しました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "fight.wav"
+    },
+    "REVERSAL COMPLETE LONG": {
+        "message": "状況は優勢になりました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "reversal.wav"
+    },
+    "REVERSAL COMPLETE SHORT": {
+        "message": "状況は優勢になりました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "reversal.wav"
+    },
+    "INIT TRAILING LONG": {
+        "message": "作戦Bに移行しました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "strategy_b.wav"
+    },
+    "INIT TRAILING SHORT": {
+        "message": "作戦Bに移行しました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "strategy_b.wav"
+    },
+    "COMPLETED LONG PROFIT": {
+        "message": "おめでとう。勝ったヨ！",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "profit2.wav"
+    },
+    "COMPLETED SHORT PROFIT": {
+        "message": "おめでとう。勝ったヨ！",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "profit2.wav"
+    },
+    "COMPLETED LONG LOSS": {
+        "message": "残念。負けちゃった！",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "loss2.wav"
+    },
+    "COMPLETED SHORT LOSS": {
+        "message": "残念。負けちゃった！",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "loss2.wav"
+    },
+
+    
+    "TRADE CREATED": {
+        "message": "監視対象にしました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "trade_created.wav"
+    },
+
+    "TRADE DELETED": {
+        "message": "監視を終了しました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "trade_deleted.wav"
+    },
+
+
+    "TRADE PAUSE": {
+        "message": "戦闘を中断しました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "trade_pause.wav"
+    },
+    "TRADE RESUME": {
+        "message": "戦闘を再開しました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "trade_resume.wav"
+    },
+    "TRADE CANCEL": {
+        "message": "戦闘を中止しました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "trade_cancel.wav"
+    }
+}

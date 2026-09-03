@@ -85,6 +85,9 @@ class ProcessTrailingShort(ProcessTrailingBase):
         trade.runtime.trailing_lowest_price = entry
         trade.runtime.trailing_highest_price = None
 
+        # 通知
+        self.notify(trade, "INIT TRAILING SHORT")
+
 
     # ==========================================
     # 安値更新
@@ -120,7 +123,7 @@ class ProcessTrailingShort(ProcessTrailingBase):
             Log.trailing(trade.id, message)
             trade.add_timeline(type="EXIT", message=message)
 
-            trade.runtime.set_exit(current_price, ExitReason.STOP)
+            trade.runtime.set_exit(current_price, ExitReason.STOP_LINE_EXIT)
 
             return True
 

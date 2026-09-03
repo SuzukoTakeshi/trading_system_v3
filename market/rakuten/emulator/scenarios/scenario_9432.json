@@ -1,11 +1,11 @@
 {
     "trade": {
         "symbol": 9432,
-        "price": 160,
+        "price": 0,
         "quantity": 100,
         "atr": 2.0,
         "side": "long",
-        "strategy": "daytrade"
+        "strategy": "scalping"
     },
 
     "market": {

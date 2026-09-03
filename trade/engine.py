@@ -22,14 +22,16 @@ import traceback
 
 from datetime import datetime
 
+from config.config_loader import Config
+
 from core.logger import Log
 from core.exception import (
 	ExcelArgumentError,
     QuoteNotFoundError,
     OrderSubmitTimeoutError,
 )
-
-from config.config_loader import Config
+from core.voice_manager import VoiceManager
+from core.voice_enums import VoiceType
 
 from market.service import MarketService
 
@@ -41,7 +43,7 @@ from trade.trade_enums import (
 
 from models.trade.trade_store import TradeStore
 
-from models.trade.trade_chart_data_store import TradeChartDataStore
+from models.trade.trade_chart_store import TradeChartStore
 
 from trade.context import EngineContext
 
@@ -62,6 +64,10 @@ from trade.process.process_asset import ProcessAsset
 
 from trade.trade_chart_data import add_trade_chart_data
 
+from notifier.notifier_market_session import NotifierMarketSession
+from notifier.notifier_trade import NotifierTrade
+
+
 class TradeEngine:
 
     # proc interval
@@ -80,8 +86,11 @@ class TradeEngine:
         # System Mode
         config = Config.instance().data
 
+
         # 共通管理データ
         self.context = EngineContext(config)
+
+        self.context.voice_manager = VoiceManager()
 
         self.mode = config["mode"]
 
@@ -109,7 +118,7 @@ class TradeEngine:
 
         # Store
         self.trade_store = TradeStore()
-        self.trade_chart_data_store = TradeChartDataStore()
+        self.trade_chart_store = TradeChartStore()
 
         # 復元
         self._restore()
@@ -131,6 +140,9 @@ class TradeEngine:
 
         # External API
         self.api = TradeEngineAPI(self)
+
+        self.context.notifier_market_session = NotifierMarketSession(self.context)
+        self.context.notifier_trade = NotifierTrade(self.context)
 
         # Engine Thread
         self.thread = None
@@ -187,6 +199,13 @@ class TradeEngine:
             time.sleep(0.1)
 
 
+        if self.state == EngineState.RUNNING:
+            self.context.voice_manager.add(
+                VoiceType.VOICE_FILE,
+                voice_file="engin_start.wav",
+            )
+
+
     # ==========================================
     # Trade Engine停止
     # ==========================================
@@ -204,6 +223,11 @@ class TradeEngine:
 
         # 停止完了
         self.change_state(EngineState.STOPPED, "停止が完了しました。")
+
+        self.context.voice_manager.add(
+            VoiceType.VOICE_FILE,
+            voice_file="engin_stop.wav",
+        )
 
 
     # ==========================================
@@ -237,6 +261,11 @@ class TradeEngine:
 
             while self.running:
                 self.process()
+
+                # Market Session Event
+                event = self.market.get_session_event()
+                if event is not None:
+                    self.context.notifier_market_session.notify(event)
 
                 self.last_cycle_at = datetime.now()
 
@@ -325,7 +354,9 @@ class TradeEngine:
                 # ------------------------------------------
                 # 現在価格取得/市場情報取得/値幅制限　等のチェック
                 #
-                if not self.trade_ready.is_trade_ready(trade):
+                trade_ready = self.trade_ready.is_trade_ready(trade)
+                # print(f"trade_ready={trade_ready}")
+                if not trade_ready:
                     continue
 
                 # Trade状態ログ
@@ -423,31 +454,71 @@ class TradeEngine:
                             trade.change_state(TradeState.COMPLETED)
 
                     # ==========================================
-                    # Trade完了
+                    # Trade完了処理
+                    # ・完了音声
                     # ・後処理
-                    # ・保存
                     # ==========================================
                     case TradeState.COMPLETED:
-                        self.process_complated.process(trade)
+                        if self.process_complated.process(trade):
+                            trade.change_state(TradeState.CLOSED)
 
-
-            except OrderSubmitTimeoutError as e:
-                Log.error(f"(#{trade.id}) Trade Process Exception {type(e).__name__}: {e}")
-
-                trade.error_message = str(e)
-                trade.change_state(TradeState.ERROR)
-                continue
+                    # ==========================================
+                    # Trade終了
+                    # ・最終状態
+                    # ==========================================
+                    case TradeState.CLOSED:
+                        pass
 
             except Exception as e:
+
+                # ------------------------------------------
+                # Cycle継続可能エラー
+                # ------------------------------------------
                 if self.is_recoverable_cycle_error(e):
                     continue
 
-                Log.error(f"(#{trade.id}) Trade Process Exception {type(e).__name__}: {e}")
+                # ------------------------------------------
+                # SystemError
+                # ------------------------------------------
+                if isinstance(e, SystemError):
+
+                    Log.error(
+                        f"(#{trade.id}) "
+                        f"Trade Process Error "
+                        f"type={type(e).__name__} "
+                        f"level={e.level.value} "
+                        f"scope={e.scope.value} "
+                        f"code={e.code} "
+                        f"message={e.message}"
+                    )
+
+                    Log.error(traceback.format_exc())
+
+                    trade.error_message = e.message
+                    trade.change_state(TradeState.ERROR)
+
+                    if e.scope == ErrorScope.TRADE:
+                        continue
+
+                    raise
+
+                # ------------------------------------------
+                # 想定外Exception
+                # ------------------------------------------
+                Log.error(
+                    f"(#{trade.id}) "
+                    f"Unexpected Trade Process Exception "
+                    f"{type(e).__name__}: {e}"
+                )
+
                 Log.error(traceback.format_exc())
 
                 trade.error_message = str(e)
                 trade.change_state(TradeState.ERROR)
+
+                # 想定外なのでEngine停止
                 raise
+
 
         # ----------------------------------------------
         # 全トレードループ完了処理
@@ -485,7 +556,7 @@ class TradeEngine:
     # ==========================================
     # Cycleでの続行可能エラー判定
     # Return:
-    #   True=続行可能
+    #   True=Cycle続行可能
     #   False=続行不可
     # ==========================================
     def is_recoverable_cycle_error(self, e):
@@ -546,7 +617,7 @@ class TradeEngine:
         chart_data_items = list(self.context.cache.trade_chart_datas.items())
 
         for trade_id, chart_data_list in chart_data_items:
-            self.trade_chart_data_store.save(trade_id, chart_data_list)
+            self.trade_chart_store.save(trade_id, chart_data_list)
 
 
     # ==========================================
@@ -581,18 +652,21 @@ class TradeEngine:
     # ==========================================
     def delete_trade(self, trade):
         trade_id = trade.id
+        symbol = trade.param.symbol
 
         # Trade削除
         self.trade_store.delete(trade_id)
 
         # Chart Data削除
-        self.trade_chart_data_store.delete_by_trade_id(trade_id)
+        self.trade_chart_store.delete_by_trade_id(trade_id)
         self.context.cache.trade_chart_datas.pop(trade_id, None)
 
         # Contextから削除
         del self.context.trades[trade_id]
 
         Log.debug(f"(#{trade_id}) TRADE DELETED")
+
+        self.context.notifier_trade.notify(trade, "TRADE DELETED")
 
 
     def _cancel_trade(self, trade):
@@ -633,7 +707,7 @@ class TradeEngine:
             quote = self.context.cache.quotes.get(trade.param.symbol)
 
             # DEBUGではCANCEL時点の現在価格をEXIT価格として使用
-            trade.runtime.set_exit(quote.current_price, ExitReason.MANUAL)
+            trade.runtime.set_exit(quote.current_price, ExitReason.MANUAL_EXIT)
 
             # EXIT処理へ
             trade.change_state(TradeState.EXIT_CREATE)
@@ -653,7 +727,7 @@ class TradeEngine:
             self.context.trades[trade_id] = trade
 
             # Chart Data復元
-            chart_data_list = self.trade_chart_data_store.find_by_trade_id(trade_id)
+            chart_data_list = self.trade_chart_store.find_by_trade_id(trade_id)
             if chart_data_list:
                 self.context.cache.trade_chart_datas[trade_id] = chart_data_list
 

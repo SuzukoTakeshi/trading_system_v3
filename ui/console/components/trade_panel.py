@@ -61,9 +61,9 @@ def trade_panel():
         # 銘柄
         # ==================================================
 
-        col1, col2 = st.columns([1, 3])
+        title_col, data_col = st.columns([1, 2])
 
-        with col1:
+        with title_col:
             st.write("銘柄")
 
             symbol_options = [
@@ -71,8 +71,7 @@ def trade_panel():
                 for s in st.session_state.trade_symbols
             ]
 
-        with col2:
-
+        with data_col:
             selected_symbol = st.selectbox(
                 "銘柄",
                 symbol_options,
@@ -85,10 +84,7 @@ def trade_panel():
                 symbol = ""
 
             else:
-                symbol = selected_symbol.split(
-                    " ",
-                    1
-                )[0]
+                symbol = selected_symbol.split(" ", 1)[0]
 
         #
         # 銘柄変更時
@@ -96,49 +92,17 @@ def trade_panel():
         if symbol and symbol != st.session_state.trade_params_symbol:
 
             params = get_trade_params(symbol)
-
             if params:
-
-                st.session_state.trade_quantity = params.get(
-                    "quantity",
-                    100,
-                )
-
-                st.session_state.trade_price = params.get(
-                    "price",
-                    0,
-                )
-
-                st.session_state.trade_atr = params.get(
-                    "atr",
-                    0.0,
-                )
-
-                st.session_state.trade_type = params.get(
-                    "trade_type",
-                    "margin",
-                )
-
-                st.session_state.trade_margin_type = params.get(
-                    "margin_type",
-                    "day",
-                )
-
-                st.session_state.trade_strategy = params.get(
-                    "strategy",
-                    strategy_cfg["default"],
-                )
-
-                st.session_state.trade_side = params.get(
-                    "side",
-                    "long",
-                )
+                st.session_state.trade_quantity = params.get("quantity", 100)
+                st.session_state.trade_price = params.get("trade_price", 0)
+                st.session_state.trade_atr = params.get("atr", 0.0)
+                st.session_state.trade_type = params.get("trade_type", "margin")
+                st.session_state.trade_margin_type = params.get("margin_type", "day")
+                st.session_state.trade_strategy = params.get("strategy", strategy_cfg["default"])
+                st.session_state.trade_side = params.get("side", "long")
 
             else:
-
-                #
                 # 保存値がない銘柄
-                #
                 st.session_state.trade_quantity = 100
                 st.session_state.trade_price = 0
                 st.session_state.trade_atr = 0.0
@@ -149,61 +113,50 @@ def trade_panel():
 
             st.session_state.trade_params_symbol = symbol
 
-            #
-            # session_stateへ反映した値を
-            # 次のrerunでウィジェットへ反映
-            #
+            # session_stateへ反映した値を次のrerunでウィジェットへ反映
             st.rerun()
 
 
         # ==================================================
         # 数量
         # ==================================================
+        title_col, data_col, _ = st.columns([1, 1, 1])
 
-        col1, col2, _ = st.columns([1, 1, 2])
-
-        with col1:
+        with title_col:
             st.write("数量")
 
-        with col2:
-            quantity = st.number_input(
-                "数量",
-                min_value=1,
-                step=100,
-                key="trade_quantity",
-                label_visibility="collapsed",
+        with data_col:
+            quantity = st.number_input("数量", min_value=1, step=100,
+                key="trade_quantity", label_visibility="collapsed",
             )
 
 
         # ==================================================
-        # 指値価格
+        # 開始価格
         # ==================================================
+        title_col, data_col, comment_col = st.columns([1, 1, 1])
 
-        col1, col2, _ = st.columns([1, 1, 2])
+        with title_col:
+            st.write("開始価格")
 
-        with col1:
-            st.write("指値価格")
-
-        with col2:
-            price = st.number_input(
-                "指値価格",
-                min_value=0,
-                step=1,
-                key="trade_price",
-                label_visibility="collapsed",
+        with data_col:
+            trade_price = st.number_input("開始価格", min_value=0, step=1,
+                key="trade_price", label_visibility="collapsed",
             )
+
+        with comment_col:
+            st.write("市場価格とする場合0")
 
 
         # ==================================================
         # ATR
         # ==================================================
+        title_col, data_col, _ = st.columns([1, 1, 1])
 
-        col1, col2, _ = st.columns([1, 1, 2])
-
-        with col1:
+        with title_col:
             st.write("ATR")
 
-        with col2:
+        with data_col:
             atr = st.number_input(
                 "ATR",
                 min_value=0.0,
@@ -216,27 +169,22 @@ def trade_panel():
         # ==================================================
         # 取引
         # ==================================================
+        title_col, data_col = st.columns([1, 2])
 
-        col1, col2 = st.columns([1, 3])
-
-        with col1:
+        with title_col:
             st.write("取引")
 
-        with col2:
+        with data_col:
 
             trade_type_options = {
                 "現物": "cash",
                 "信用": "margin",
             }
 
-            trade_type_values = list(
-                trade_type_options.values()
-            )
+            trade_type_values = list(trade_type_options.values())
 
             trade_type_index = (
-                trade_type_values.index(
-                    st.session_state.trade_type
-                )
+                trade_type_values.index(st.session_state.trade_type)
                 if st.session_state.trade_type
                 in trade_type_values
                 else 1
@@ -261,16 +209,14 @@ def trade_panel():
         # ==================================================
         # 信用区分
         # ==================================================
-
         if trade_type == "margin":
 
-            col1, col2 = st.columns([1, 3])
+            title_col, data_col = st.columns([1, 2])
 
-            with col1:
+            with title_col:
                 st.write("信用区分")
 
-            with col2:
-
+            with data_col:
                 margin_type_options = {
                     "制度(6ヶ月)": "system",
                     "一般(無期限)": "unlimited",
@@ -278,14 +224,10 @@ def trade_panel():
                     "一般(1日)": "day",
                 }
 
-                margin_type_values = list(
-                    margin_type_options.values()
-                )
+                margin_type_values = list(margin_type_options.values())
 
                 margin_type_index = (
-                    margin_type_values.index(
-                        st.session_state.trade_margin_type
-                    )
+                    margin_type_values.index(st.session_state.trade_margin_type)
                     if st.session_state.trade_margin_type
                     in margin_type_values
                     else 3
@@ -307,20 +249,18 @@ def trade_panel():
                 st.session_state.trade_margin_type = margin_type
 
         else:
-
             margin_type = None
 
 
         # ==================================================
         # 戦略
         # ==================================================
+        title_col, data_col = st.columns([1, 2])
 
-        col1, col2 = st.columns([1, 3])
-
-        with col1:
+        with title_col:
             st.write("戦略")
 
-        with col2:
+        with data_col:
 
             strategy_options = [
                 name
@@ -331,10 +271,7 @@ def trade_panel():
 
             default_strategy = strategy_cfg["default"]
 
-            if (
-                st.session_state.trade_strategy
-                not in strategy_options
-            ):
+            if (st.session_state.trade_strategy not in strategy_options):
                 st.session_state.trade_strategy = (
                     default_strategy
                     if default_strategy in strategy_options
@@ -355,19 +292,11 @@ def trade_panel():
                 "戦略",
                 strategy_options,
                 index=(
-                    strategy_options.index(
-                        st.session_state.trade_strategy
-                    )
-                    if (
-                        st.session_state.trade_strategy
-                        in strategy_options
-                    )
+                    strategy_options.index(st.session_state.trade_strategy)
+                    if (st.session_state.trade_strategy in strategy_options)
                     else 0
                 ),
-                format_func=lambda x: strategy_labels.get(
-                    x,
-                    x,
-                ),
+                format_func=lambda x: strategy_labels.get(x, x),
                 horizontal=True,
                 key="trade_strategy_radio",
                 label_visibility="collapsed",
@@ -380,12 +309,12 @@ def trade_panel():
         # トレード区分
         # ==================================================
 
-        col1, col2 = st.columns([1, 3])
+        title_col, data_col = st.columns([1, 2])
 
-        with col1:
+        with title_col:
             st.write("トレード区分")
 
-        with col2:
+        with data_col:
 
             side_cfg = strategy_cfg[strategy]["side"]
 
@@ -409,17 +338,10 @@ def trade_panel():
                     for label in available_side
                 ]
 
-                if (
-                    st.session_state.trade_side
-                    not in available_side_values
-                ):
-                    st.session_state.trade_side = (
-                        available_side_values[0]
-                    )
+                if (st.session_state.trade_side not in available_side_values):
+                    st.session_state.trade_side = available_side_values[0]
 
-                side_index = available_side_values.index(
-                    st.session_state.trade_side
-                )
+                side_index = available_side_values.index(st.session_state.trade_side)
 
                 side_label = st.radio(
                     "トレード区分",
@@ -437,7 +359,6 @@ def trade_panel():
                 st.session_state.trade_side = side_str
 
             else:
-
                 side_str = None
 
 
@@ -445,14 +366,10 @@ def trade_panel():
         # トレード開始
         # ==================================================
 
-        if st.button(
-            "トレードGO",
-            use_container_width=True,
-        ):
-
+        if st.button("トレードGO", use_container_width=True):
             payload = {
                 "symbol": symbol,
-                "price": price,
+                "trade_price": trade_price,
                 "quantity": quantity,
                 "atr": atr,
                 "trade_type": trade_type,
@@ -462,48 +379,31 @@ def trade_panel():
             }
 
             try:
-
                 result = register_trade(payload)
 
                 if result.get("result") == "OK":
-
                     message_store.set(
                         level="INFO",
-                        message=result.get(
-                            "message",
-                            "TRADE REGISTERED"
-                        ),
+                        message=result.get("message", "TRADE REGISTERED")
                     )
 
-                    #
                     # 銘柄履歴更新
-                    #
                     options = get_trade_options()
 
-                    st.session_state.trade_symbols = (
-                        options["symbols"]
-                    )
+                    st.session_state.trade_symbols = options["symbols"]
 
                 else:
-
                     message_store.set(
                         level="WARNING",
-                        message=result.get(
-                            "message",
-                            "Trade登録に失敗しました。"
-                        ),
+                        message=result.get("message", "Trade登録に失敗しました。")
                     )
 
                 st.rerun()
 
             except Exception as e:
-
                 message_store.set(
                     level="ERROR",
-                    message=(
-                        f"TRADE ERROR : "
-                        f"{get_error_message(e)}"
-                    ),
+                    message=f"TRADE ERROR : {get_error_message(e)}",
                 )
 
                 st.rerun()

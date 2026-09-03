@@ -7,8 +7,6 @@
 # - 監視専用Web UI
 # - Monitor画面全体の構成
 #
-# V3
-#
 
 import sys
 from pathlib import Path
@@ -25,87 +23,59 @@ if str(ROOT_DIR) not in sys.path:
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
-from ui.config.ui import (
-    MONITOR_REFRESH_INTERVAL_MS,
-)
-
-
-# --------------------------------------
-# Project Root
-# --------------------------------------
-
-ROOT_DIR = Path(__file__).resolve().parents[2]
-
-if str(ROOT_DIR) not in sys.path:
-
-    sys.path.append(
-        str(ROOT_DIR)
-    )
+from ui.config.ui import MONITOR_REFRESH_INTERVAL_MS
 
 
 # --------------------------------------
 # Components
 # --------------------------------------
-
-from ui.monitor.components.header import (
-    render_header,
-)
-
-from ui.monitor.components.trail_card import (
-    render_trail_card,
-)
-
-from ui.monitor.components.trail_chart import (
-    render_trail_chart,
-)
-
+from ui.monitor.components.header import render_header
+from ui.monitor.components.trail_card import render_trail_card
+from ui.monitor.components.trail_chart import render_trail_chart
 
 # --------------------------------------
 # API
 # --------------------------------------
-
 from ui.api.client import (
     get_status,
     get_trades,
     get_trade_chart_datas,
 )
 
-
 # --------------------------------------
 # Page Config
 # --------------------------------------
-
-st.set_page_config(
-    page_title="Trade Monitor",
-    layout="wide",
-)
+st.set_page_config(page_title="Trade Monitor", layout="wide")
 
 # --------------------------------------
 # Hide Streamlit Header
 # --------------------------------------
-
 st.markdown(
     """
 <style>
 
-header {
-    visibility: hidden;
-    height: 0;
+/* Streamlit 上部バーを非表示 */
+header[data-testid="stHeader"] {
+    display: none;
 }
 
-/* メイン領域余白調整 */
+/* ページ余白 */
 .block-container {
-    padding-top: 0.2rem;
+    padding-top: 0rem;
+    padding-bottom: 0.5rem;
     padding-left: 0.8rem;
     padding-right: 0.8rem;
-    padding-bottom: 0.5rem;
+}
+
+/* columns 下の余白を詰める */
+div[data-testid="stHorizontalBlock"] {
+    margin-bottom: 0 !important;
 }
 
 </style>
     """,
     unsafe_allow_html=True
 )
-
 
 # --------------------------------------
 # Auto Refresh

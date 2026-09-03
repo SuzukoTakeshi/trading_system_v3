@@ -78,9 +78,14 @@ class TradeState(str, Enum):
 
     # 終了
     COMPLETED = "completed"
+
+    # クローズ
+    CLOSED = "closed"
+
+    # 取り消し
     CANCELED = "canceled"
 
-    # 異常
+    # エラー
     ERROR = "error"
 
     @classmethod
@@ -96,6 +101,7 @@ class TradeState(str, Enum):
             cls.EXIT_CREATE,
             cls.EXIT_WAIT,
             cls.COMPLETED,
+            cls.CLOSED,
             cls.CANCELED,
             cls.ERROR,
         ]
@@ -160,15 +166,23 @@ class EntryState(str, Enum):
 
 
 # EXIT理由
-#   STOP  : 損切ライン到達
-#   TIME  : 時間制限による決済
-#   CLOSE : 指定時刻による決済
-#   MARGIN_DAY_CLOSE: 1日信用大引け
-#   MANUAL: 手動決済
+#   MARGIN_DAY_CLOSE: 1日信用大引けによる決済
+#       1日信用取引の強制手仕舞い時刻に到達したか
+#       ※有効/無効の設定はない
+#   TIME_EXIT  : 時間制限による決済
+#       ENTRY約定から設定された時間が経過したか
+#       trade.param.time_enabled       : 時間決済機能の有効/無効
+#       trade.param.time_limit_minutes : ENTRY約定からEXITするまでの制限時間（分）
+#   CLOSE_EXIT : 指定時刻による決済
+#       指定された時刻に到達したか
+#       trade.param.close_enabled : 指定時刻決済機能の有効/無効
+#       trade.param.close_time    : 指定時刻 HH:MM"形式で設定する。
+#   MANUAL_EXIT: 手動決済
+#   STOP_LINE_EXIT  : 損切ライン到達による決済
 #
 class ExitReason(str, Enum):
-    STOP = "stop"
-    TIME = "time"
-    CLOSE = "close"
     MARGIN_DAY_CLOSE = "margin_day_close"
-    MANUAL = "manual"
+    TIME_EXIT = "time_exit"
+    CLOSE_EXIT = "close_exit"
+    MANUAL_EXIT = "manual_exit"
+    STOP_LINE_EXIT = "stop_line_exit"

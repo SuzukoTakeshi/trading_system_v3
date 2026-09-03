@@ -6,7 +6,8 @@
 # ==================================================
 #
 # 役割:
-#   Storeの共通インターフェース
+#   JSONファイルの読み書き共通処理
+#   Storageディレクトリの管理
 #
 # ==================================================
 
@@ -19,40 +20,39 @@ from core.exception import StoreError
 
 class BaseStore(ABC):
 
-    DATA_TYPE = list
+    def __init__(self, dir_path):
 
+        self.dir_path = Path(dir_path)
 
-    def __init__(self, file_path):
-
-        self.file_path = Path(file_path)
-
-        self.file_path.parent.mkdir(
+        self.dir_path.mkdir(
             parents=True,
             exist_ok=True
         )
 
-        if not self.file_path.exists():
-            self._save(self.DATA_TYPE())
 
+    # ==========================================
+    # JSON読み込み
+    # ==========================================
+    def _load(self, file_path):
 
-    def _load(self):
+        file_path = self.dir_path / file_path
 
         try:
 
             with open(
-                self.file_path,
+                file_path,
                 "r",
                 encoding="utf-8"
             ) as f:
 
-                data = json.load(f)
+                return json.load(f)
 
         except json.JSONDecodeError as e:
 
             raise StoreError(
                 message=(
                     f"STORE JSON INVALID "
-                    f"file={self.file_path} "
+                    f"file={file_path} "
                     f"line={e.lineno} "
                     f"column={e.colno}"
                 ),
@@ -60,39 +60,15 @@ class BaseStore(ABC):
             ) from e
 
 
-        if not isinstance(data, self.DATA_TYPE):
+    # ==========================================
+    # JSON保存
+    # ==========================================
+    def _save(self, file_path, data):
 
-            raise StoreError(
-                message=(
-                    f"STORE INVALID FORMAT "
-                    f"expected={self.DATA_TYPE.__name__} "
-                    f"actual={type(data).__name__} "
-                    f"file={self.file_path}"
-                ),
-                code="STORE_INVALID_FORMAT",
-            )
-
-
-        return data
-
-
-    def _save(self, data):
-
-        if not isinstance(data, self.DATA_TYPE):
-
-            raise StoreError(
-                message=(
-                    f"STORE INVALID SAVE DATA "
-                    f"expected={self.DATA_TYPE.__name__} "
-                    f"actual={type(data).__name__} "
-                    f"file={self.file_path}"
-                ),
-                code="STORE_INVALID_SAVE_DATA",
-            )
-
+        file_path = self.dir_path / file_path
 
         with open(
-            self.file_path,
+            file_path,
             "w",
             encoding="utf-8"
         ) as f:
@@ -103,28 +79,3 @@ class BaseStore(ABC):
                 ensure_ascii=False,
                 indent=2
             )
-
-
-    def _find_by_id(self, entity_id):
-
-        data = self._load()
-
-        for item in data:
-
-            if item["id"] == entity_id:
-                return item
-
-        return None
-
-
-    def _delete_by_id(self, entity_id):
-
-        data = self._load()
-
-        data = [
-            item
-            for item in data
-            if item["id"] != entity_id
-        ]
-
-        self._save(data)

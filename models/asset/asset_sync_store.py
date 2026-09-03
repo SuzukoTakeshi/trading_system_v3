@@ -73,18 +73,18 @@ class AssetSyncStore:
             json.dump(data, f, ensure_ascii=False, indent=4)
 
 
-    #
-    # 反映済み確認
-    #
     def is_synced(self, order_id):
+        """
+        反映済み確認
+        """
         data = self.load()
         return str(order_id) in data
 
 
-    #
-    # 反映情報追加
-    #
     def add(self, order_id, info):
+        """
+        反映情報追加
+        """
         data = self.load()
         data[str(order_id)] = info
         self.save(data)

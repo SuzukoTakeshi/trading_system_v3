@@ -30,4 +30,6 @@ class ProcessMarket(ProcessBase):
 
     def process(self, trade):
 
+        Log.flow(f"(#{trade.id}) ProcessMarket:process")
+
         return True

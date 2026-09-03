@@ -20,8 +20,8 @@ class TradeParam:
     def __init__(
         self,
         symbol,
-        price,
         quantity,
+        trade_price,
         atr,
         trade_type,
         margin_type,
@@ -43,11 +43,11 @@ class TradeParam:
         # 銘柄
         self.symbol = symbol
 
-        # 登録価格
-        self.price = price
-
         # 数量
         self.quantity = quantity
+
+        # 登録価格
+        self.trade_price = trade_price
 
         # ENTRY時ATR
         self.atr = atr
@@ -74,11 +74,8 @@ class TradeParam:
 
         self.chart_interval_seconds = chart_interval_seconds
 
-        #
         # MarketDes
-        #
         # 銘柄の市場情報
-        #
 
         # 売買単位
         self.trading_unit = None
@@ -94,8 +91,8 @@ class TradeParam:
 
         return {
             "symbol": self.symbol,
-            "price": self.price,
             "quantity": self.quantity,
+            "trade_price": self.trade_price,
             "atr": self.atr,
 
             "trade_type": self.trade_type.value,
@@ -134,8 +131,8 @@ class TradeParam:
 
         return cls(
             symbol=data.get("symbol"),
-            price=data.get("price"),
             quantity=data.get("quantity"),
+            trade_price=data.get("trade_price"),
             atr=data.get("atr"),
             trade_type=TradeType(data.get("trade_type")),
             margin_type=data.get("margin_type"),

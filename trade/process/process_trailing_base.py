@@ -63,7 +63,7 @@ class ProcessTrailingBase(ProcessBase):
 
 
     # ==========================================
-    # 1日信用CLOSE判定
+    # 1日信用大引けによる判定
     #   1日信用取引の強制手仕舞い時刻に到達したかを判定する。
     #
     # 対象:
@@ -139,7 +139,7 @@ class ProcessTrailingBase(ProcessBase):
     # EXIT実績:
     #     exit_price  : 決済判定時点の現在価格
     #     exit_time   : set_exit()内で現在時刻を設定
-    #     exit_reason : ExitReason.TIME
+    #     exit_reason : ExitReason.TIME_EXIT
     #
     # Return:
     #     True   : 時間制限に到達してEXIT条件成立。呼び出し元はEXIT処理へ移行する。
@@ -173,8 +173,8 @@ class ProcessTrailingBase(ProcessBase):
             Log.trailing(trade.id, message)
             trade.add_timeline(type="EXIT", message=message)
 
-            # EXIT実績を設定する。
-            trade.runtime.set_exit(self.quote.current_price, ExitReason.TIME)
+            # EXIT実績を設定する。ExitReason.TIME_EXIT
+            trade.runtime.set_exit(self.quote.current_price, ExitReason.TIME_EXIT)
 
             # 時間決済条件成立。呼び出し元のProcessTrailingはEXIT_CREATEへ遷移する。
             return True
@@ -198,7 +198,7 @@ class ProcessTrailingBase(ProcessBase):
     # EXIT実績:
     #     exit_price   : 決済判定時点の現在価格
     #     exit_time    : set_exit()内で現在時刻を設定
-    #     exit_reason  : ExitReason.CLOSE
+    #     exit_reason  : ExitReason.CLOSE_EXIT
     #
     # Return:
     #     True  : 指定時刻に到達してEXIT条件成立。
@@ -220,7 +220,7 @@ class ProcessTrailingBase(ProcessBase):
             Log.trailing(trade.id, message )
             trade.add_timeline(type="EXIT", message=message)
 
-            trade.runtime.set_exit(self.quote.current_price, ExitReason.CLOSE)
+            trade.runtime.set_exit(self.quote.current_price, ExitReason.CLOSE_EXIT)
 
             # 指定時刻決済条件成立。
             # 呼び出し元のProcessTrailingはEXIT_CREATEへ遷移する。

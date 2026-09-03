@@ -26,7 +26,7 @@ from models.asset.asset_sync_store import AssetSyncStore
 from core.exception import (
     OrderNotFoundError,
 	AssetOrderResultNotFoundError,
-    InvalidOrderActionError
+    OrderInvalidActionError,
 )
 
 
@@ -41,9 +41,9 @@ class ProcessAsset(ProcessBase):
         self.sync_store = AssetSyncStore()
 
 
-    #
+    # ==========================================
     # Asset反映
-    #
+    # ==========================================
     def process(self, trade):
 
         Log.asset(trade.id, "PROCESS START")
@@ -52,11 +52,7 @@ class ProcessAsset(ProcessBase):
 
         if order is None:
             raise OrderNotFoundError(
-                message=(
-                    f"ORDER NOT FOUND (#{trade.id}) "
-                    f"symbol={trade.param.symbol} "
-                    f"process=ProcessAsset.process"
-                ),
+                message=f"(#{trade.id}) ORDER NOT FOUND symbol={trade.param.symbol} process=ProcessAsset.process",
                 code="ORDER_NOT_FOUND",
             )
 
@@ -72,11 +68,7 @@ class ProcessAsset(ProcessBase):
         if profit_loss is not None:
             asset.profit_loss += profit_loss
 
-            Log.asset(trade.id,
-                f"PROFIT LOSS (@{order.id}) "
-                f"profit_loss={profit_loss} "
-                f"total={asset.profit_loss}"
-            )
+            Log.asset(trade.id, f"PROFIT LOSS (@{order.id}) profit_loss={profit_loss:.2f} total={asset.profit_loss:.2f}")
 
         self.store.save(asset)
 
@@ -90,28 +82,20 @@ class ProcessAsset(ProcessBase):
                 "action": order.order_action.value,
                 "price": result.price,
                 "quantity": result.quantity,
-                "amount": (
-                    result.price
-                    *
-                    result.quantity
-                ),
+                "amount": (result.price * result.quantity),
                 "synced_at": datetime.now().isoformat(),
             }
         )
 
         self.store.append_history(
             {
-                "order_id": order.id,
                 "trade_id": order.trade.id,
                 "symbol": order.symbol,
+                "order_id": order.id,
                 "action": order.order_action.value,
                 "price": result.price,
                 "quantity": result.quantity,
-                "amount": (
-                    result.price
-                    *
-                    result.quantity
-                ),
+                "amount": (result.price * result.quantity),
                 "datetime": datetime.now().isoformat(),
             }
         )
@@ -121,16 +105,15 @@ class ProcessAsset(ProcessBase):
         return True
 
 
-    #
+    # ==========================================
     # 資産更新
-    #
-
+    # ==========================================
     def update_asset(self, asset, order):
         result = order.result
 
         if result is None:
             raise AssetOrderResultNotFoundError(
-                message=f"FILLED ORDER RESULT NOT FOUND (#{order.trade.id}) order={order.id}",
+                message=f"(#{order.trade.id}) (@{order.id}) FILLED ORDER RESULT NOT FOUND",
                 code="ASSET_ORDER_RESULT_NOT_FOUND",
             )
 
@@ -142,22 +125,22 @@ class ProcessAsset(ProcessBase):
             asset.cash += amount
 
         else:
-            raise InvalidOrderActionError(
-                message=f"INVALID ORDER ACTION (#{order.trade.id}) order={order.id} action={order.order_action}",
+            raise OrderInvalidActionError(
+                message=f"(#{order.trade.id}) (@{order.id}) INVALID ORDER ACTION action={order.order_action}",
                 code="INVALID_ORDER_ACTION",
             )
 
         asset.updated_at = datetime.now()
 
 
-    #
+    # ==========================================
     # 損益計算
-    #
+    # ==========================================
     def calculate_profit_loss(self, order):
 
         if order.result is None:
             raise AssetOrderResultNotFoundError(
-                message=f"FILLED ORDER RESULT NOT FOUND (#{order.trade.id}) order={order.id}",
+                message=f"(#{order.trade.id}) (@{order.id}) FILLED ORDER RESULT NOT FOUND",
                 code="ASSET_ORDER_RESULT_NOT_FOUND",
             )
 
@@ -179,18 +162,12 @@ class ProcessAsset(ProcessBase):
                 continue
 
             # BUY → SELL
-            if (
-                order.order_action == OrderAction.SELL
-                and other.order_action == OrderAction.BUY
-            ):
+            if (order.order_action == OrderAction.SELL and other.order_action == OrderAction.BUY):
                 opposite_order = other
                 break
 
             # SELL → BUY
-            if (
-                order.order_action == OrderAction.BUY
-                and other.order_action == OrderAction.SELL
-            ):
+            if (order.order_action == OrderAction.BUY and other.order_action == OrderAction.SELL):
                 opposite_order = other
                 break
 
@@ -202,39 +179,26 @@ class ProcessAsset(ProcessBase):
         exit_price = order.result.price
         quantity = order.result.quantity
 
-        if (
-            order.order_action == OrderAction.SELL
-            and opposite_order.order_action == OrderAction.BUY
-        ):
+        if (order.order_action == OrderAction.SELL and opposite_order.order_action == OrderAction.BUY):
             # BUY → SELL
-            profit_loss = (
-                exit_price - entry_price
-            ) * quantity
+            profit_loss = (exit_price - entry_price) * quantity
 
-        elif (
-            order.order_action == OrderAction.BUY
-            and opposite_order.order_action == OrderAction.SELL
-        ):
+        elif (order.order_action == OrderAction.BUY and opposite_order.order_action == OrderAction.SELL):
             # SELL → BUY
-            profit_loss = (
-                entry_price - exit_price
-            ) * quantity
+            profit_loss = (entry_price - exit_price) * quantity
 
         else:
-            raise InvalidOrderActionError(
-                message=f"INVALID ORDER PAIR (#{order.trade.id}) "
-                        f"order={order.id} "
-                        f"other={opposite_order.id}",
+            raise OrderInvalidActionError(
+                message=f"(#{order.trade.id}) (@{order.id}) INVALID ORDER PAIR other={opposite_order.id}",
                 code="INVALID_ORDER_ACTION",
             )
 
         return profit_loss
 
 
-    #
+    # ==========================================
     # Tradeから未反映Order検索
-    #
-
+    # ==========================================
     def find_order(self, trade):
 
         for order in self.context.cache.orders.values():

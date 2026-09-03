@@ -20,7 +20,6 @@ from ui.utils.ui_labels import (
     MARGIN_TYPE_LABEL,
     MARGIN_TYPE_UNKNOWN,
     STRATEGY_LABEL,
-    STATE_EVENT_MAP,
     EVENT_LABEL,
     EVENT_LABEL_UNKNOWN,
     EXIT_REASON_LABEL,
@@ -187,23 +186,29 @@ def trade_list():
             # 戦略
             row["strategy"] = STRATEGY_LABEL.get(row.get("strategy", ""), row.get("strategy", ""))
 
-            # Trade State → UI Event
+            # 損益
+            row["current_profit_loss"] = ("-"
+                if row.get("current_profit_loss") is None
+                else f'{row["current_profit_loss"]:,.2f}'
+            )
+
+            # 状態
             pause_flag = row.get("pause_flag", False)
             if pause_flag:
                 row["state"] = "⏸ PAUSE"
             else:
                 state = row.get("state", "")
+                row["state"] = EVENT_LABEL.get(state, EVENT_LABEL_UNKNOWN)
 
-                event = STATE_EVENT_MAP.get(state)
-
-                row["state"] = EVENT_LABEL.get(event, EVENT_LABEL_UNKNOWN)
-
-
+            # メッセージ
             exit_reason = row.get("exit_reason")
-            row["message"] = get_exit_reason_label(
-                exit_reason,
-                row.get("profit_loss"),
-            )
+            if exit_reason:
+                row["message"] = get_exit_reason_label(
+                    exit_reason,
+                    row.get("profit_loss"),
+                )
+            else:
+                row["message"] = row.get("message")
 
             # 登録日時
             row["created_at"] = fmt_dt(row.get("created_at"))
@@ -224,7 +229,7 @@ def trade_list():
                     "margin_type": "",
                     "strategy": "",
                     "side": "",
-                    "current_profit_loss": None,
+                    "current_profit_loss": "",
                     "state": "",
                     "message": "",
                     "created_at": "",
@@ -281,7 +286,7 @@ def trade_list():
                 "margin_type": st.column_config.TextColumn("信用区分", width="small"),
                 "strategy": st.column_config.TextColumn("戦略", width="small"),
                 "side": st.column_config.TextColumn("トレード区分", width="small"),
-                "current_profit_loss": st.column_config.NumberColumn("損益", width="small", format="%,.2f"),
+                "current_profit_loss": st.column_config.TextColumn("損益", width="small"),
                 "state": st.column_config.TextColumn("状態", width="small"),
                 "message": st.column_config.TextColumn("メッセージ", width="large"),
                 "created_at": st.column_config.TextColumn("登録日時", width="medium")

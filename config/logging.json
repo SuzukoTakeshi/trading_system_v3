@@ -8,20 +8,21 @@
     "CREATE": true,
     "STATE": true,
     "MARKET": true,
-    "TRAILING": true,
+    "TRAILING": false,
     "ASSET": true,
-
+    "FLOW": true,
 
     "EMULATOR": true,
 
-    "FLOW": true,
+    "ENTRY": false,
+
+
     "CHECK": true,
     "TRADE": true,
     "ORDER": true,
     "EXECUTION": true,
     "BREAKEVEN": true,
 
-    "RSS PRICE": false,
     "ORDER_WAIT": false,
 
     "description": {
@@ -32,16 +33,15 @@
         "DEBUG": "開発用デバッグログ",
 
         "STATE": "状態遷移",
+        "FLOW": "処理フロー確認",
 
         "EMULATOR": "エミュレーター動作",
 
-        "FLOW": "処理フロー確認",
         "CHECK": "条件判定確認",
         "TRADE": "売買処理",
         "ORDER": "注文処理",
         "EXECUTION": "約定処理",
         "BREAKEVEN": "建値ストップ",
-        "RSS PRICE": "楽天RSS価格更新",
 
         "ORDER_WAIT": "注文待機中の定周期監視"
     }

@@ -51,12 +51,12 @@ class OrderIDListSheet(BaseSheet):
         return data
 
 
+    # ==========================================
+    # 注文番号取得
+    #   return
+    #       order_no, result_text       
+    # ==========================================
     def get_order_no(self, order_id):
-        """
-        注文番号取得
-
-        return order_no
-        """
 
         order_id_column = self.require_column(self.ORDER_ID_COLUMN)
 
@@ -68,32 +68,30 @@ class OrderIDListSheet(BaseSheet):
         if row is None:
             return None
 
-        result = self.get_value(row, result_column)
+        order_result = self.get_value(row, result_column)
 
-        # result値
-        # 発注済み
-        # 現在の時間帯は、東証銘柄の注文を受付していません。17:15以降に再度注文してください。
-        # 現在、株式取引に関するサービスが利用できません。
-        # 手数料ゼロコースでは、SORを有効にして、再度注文してください。
-        # 成行の場合、値幅制限上限までの買付可能額が必要です。
-        #   175,103円以内で発注可能な指値を入力してください。
-        # 指値は、値幅制限値以内で指定してください。
+        # order_result
+        #   "発注済み"
+        #   "エラー[現在の時間帯は、東証銘柄の注文を受付していません。17:15以降に再度注文してください。]"
+        #   "エラー[現在、株式取引に関するサービスが利用できません。]"
+        #   "エラー[手数料ゼロコースでは、SORを有効にして、再度注文してください。]"
+        #   "エラー[成行の場合、値幅制限上限までの買付可能額が必要です。]"
+        #      175,103円以内で発注可能な指値を入力してください。]"
+        #   "エラー[指値は、値幅制限値以内で指定してください。]"
+        #   "エラー[お客様の信用新規建余力が不足しています。]"
 
         self.market.add_internal_log(
             level="DEBUG", message="ORDER RESULT",
             data={
                 "order_id": order_id,
-                "result": result,
+                "result": order_result,
             },
         )
 
-        if result != "発注済み":
-            return None
+        if order_result != "発注済み":
+            return None, order_result
 
         order_no = self.get_value(row, order_no_column)
-
-        if order_no is None:
-            return None
 
         self.market.add_internal_log(
             level="DEBUG", message="GET ORDER NO",
@@ -103,19 +101,16 @@ class OrderIDListSheet(BaseSheet):
             },
         )
 
-        return order_no
+        return order_no, order_result
 
 
+    # ==========================================
+    # DEBUG用 注文番号リスト作成
+    #
+    # 目的:
+    #     OrderID → 注文番号取得テスト用
+    # ==========================================
     def debug_add_order(self, order_id):
-        """
-        DEBUG用 注文番号リスト作成
-
-        request:
-            OrderRequestDTO
-
-        目的:
-            OrderID → 注文番号取得テスト用
-        """
         order_no = order_id + 10000
 
         values = {

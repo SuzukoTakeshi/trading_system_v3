@@ -13,7 +13,7 @@ from fastapi import HTTPException
 from core.logger import Log
 from core.response import Response
 
-from market.status import MarketStatus
+from market.service import MarketService
 
 from storage.symbol_store import SymbolStore
 
@@ -29,9 +29,6 @@ class AppService:
 
     def __init__(self):
 
-        # Market Status
-        self.market_status = MarketStatus()
-
         self.symbol_store = SymbolStore()
 
         self.trade_symbol_store = TradeSymbolStore()
@@ -40,6 +37,8 @@ class AppService:
 
         # Trade Engine
         self.trade_engine = TradeEngine()
+
+        self.market_service = self.trade_engine.market
 
 
     def start(self):
@@ -86,9 +85,20 @@ class AppService:
         return {
             "mode": self.trade_engine.mode,
             "trade_engine": self.trade_engine.api.status(),
-            "market": self.market_status.get(),
+            "market": self.market_service.get_status(),
             "message": Log.get_last_message(),
         }
+
+
+    # ---------------------
+    # Voice取得
+    # ---------------------
+    def voice(self):
+
+        return {
+            "voices": self.trade_engine.context.voice_manager.get(),
+        }
+
 
     # ---------------------
     # System Log取得
@@ -169,8 +179,8 @@ class AppService:
             self.trade_params_store.set(
                 req.symbol,
                 {
-                    "price": req.price,
                     "quantity": req.quantity,
+                    "trade_price": req.trade_price,
                     "atr": req.atr,
                     "trade_type": req.trade_type,
                     "margin_type": req.margin_type,
@@ -207,56 +217,34 @@ class AppService:
             symbol = self.symbol_store.get(trade["symbol"])
 
             result.append({
-                # ---------------------
-                # Basic
-                # ---------------------
 
                 "trade_id": trade["trade_id"],
                 "symbol": trade["symbol"],
-                "name": (
-                    symbol["name"]
-                    if symbol
-                    else ""
-                ),
+                "name": (symbol["name"] if symbol else ""),
 
-                # ---------------------
                 # Trade Info
-                # ---------------------
-
-                "price": trade["price"],
                 "quantity": trade["quantity"],
+                "trade_price": trade["trade_price"],
                 "atr": trade["atr"],
                 "trade_type": trade["trade_type"],
                 "margin_type": trade["margin_type"],
                 "side": trade["side"],
                 "strategy": trade["strategy"],
 
-                # ---------------------
                 # State
-                # ---------------------
-
                 "state": trade["state"],
                 "message": trade["message"],
                 "pause_flag": trade["pause_flag"],
 
-                # ---------------------
                 # Position
-                # ---------------------
-
                 "current_price": trade["current_price"],
                 "stop_price": trade["stop_price"],
 
-                # ---------------------
                 # Entry
-                # ---------------------
-
                 "entry_price": trade["entry_price"],
                 "entry_time": trade["entry_time"],
 
-                # ---------------------
                 # Exit
-                # ---------------------
-
                 "exit_price": trade["exit_price"],
                 "exit_time": trade["exit_time"],
                 "exit_reason": trade["exit_reason"],
@@ -265,10 +253,7 @@ class AppService:
 
                 "current_profit_loss": trade["current_profit_loss"],
 
-                # ---------------------
                 # System
-                # ---------------------
-
                 "created_at": trade["created_at"],
             })
 
@@ -278,7 +263,7 @@ class AppService:
     # Trade一時停止
     # ---------------------
     def pause_trade(self, trade_id):
-        Log.debug(f"APP SERVICE PAUSE TRADE (#{trade_id})")
+        Log.debug(f"(#{trade_id}) APP SERVICE PAUSE TRADE")
 
         result = self.trade_engine.api.pause_trade(trade_id)
 
@@ -298,7 +283,7 @@ class AppService:
     # Trade再開
     # ---------------------
     def resume_trade(self, trade_id):
-        Log.debug(f"APP SERVICE RESUME TRADE (#{trade_id})")
+        Log.debug(f"(#{trade_id}) APP SERVICE RESUME TRADE")
 
         result = self.trade_engine.api.resume_trade(trade_id)
 
@@ -318,7 +303,7 @@ class AppService:
     # Trade取消
     # ---------------------
     def cancel_trade(self, trade_id, force=False):
-        Log.debug(f"APP SERVICE CANCEL TRADE (#{trade_id}) force={force}")
+        Log.debug(f"(#{trade_id}) APP SERVICE CANCEL TRADE force={force}")
 
         result, message = self.trade_engine.api.cancel_trade(trade_id, force=force)
 
@@ -336,9 +321,9 @@ class AppService:
     # CANCELED Trade削除
     # ---------------------
     def delete_trade(self, trade_id):
-        Log.debug(f" (#{trade_id}) APP SERVICE DELETE CANCELED TRADE")
+        Log.debug(f"(#{trade_id}) APP SERVICE DELETE CANCELED TRADE")
 
-        result = self.trade_engine.api.delete_trade(trade_id)
+        result, mnessage = self.trade_engine.api.delete_trade(trade_id)
 
         if result:
             return Response.ok(
@@ -348,7 +333,7 @@ class AppService:
             )
 
         return Response.rejected(
-            message=f"Trade #{trade_id} をDELETEできません。"
+            message=f"Trade #{trade_id} {mnessage}"
         )
 
 
@@ -358,7 +343,60 @@ class AppService:
     def get_trade_chart_datas(self, trade_ids):
 
         result = {}
+
         for trade_id in trade_ids:
-            result[trade_id] = self.trade_engine.api.get_trade_chart_datas(trade_id)
+
+            chart_datas = (
+                self.trade_engine.api
+                .get_trade_chart_datas(trade_id)
+            )
+
+            result[trade_id] = (
+                self._reduce_trade_chart_datas(chart_datas)
+            )
+
+        return result
+
+
+    # ---------------------
+    # Chart Data間引き
+    # ---------------------
+    def _reduce_trade_chart_datas(self, chart_datas):
+
+        if not chart_datas:
+            return []
+
+        result = []
+
+        previous = chart_datas[0]
+
+        for chart_data in chart_datas[1:]:
+
+            changed = (
+                chart_data.get("state")
+                != previous.get("state")
+                or chart_data.get("stop_loss")
+                != previous.get("stop_loss")
+                or chart_data.get("high_watermark")
+                != previous.get("high_watermark")
+                or chart_data.get("low_watermark")
+                != previous.get("low_watermark")
+                or chart_data.get("entry_time")
+                != previous.get("entry_time")
+                or chart_data.get("entry_price")
+                != previous.get("entry_price")
+                or chart_data.get("exit_time")
+                != previous.get("exit_time")
+                or chart_data.get("exit_price")
+                != previous.get("exit_price")
+            )
+
+            if changed:
+                result.append(previous)
+
+            previous = chart_data
+
+        # 最後は必ず残す
+        result.append(previous)
 
         return result

@@ -49,8 +49,6 @@ class QuoteSheet(BaseSheet):
     def __init__(self, market, ws, mode):
         super().__init__(market, ws, mode=mode, header_row=1, stopper=None)
 
-        self.debug_quote_price = None
-
         # Quotesシート初期化
         self.initialize()
 
@@ -64,13 +62,6 @@ class QuoteSheet(BaseSheet):
         """
         for column, name in enumerate(self.HEADER_COLUMNS, start=1):
             self.ws.Cells(self.header_row, column).Value = name
-
-
-    def debug_set_quote(self, current_price):
-        """
-        DEBUG用現在値設定
-        """
-        self.debug_quote_price = current_price
 
 
     def get_quotes(self):
@@ -208,14 +199,6 @@ class QuoteSheet(BaseSheet):
     
         elif self.is_debug():
             pass
-            # current_price = self.debug_quote_price
-            # if current_price is None:
-            #     raise Exception("debug quote current_price が設定されていません")
-            # elif current_price > 0:
-            #     self.ws.Cells(row, current_price_col).Value = current_price
-
-        else:
-            raise Exception(f"未対応mode: {self.mode}")
 
         return row
 

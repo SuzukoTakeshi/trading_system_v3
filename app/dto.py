@@ -22,7 +22,7 @@ from typing import Optional
 class TradeRequestDTO(BaseModel):
 
     symbol: str
-    price: int
+    trade_price: int
     quantity: int
     atr: float
     trade_type: TradeType

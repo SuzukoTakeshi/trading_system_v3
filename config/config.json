@@ -1,5 +1,5 @@
 {
-  "mode": "debug",
+  "mode": "real",
   "market": "rakuten",
 
   "market_rules": {
@@ -11,11 +11,6 @@
 
   "emulator_settings": {
     "interval": 1.0
-  },
-
-  "debug_settings": {
-    "quote_price": 0,
-    "order_enabled": false
   },
 
   "engine": {
@@ -35,11 +30,6 @@
 
     "emulator_settings": {
       "interval": "Emulatorの価格更新ループ間隔（秒）"
-    },
-
-    "debug_settings": {
-      "quote_price": "debugモード時に使用する固定現在値。0=未設定",
-      "order_enabled": "debugモード時の注文処理。true=楽天RSSへ実発注 / false=擬似注文"
     },
 
     "engine": {

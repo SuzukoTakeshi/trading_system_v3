@@ -8,6 +8,8 @@
 #   ・RssMarginCloseOrder_V 呼出
 #
 
+from core.logger import Log
+
 from market.rakuten.macro.macro_base import MacroBase
 
 
@@ -16,17 +18,15 @@ class MarginCloseOrder(MacroBase):
     def __init__(self, client):
         super().__init__(client)
 
-
+    # ==========================================
+    # 信用返済注文
+    #
+    # 使用RSS:
+    #     RssMarginCloseOrder_V
+    # request:
+    #     Market Order Request dict
+    # ==========================================
     def submit(self, request):
-        """
-        信用返済注文
-
-        使用RSS:
-            RssMarginCloseOrder_V
-
-        request:
-            Market Order Request dict
-        """
 
         # ------------------------------------------
         # RssMarginCloseOrder_V 引数
@@ -117,6 +117,27 @@ class MarginCloseOrder(MacroBase):
         # ------------------------------------------
         # RSS実行
         # ------------------------------------------
+        self._log_params(
+            order_id,
+            symbol,
+            action,
+            order_type,
+            sor,
+            margin_type,
+            quantity,
+            price_type,
+            price,
+            condition,
+            expire,
+            account,
+            open_date,
+            open_price,
+            open_market,
+            trigger_price,
+            trigger_type,
+            trigger_price_type,
+            trigger_order_price,
+        )
 
         result, macro_result = self.run(
             order_id, symbol,
@@ -143,18 +164,61 @@ class MarginCloseOrder(MacroBase):
             trigger_order_price,
         )
 
-        #
         # 正常
-        #
         if macro_result == "":
+            Log.debug(f"信用返済注文: 正常")
             return True, None
 
-        #
         # RSSエラー
-        #
         result_code = self.get_result_code(macro_result)
+        Log.debug(f"信用返済注文: エラー={macro_result} result_code={result_code.value}")
 
         return False, result_code
+
+
+    def _log_params(
+        self,
+        order_id,
+        symbol,
+        action,
+        order_type,
+        sor,
+        margin_type,
+        quantity,
+        price_type,
+        price,
+        condition,
+        expire,
+        account,
+        open_date,
+        open_price,
+        open_market,
+        trigger_price,
+        trigger_type,
+        trigger_price_type,
+        trigger_order_price,
+    ):
+
+        Log.debug("RssMarginCloseOrder_V PARAMS")
+        Log.debug(f"  order_id            = {order_id}")
+        Log.debug(f"  symbol              = {symbol}")
+        Log.debug(f"  action              = {action}")
+        Log.debug(f"  order_type          = {order_type}")
+        Log.debug(f"  sor                 = {sor}")
+        Log.debug(f"  margin_type         = {margin_type}")
+        Log.debug(f"  quantity            = {quantity}")
+        Log.debug(f"  price_type          = {price_type}")
+        Log.debug(f"  price               = {price}")
+        Log.debug(f"  condition           = {condition}")
+        Log.debug(f"  expire              = {expire}")
+        Log.debug(f"  account             = {account}")
+        Log.debug(f"  open_date           = {open_date}")
+        Log.debug(f"  open_price          = {open_price}")
+        Log.debug(f"  open_market         = {open_market}")
+        Log.debug(f"  trigger_price       = {trigger_price}")
+        Log.debug(f"  trigger_type        = {trigger_type}")
+        Log.debug(f"  trigger_price_type  = {trigger_price_type}")
+        Log.debug(f"  trigger_order_price = {trigger_order_price}")
 
 
 # 楽天資料より

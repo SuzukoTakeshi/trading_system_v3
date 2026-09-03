@@ -12,7 +12,7 @@
 
 from core.exception import (
     ExcelArgumentError,
-    SheetColumnError,
+    ExcelSheetColumnError,
 )
 
 
@@ -36,20 +36,18 @@ class BaseSheet:
         self.stopper = stopper
 
         # 動作モード
-        #
-        # real      : 本番運用
-        # simulator : RSS価格取得と仮想環境
-        # debug     : 固定値デバッグ
-        # emulator  : 仮想環境
+        #   real      : 本番運用
+        #   simulator : RSS価格取得と仮想環境
+        #   debug     : 固定値デバッグ
+        #   emulator  : 仮想環境
         #
         self.mode = mode
 
         # 列タイトル辞書
-        #
-        # {
-        #   "銘柄コード": 1,
-        #   "現在値": 2,
-        # }
+        #   {
+        #      "銘柄コード": 1,
+        #      "現在値": 2,
+        #   }
         #
         self.column_map = {}
 
@@ -75,8 +73,8 @@ class BaseSheet:
 
         if not isinstance(row, int):
             raise ExcelArgumentError(
-                message=f"row must be int: {row}",
                 code="EXCEL_INVALID_ROW",
+                message=f"row must be int: {row}",
             )
 
 
@@ -84,15 +82,14 @@ class BaseSheet:
 
         if not isinstance(column, int):
             raise ExcelArgumentError(
-                message=f"column must be int: {column}",
                 code="EXCEL_INVALID_COLUMN",
+                message=f"column must be int: {column}",
             )
 
-
+    # ==========================================
+    # Excelから取得した銘柄コードを正規化
+    # ==========================================
     def normalize_symbol(self, value):
-        """
-        Excelから取得した銘柄コードを正規化
-        """
 
         if value is None:
             return None
@@ -104,15 +101,14 @@ class BaseSheet:
         return str(value)
 
 
+    # ==========================================
+    # Excelから取得した値を正規化
+    #   Excel COMでは整数値でもfloatで返る場合がある
+    #    例:
+    #       10031.0 → 10031
+    #       7203.0  → 7203
+    # ==========================================
     def normalize_value(self, value):
-        """
-        Excelから取得した値を正規化
-
-        Excel COMでは整数値でもfloatで返る場合がある
-        例:
-            10031.0 → 10031
-            7203.0  → 7203
-        """
 
         if value is None:
             return None
@@ -124,49 +120,37 @@ class BaseSheet:
         return value
 
 
+    # ==========================================
+    # ヘッダー行から列辞書作成
+    # ==========================================
     def load_columns(self):
 
-        """
-        ヘッダー行から列辞書作成
-        """
-
         max_column = self.ws.UsedRange.Columns.Count
-
         for col in range(1, max_column + 1):
-
             title = self.ws.Cells(self.header_row, col).Value
-
             if title:
                 self.column_map[str(title)] = col
 
 
+    # ==========================================
+    # 必須シートカラム取得
+    #   指定したカラムが存在しない場合は、シート構成エラーとして例外を発生させる。
+    # 
+    # column_name:
+    #     列タイトル
+    # return:
+    #     列番号(int)
+    # Raises:
+    #     ExcelSheetColumnError:
+    #         指定したカラムが存在しない場合
+    # ==========================================
     def require_column(self, column_name):
-        """
-        必須シートカラム取得
-
-        指定したカラムが存在しない場合は、
-        シート構成エラーとして例外を発生させる。
-
-        column_name:
-            列タイトル
-
-        return:
-            列番号(int)
-
-        Raises:
-            SheetColumnError:
-                指定したカラムが存在しない場合
-        """
 
         column = self.column_map.get(column_name)
 
         if column is None:
-            raise SheetColumnError(
-                message=(
-                    f"シートに必須カラムがありません: "
-                    f"sheet={self.sheet_name} "
-                    f"column={column_name}"
-                ),
+            raise ExcelSheetColumnError(
+                message=f"シートに必須カラムがありません: sheet={self.sheet_name} column={column_name}",
                 code="SHEET_COLUMN_NOT_FOUND",
             )
 
@@ -177,10 +161,7 @@ class BaseSheet:
 
         max_row = self.ws.UsedRange.Rows.Count
 
-        for row in range(
-            self.header_row + 1,
-            max_row + 2
-        ):
+        for row in range(self.header_row + 1, max_row + 2):
             value = self.ws.Cells(row, column).Value
 
             if value is None:
@@ -198,25 +179,18 @@ class BaseSheet:
         return result
 
 
+    # ==========================================
+    # 指定列から値を検索して行番号を取得
+    #   column: 列番号(int)
+    #   value:  検索値
+    # ==========================================
     def find_row(self, column, value):
-        """
-        指定列から値を検索して行番号を取得
-
-        column:
-            列番号(int)
-
-        value:
-            検索値
-        """
 
         self.validate_column(column)
 
         max_row = self.ws.UsedRange.Rows.Count
 
-        for row in range(
-            self.header_row + 1,
-            max_row + 1
-        ):
+        for row in range(self.header_row + 1, max_row + 1):
             cell = self.ws.Cells(row, column).Value
 
             # ストッパー以降は検索対象外
@@ -231,113 +205,70 @@ class BaseSheet:
         return None
 
 
+    # ==========================================
+    # 行追加
+    #   stopperあり:
+    #     A列のstopper行を探し、
+    #     stopperを1行下へ移動して
+    #     元のstopper位置へデータ追加
+    #   stopperなし:
+    #     最終行へ追加
+    #
+    #   values:
+    #     {
+    #         "列名": 値
+    #     }
+    # ==========================================
     def add_row(self, values):
-        """
-        行追加
-
-        stopperあり:
-            A列のstopper行を探し、
-            stopperを1行下へ移動して
-            元のstopper位置へデータ追加
-
-        stopperなし:
-            最終行へ追加
-
-        values:
-            {
-                "列名": 値
-            }
-        """
 
         row = None
 
-        #
         # stopperあり
-        #
         if self.stopper is not None:
-
             max_row = self.ws.UsedRange.Rows.Count
 
-            for r in range(
-                self.header_row + 1,
-                max_row + 1
-            ):
-
-                value = self.ws.Cells(
-                    r,
-                    1
-                ).Value
+            for r in range(self.header_row + 1, max_row + 1):
+                value = self.ws.Cells(r, 1).Value
 
                 if str(value) == self.stopper:
-
-                    #
                     # stopperを1行下へコピー
-                    #
-                    self.ws.Rows(r).Copy(
-                        self.ws.Rows(r + 1)
-                    )
+                    self.ws.Rows(r).Copy(self.ws.Rows(r + 1))
 
-                    #
                     # 元のstopper行をクリア
-                    #
                     self.ws.Rows(r).ClearContents()
 
                     row = r
-
                     break
 
 
             if row is None:
                 raise ExcelArgumentError(
-                    message=(
-                        f"STOPPER NOT FOUND "
-                        f"{self.sheet_name}"
-                    ),
                     code="EXCEL_STOPPER_NOT_FOUND",
+                    message=f"STOPPER NOT FOUND {self.sheet_name}",
                 )
 
-
-        #
         # stopperなし
-        #
         else:
+            row = (self.ws.UsedRange.Rows.Count + 1)
 
-            row = (
-                self.ws.UsedRange.Rows.Count
-                + 1
-            )
-
-
-        #
         # データ書込み
-        #
         for name, value in values.items():
-
             column = self.column_map.get(name)
-
             if column is None:
                 continue
 
-            self.ws.Cells(
-                row,
-                column
-            ).Value = value
-
+            self.ws.Cells(row, column).Value = value
 
         return row
 
 
+    # ==========================================
+    # セル値取得
+    #   row:    行番号
+    #   column: 列番号(int)
+    # ==========================================
     def get_value(self, row, column):
-        """
-        セル値取得
-
-        row:
-            行番号
-
-        column:
-            列番号(int)
-        """
-
+ 
         self.validate_row(row)
         self.validate_column(column)
 
@@ -346,13 +277,11 @@ class BaseSheet:
         return self.normalize_value(value)
 
 
+    # ==========================================
+    # 指定行を一括取得
+    #   return: 1行分のデータをtupleで返す
+    # ==========================================
     def get_row_data(self, row):
-        """
-        指定行を一括取得
-
-        return:
-            1行分のデータをtupleで返す
-        """
 
         self.validate_row(row)
 
@@ -361,10 +290,7 @@ class BaseSheet:
         start_cell = f"A{row}"
         end_cell = f"{self.get_column_letter(max_column)}{row}"
 
-        values = self.ws.Range(
-            start_cell,
-            end_cell
-        ).Value
+        values = self.ws.Range(start_cell, end_cell).Value
 
         if values is None:
             return None
@@ -378,17 +304,13 @@ class BaseSheet:
         )
 
 
+    # ==========================================
+    # 取得済みの1行データを調査用ログ文字列へ変換
+    #   row_data: get_row_data()で取得した1行分のデータ
+    #   return:
+    #     カンマ区切り文字列
+    # ==========================================
     def get_row_log(self, row_data):
-        """
-        取得済みの1行データを
-        調査用ログ文字列へ変換
-
-        row_data:
-            get_row_data()で取得した1行分のデータ
-
-        return:
-            カンマ区切り文字列
-        """
 
         if row_data is None:
             return ""

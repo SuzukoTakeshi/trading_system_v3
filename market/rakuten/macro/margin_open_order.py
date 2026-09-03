@@ -8,6 +8,8 @@
 #   ・RssMarginOpenOrder_V 呼出
 #
 
+from core.logger import Log
+
 
 from market.rakuten.macro.macro_base import MacroBase
 
@@ -19,17 +21,16 @@ class MarginOpenOrder(MacroBase):
     def __init__(self, client):
         super().__init__(client)
 
-
+    # ==========================================
+    # 信用新規注文
+    #
+    # 使用RSS:
+    #     RssMarginOpenOrder_V
+    #
+    # request:
+    #     Market Order Request dict
+    # ==========================================
     def submit(self, request):
-        """
-        信用新規注文
-
-        使用RSS:
-            RssMarginOpenOrder_V
-
-        request:
-            Market Order Request dict
-        """
 
         # ------------------------------------------
         # RssMarginOpenOrder_V 引数
@@ -150,6 +151,29 @@ class MarginOpenOrder(MacroBase):
         # ------------------------------------------
         # RSS実行
         # ------------------------------------------
+        self._log_params(
+            order_id,
+            symbol,
+            action,
+            order_type,
+            sor,
+            margin_type,
+            quantity,
+            price_type,
+            price,
+            condition,
+            expire,
+            account,
+            trigger_price,
+            trigger_type,
+            trigger_price_type,
+            trigger_order_price,
+            set_order_type,
+            set_order_price_type,
+            set_order_price,
+            set_order_condition,
+            set_order_expire,
+        )
 
         result, macro_result = self.run(
             order_id, symbol,
@@ -178,21 +202,19 @@ class MarginOpenOrder(MacroBase):
             set_order_expire,
         )
 
-        #
         # 正常
-        #
         if macro_result == "":
-            return True, None
+            Log.debug(f"信用新規注文: 正常")
+            return True, self.get_result_code(macro_result)
 
-        #
         # RSSエラー
-        #
         result_code = self.get_result_code(macro_result)
+        Log.debug(f"信用新規注文: エラー={macro_result} result_code={result_code.value}")
 
         return False, result_code
 
 
-    def _get_margin_type_code(margin_type):
+    def _get_margin_type_code(self, margin_type):
         match margin_type:
             case MarginType.SYSTEM:
                 return 1
@@ -207,6 +229,54 @@ class MarginOpenOrder(MacroBase):
                 return 4
 
             case _:
-                raise ValueError(
+                raise ValueException(
                     f"Unsupported margin type: {margin_type}"
                 )
+
+    def _log_params(
+        self,
+        order_id,
+        symbol,
+        action,
+        order_type,
+        sor,
+        margin_type,
+        quantity,
+        price_type,
+        price,
+        condition,
+        expire,
+        account,
+        trigger_price,
+        trigger_type,
+        trigger_price_type,
+        trigger_order_price,
+        set_order_type,
+        set_order_price_type,
+        set_order_price,
+        set_order_condition,
+        set_order_expire,
+    ):
+
+        Log.debug("RssMarginOpenOrder_V PARAMS")
+        Log.debug(f"  order_id             = {order_id}")
+        Log.debug(f"  symbol               = {symbol}")
+        Log.debug(f"  action               = {action}")
+        Log.debug(f"  order_type           = {order_type}")
+        Log.debug(f"  sor                  = {sor}")
+        Log.debug(f"  margin_type          = {margin_type}")
+        Log.debug(f"  quantity             = {quantity}")
+        Log.debug(f"  price_type           = {price_type}")
+        Log.debug(f"  price                = {price}")
+        Log.debug(f"  condition            = {condition}")
+        Log.debug(f"  expire               = {expire}")
+        Log.debug(f"  account              = {account}")
+        Log.debug(f"  trigger_price        = {trigger_price}")
+        Log.debug(f"  trigger_type         = {trigger_type}")
+        Log.debug(f"  trigger_price_type   = {trigger_price_type}")
+        Log.debug(f"  trigger_order_price  = {trigger_order_price}")
+        Log.debug(f"  set_order_type       = {set_order_type}")
+        Log.debug(f"  set_order_price_type = {set_order_price_type}")
+        Log.debug(f"  set_order_price      = {set_order_price}")
+        Log.debug(f"  set_order_condition  = {set_order_condition}")
+        Log.debug(f"  set_order_expire     = {set_order_expire}")

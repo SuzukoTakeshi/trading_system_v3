@@ -1,0 +1,22 @@
+{
+    "MORNING_OPEN": {
+        "message": "前場の戦闘を開始します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "market_morning_open.wav"
+    },
+    "MORNING_CLOSE": {
+        "message": "前場の戦闘を終了します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "market_morning_close.wav"
+    },
+    "AFTERNOON_OPEN": {
+        "message": "後場の戦闘を開始します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "market_afternoon_open.wav"
+    },
+    "AFTERNOON_CLOSE": {
+        "message": "後場の戦闘を終了します。お疲れ様",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "market_afternoon_close.wav"
+    }
+}

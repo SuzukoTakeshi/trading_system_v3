@@ -11,7 +11,7 @@ from trade.process.process_base import ProcessBase
 from trade.process.process_entry_reversal_long import ProcessEntryReversalLong
 from trade.process.process_entry_reversal_short import ProcessEntryReversalShort
 
-from core.exception import StrategySideDisabledError
+from core.exception import InternalError
 
 
 class ProcessEntryReversal(ProcessBase):
@@ -36,7 +36,7 @@ class ProcessEntryReversal(ProcessBase):
             return self.short.process(trade, quote)
 
         else:
-            raise StrategySideDisabledError(
+            raise InternalError(
                 message=f"UNKNOWN SIDE {trade.param.side}",
                 code="UNKNOWN_SIDE",
             )

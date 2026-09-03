@@ -11,7 +11,6 @@
 #   ・Trade作成
 #   ・Scenario価格供給ループ
 #
-#
 
 import threading
 import time
@@ -25,18 +24,14 @@ from market.rakuten.emulator.modules.scenario import Scenario
 
 class EmulatorEngine:
 
-    def __init__(
-        self,
-        scenario_file,
-        create_trade=False
-    ):
+    BACKEND_URL = "http://127.0.0.1:8000"
+
+    def __init__(self, scenario_file, create_trade=False):
         self.scenario_file = scenario_file
         self.create_trade = create_trade
 
         # Scenario
-        self.scenario = Scenario(
-            scenario_file=scenario_file
-        )
+        self.scenario = Scenario(scenario_file=scenario_file)
 
         # Scenario設定を優先
         self.interval = self.scenario.interval
@@ -89,7 +84,6 @@ class EmulatorEngine:
     # ==================================================
     # Start
     # ==================================================
-
     def start(self):
 
         if self.running:
@@ -97,18 +91,18 @@ class EmulatorEngine:
 
         Log.emulator("EMULATOR START")
 
+        # Backend Engine起動待ち
+        if not self.wait_backend_engine():
+            return False
+
         # Trade作成
         if self.create_trade:
-
             if not self.start_trade():
                 return False
 
         self.running = True
 
-        self.thread = threading.Thread(
-            target=self.run,
-            daemon=True
-        )
+        self.thread = threading.Thread(target=self.run, daemon=True)
 
         self.thread.start()
 
@@ -118,7 +112,6 @@ class EmulatorEngine:
     # ==================================================
     # Stop
     # ==================================================
-
     def stop(self):
 
         if not self.running:
@@ -127,6 +120,49 @@ class EmulatorEngine:
         Log.emulator("EMULATOR STOP")
 
         self.running = False
+
+    # ==================================================
+    # Backend Engine 起動待ち
+    # ==================================================
+    def wait_backend_engine(self, timeout=30, interval=0.5):
+
+        Log.emulator("WAIT BACKEND ENGINE START")
+
+        start_time = time.time()
+
+        while time.time() - start_time < timeout:
+
+            try:
+                response = requests.get(
+                    f"{self.BACKEND_URL}/status",
+                    timeout=2
+                )
+
+                if response.status_code == 200:
+
+                    data = response.json()
+
+                    trade_engine = data.get("trade_engine", {})
+
+                    if trade_engine.get("running"):
+
+                        Log.emulator(
+                            "BACKEND ENGINE RUNNING"
+                        )
+
+                        return True
+
+            except requests.exceptions.RequestException:
+                pass
+
+            time.sleep(interval)
+
+
+        Log.emulator(
+            f"BACKEND ENGINE START TIMEOUT timeout={timeout}s"
+        )
+
+        return False
 
 
     # ==================================================
@@ -146,34 +182,25 @@ class EmulatorEngine:
         trade = self.scenario.get_trade()
 
         if not trade:
-            Log.emulator(
-                f"TRADE FILE NOT FOUND : {self.scenario_file}"
-            )
+            Log.emulator(f"TRADE FILE NOT FOUND : {self.scenario_file}")
             return False
 
 
-        # ------------------------------------------
         # TradeRequestDTO形式へ変換
-        # ------------------------------------------
-
         req = {
             "symbol": str(trade["symbol"]),
-            "price": trade["price"],
             "quantity": trade["quantity"],
+            "trade_price": trade["trade_price"],
             "atr": trade["atr"],
 
             # 取引
-            #
-            # cash  : 現物
-            # margin: 信用
+            #   cash  : 現物
+            #   margin: 信用
             #
             # 既存Scenarioとの互換性のため、
             # 未指定の場合は cash とする。
             #
-            "trade_type": trade.get(
-                "trade_type",
-                "cash"
-            ),
+            "trade_type": trade.get("trade_type", "cash"),
 
             # 信用区分
             #
@@ -191,59 +218,26 @@ class EmulatorEngine:
             "strategy": trade["strategy"]
         }
 
-
-        Log.emulator(
-            f"CREATE EMULATOR TRADE (@{req['symbol']})"
-        )
+        Log.emulator(f"CREATE EMULATOR TRADE (@{req['symbol']})")
 
         Log.emulator(req)
 
-
-        # ------------------------------------------
         # APP API
-        # ------------------------------------------
-
         try:
-
-            response = requests.post(
-                "http://127.0.0.1:8000/trade",
-                json=req,
-                timeout=5
-            )
+            response = requests.post(f"{self.BACKEND_URL}/trade", json=req, timeout=5)
 
         except requests.exceptions.RequestException as e:
-
-            Log.emulator(
-                f"TRADE CREATE REQUEST ERROR : {e}"
-            )
-
+            Log.emulator(f"TRADE CREATE REQUEST ERROR : {e}")
             return False
 
-
-        # ------------------------------------------
         # API ERROR
-        # ------------------------------------------
-
         if response.status_code != 200:
-
-            Log.emulator(
-                "TRADE CREATE FAILED "
-                f"response.status_code={response.status_code}"
-            )
-
+            Log.emulator(f"TRADE CREATE FAILED response.status_code={response.status_code}")
             Log.emulator(response.text)
-
             return False
 
-
-        # ------------------------------------------
         # SUCCESS
-        # ------------------------------------------
-
-        Log.emulator(
-            f"TRADE CREATE SUCCESS symbol={req['symbol']}"
-        )
-
+        Log.emulator(f"TRADE CREATE SUCCESS symbol={req['symbol']}")
         return True
 
 
@@ -254,7 +248,6 @@ class EmulatorEngine:
     def run(self):
 
         try:
-
             self.excel.open()
 
             Log.emulator("EMULATOR LOOP START")
@@ -262,58 +255,30 @@ class EmulatorEngine:
             scenario_no = 0
 
             while self.running:
-
-                # ----------------------------------
                 # 価格取得
-                # ----------------------------------
-
                 price = self.scenario.get_price()
-
                 if price is None:
                     break
 
                 scenario_no += 1
 
-                # ----------------------------------
                 # Price Scenario
-                # ----------------------------------
+                Log.emulator(f"SCENARIO({self.symbol}): no={scenario_no} price={price}")
 
-                Log.emulator(
-                    f"SCENARIO({self.symbol}): "
-                    f"no={scenario_no} "
-                    f"price={price}"
-                )
-
-                # ----------------------------------
                 # Excel Quote更新
-                # ----------------------------------
-
-                if not self.update_price(
-                    self.symbol,
-                    price
-                ):
-
-                    Log.emulator(
-                        "SCENARIO SYMBOL NOT FOUND "
-                        f"symbol={self.symbol}"
-                    )
-
+                if not self.update_price(self.symbol, price):
+                    Log.emulator("SCENARIO SYMBOL NOT FOUND symbol={self.symbol}")
                     break
 
                 time.sleep(self.interval)
 
 
         except Exception as e:
-
-            Log.emulator(
-                f"EMULATOR START FAILED : Exception={e}"
-            )
+            Log.emulator(f"EMULATOR START FAILED : Exception={e}")
 
 
         finally:
-
             self.running = False
-
             self.excel.close()
 
 
@@ -327,40 +292,21 @@ class EmulatorEngine:
 
     def update_price(self, symbol, price):
 
-        sheet = self.excel.book.Worksheets(
-            self.excel.sheets["quote"]
-        )
+        sheet = self.excel.book.Worksheets(self.excel.sheets["quote"])
 
-        last_row = (
-            sheet.Cells(
-                sheet.Rows.Count,
-                1
-            ).End(-4162).Row
-        )
+        last_row = sheet.Cells(sheet.Rows.Count, 1).End(-4162).Row
 
-
-        # ------------------------------------------
         # 既存symbolを検索
-        # ------------------------------------------
-
         for row in range(2, last_row + 1):
-
             value = sheet.Cells(row, 1).Value
-
             if isinstance(value, float):
                 code = str(int(value))
-
             else:
                 code = str(value)
-
             if code != str(symbol):
                 continue
 
-
-            # --------------------------------------
             # 既存銘柄
-            # --------------------------------------
-
             sheet.Cells(row, 2).Value = price
 
             return True
@@ -376,10 +322,6 @@ class EmulatorEngine:
         sheet.Cells(row, 1).Value = symbol
         sheet.Cells(row, 2).Value = price
 
-        Log.emulator(
-            f"SCENARIO SYMBOL ADD "
-            f"symbol={symbol} "
-            f"price={price}"
-        )
+        Log.emulator(f"SCENARIO SYMBOL ADD symbol={symbol} price={price}")
 
         return True

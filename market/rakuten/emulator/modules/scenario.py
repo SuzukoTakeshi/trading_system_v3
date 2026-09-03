@@ -78,7 +78,7 @@ class Scenario:
 
             if not path.exists():
 
-                raise FileNotFoundError(
+                raise FileNotFoundException(
                     f"SCENARIO NOT FOUND : {path}"
                 )
 
@@ -88,7 +88,7 @@ class Scenario:
 
             if not path.exists():
 
-                raise FileNotFoundError(
+                raise FileNotFoundException(
                     f"SCENARIO NOT FOUND : {path}"
                 )
 
@@ -157,7 +157,7 @@ class Scenario:
 
             if not self.range:
 
-                raise ValueError(
+                raise ValueException(
                     "RANDOM SCENARIO RANGE NOT FOUND"
                 )
 
@@ -168,7 +168,7 @@ class Scenario:
 
         else:
 
-            raise ValueError(
+            raise ValueException(
                 f"UNKNOWN SCENARIO MODE : {self.mode}"
             )
 

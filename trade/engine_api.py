@@ -11,7 +11,6 @@
 from core.logger import Log
 from core.exception import (
     StrategySideDisabledError,
-    QuoteNotFoundError,
 )
 
 from config.strategy_config_loader import StrategyConfig
@@ -24,6 +23,9 @@ from trade.trade_enums import (
 )
 
 from models.trade.trade_model import TradeModel
+from models.quote.quote_model import QuoteModel
+
+from core.voice_enums import VoiceType
 
 
 class TradeEngineAPI:
@@ -56,24 +58,21 @@ class TradeEngineAPI:
         side = SideType(req.side)
         strategy = StrategyType(req.strategy)
 
-        # Strategy Side Check
-        #   strategy_config.json
+        # Strategy Side Check (strategy_config.json)
         strategy_cfg = StrategyConfig.instance().get_strategy(strategy.value)
 
         side_cfg = strategy_cfg["side"]
 
         if not side_cfg[side.value]:
-            Log.error(f"TRADE CREATE REJECT strategy={strategy.value} side={side.value}")
-
             raise StrategySideDisabledError(
-                message=(f"SIDE DISABLED strategy={strategy.value} side={side.value}"),
+                message=f"TRADE CREATE REJECT strategy={strategy.value} side={side.value}",
                 code="SIDE_DISABLED",
             )
 
         trade = TradeModel(
             symbol=req.symbol,
             quantity=req.quantity,
-            price=req.price,
+            trade_price=req.trade_price,
             atr=req.atr,
             trade_type=TradeType(req.trade_type),
             margin_type=req.margin_type,
@@ -97,7 +96,7 @@ class TradeEngineAPI:
             message = (
                 f"CREATE "
                 f"quantity={trade.param.quantity} "
-                f"price={trade.param.price} "
+                f"trade_price={trade.param.trade_price} "
                 f"atr={trade.param.atr} "
                 f"type={trade.param.trade_type.value} "
                 f"margin_type={trade.param.margin_type} "
@@ -108,13 +107,13 @@ class TradeEngineAPI:
 
         self._save_trade(trade)
 
-        Log.event(f"(#{trade.id}) CREATE TRADE symbol={trade.param.symbol}")
+        Log.event(f"(#{trade.id}) TRADE CREATED symbol={trade.param.symbol}")
 
         Log.event(
             f"(#{trade.id}) TRADE PARAM "
             f"symbol={trade.param.symbol} "
             f"quantity={trade.param.quantity} "
-            f"price={trade.param.price} "
+            f"trade_price={trade.param.trade_price} "
             f"atr={trade.param.atr} "
             f"type={trade.param.trade_type.value} "
             f"margin_type={trade.param.margin_type} "
@@ -151,7 +150,10 @@ class TradeEngineAPI:
             f"chart_interval={strategy_cfg['chart']['interval_seconds']}s"
         )
 
+        self.context.notifier_trade.notify(trade, "TRADE CREATED")
+
         return trade.id
+
 
     # ==========================================
     # Trade一覧取得
@@ -200,12 +202,14 @@ class TradeEngineAPI:
         ]:
             return False
 
-        Log.event(f"PAUSE TRADE (#{trade_id})")
+        Log.event(f"(#{trade_id}) PAUSE TRADE")
 
         # 一時停止
         trade.pause_flag = True
 
         self._save_trade(trade)
+
+        self.context.notifier_trade.notify(trade, "TRADE PAUSE")
 
         return True
 
@@ -230,6 +234,8 @@ class TradeEngineAPI:
 
         self._save_trade(trade)
 
+        self.context.notifier_trade.notify(trade, "TRADE RESUME")
+
         return True
 
 
@@ -246,7 +252,7 @@ class TradeEngineAPI:
         # 完了済みは取消不可
         if trade.state in [
             TradeState.CANCELED,
-            TradeState.COMPLETED,
+            TradeState.CLOSED,
         ]:
             return (False, f"Trade #{trade_id} は既に終了しています。")
 
@@ -271,6 +277,8 @@ class TradeEngineAPI:
 
         self._save_trade(trade)
 
+        self.context.notifier_trade.notify(trade, "TRADE CANCEL")
+
         return True, ""
 
 
@@ -292,38 +300,40 @@ class TradeEngineAPI:
             if trade.state not in [
                 TradeState.CANCELED,
                 TradeState.COMPLETED,
+                TradeState.CLOSED,
                 TradeState.ERROR,
             ]:
-                return False
+                state_text = trade.state.value
+                return False, f"状態が{state_text}の為、削除はできません。"
 
-            Log.event(f"(#{trade_id}) DELETE TRADE")
+            Log.event(f"(#{trade_id}) TRADE DELETE REQUEST")
 
             trade.delete_request = True
 
             # 削除要求を永続化
             self.engine.trade_store.save(trade)
 
-            return True
+            return True, ""
 
-        #
         # Engine停止中
-        #
-        # CREATEDも直接削除可能
-        #
+        #   CREATEDも直接削除可能
         if trade.state not in [
             TradeState.CREATED,
             TradeState.CANCELED,
             TradeState.COMPLETED,
+            TradeState.CLOSED,
             TradeState.ERROR,
         ]:
-            return False
+            state_text = trade.state.value
+            return False, f"エンジン停止中は、状態が{state_text}の削除はできません。"
 
-        Log.event(f"(#{trade_id}) DELETE TRADE")
 
         # Engine停止中なので直接削除
         self.engine.delete_trade(trade)
 
-        return True
+        Log.event(f"(#{trade_id}) TRADE DELETED")
+
+        return True, ""
 
 
     # ==========================================

@@ -69,12 +69,13 @@ def render_header(state: dict):
         f"""
         <style>
 
-        .monitor-header{{
+        .monitor-header {{
             display:flex;
             align-items:center;
             gap:24px;
-            padding:10px 18px;
-            margin-bottom:18px;
+            padding:8px 18px;
+            margin-top:-0.5rem;
+            margin-bottom:5px;
             border:1px solid #444;
             border-radius:10px;
             background:#1f1f1f;

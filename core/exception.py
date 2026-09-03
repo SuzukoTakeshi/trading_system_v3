@@ -7,14 +7,12 @@
 #   ・Trading System 共通例外定義
 #   ・エラーコード、メッセージ管理
 #
-#
 # 使用例:
 #
 #   raise ExcelArgumentError(
 #       message="column must be int",
 #       code="EXCEL_INVALID_COLUMN",
 #   )
-#
 #
 #   except ExcelArgumentError as e:
 #
@@ -24,23 +22,53 @@
 #           f"message={e.message}"
 #       )
 #
-#
+
+from enum import Enum
+
+# ==================================================
+# Error Level
+#   Errorの重要度
+# ==================================================
+class ErrorLevel(str, Enum):
+
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
 
 
+# ==================================================
+# Error Scope
+#   Errorの影響範囲
+# ==================================================
+class ErrorScope(str, Enum):
+
+    TRADE = "TRADE"
+    ENGINE = "ENGINE"
+    SYSTEM = "SYSTEM"
+
+
+# ==================================================
+# System 共通基底例外
+# ==================================================
 class SystemError(Exception):
-    """
-    Trading System 共通基底例外
-    """
 
     def __init__(
         self,
         message,
+        level=ErrorLevel.ERROR,
+        scope=ErrorScope.SYSTEM,
         code=None,
+        data=None,
     ):
         super().__init__(message)
 
         self.message = message
+        self.level = level
+        self.scope = scope
         self.code = code
+        self.data = data or {}
 
 
 class InternalError(SystemError):
@@ -53,17 +81,28 @@ class InternalError(SystemError):
         ・必須データの欠落
         ・内部ロジックのバグ
 
-    このエラーは回復を試みず、
-    TradeEngineを停止する。
+    このエラーは回復を試みず、TradeEngineを停止する。
     """
-    pass
+    def __init__(
+        self, message,
+        level=ErrorLevel.CRITICAL,
+        scope=ErrorScope.ENGINE,
+        code=None, data=None
+    ):
+        super().__init__(message=message, level=level, scope=scope, code=code, data=data)
 
 
 class StoreError(SystemError):
     """
     Store関連エラー
     """
-    pass
+    def __init__(
+        self, message,
+        level=ErrorLevel.CRITICAL,
+        scope=ErrorScope.SYSTEM,
+        code=None, data=None
+    ):
+        super().__init__(message=message, level=level, scope=scope, code=code, data=data)
 
 
 # ==================================================
@@ -74,7 +113,13 @@ class ExcelError(SystemError):
     """
     Excel関連エラー
     """
-    pass
+    def __init__(
+        self, message,
+        level=ErrorLevel.CRITICAL,
+        scope=ErrorScope.ENGINE,
+        code=None, data=None
+    ):
+        super().__init__(message=message, level=level, scope=scope, code=code, data=data)
 
 
 class ExcelArgumentError(ExcelError):
@@ -85,15 +130,10 @@ class ExcelArgumentError(ExcelError):
         ・rowが不正
         ・columnが不正
         ・セル指定引数の型違い
-
-    例:
-        column="注文番号"
-        row="5"
     """
     pass
 
-
-class SheetColumnError(ExcelError):
+class ExcelSheetColumnError(ExcelError):
     """
     Excelシートの必須カラム定義エラー
 
@@ -115,8 +155,13 @@ class QuoteError(SystemError):
     """
     Market Quote関連エラー
     """
-    pass
-
+    def __init__(
+        self, message,
+        level=ErrorLevel.CRITICAL,
+        scope=ErrorScope.ENGINE,
+        code=None, data=None
+    ):
+        super().__init__(message=message, level=level, scope=scope, code=code, data=data)
 
 class QuoteNotFoundError(QuoteError):
     """
@@ -143,7 +188,13 @@ class StrategyError(SystemError):
     """
     Strategy関連エラー
     """
-    pass
+    def __init__(
+        self, message,
+        level=ErrorLevel.ERROR,
+        scope=ErrorScope.ENGINE,
+        code=None, data=None
+    ):
+        super().__init__(message=message, level=level, scope=scope, code=code, data=data)
 
 class EntryPriceNotFoundError(StrategyError):
     pass
@@ -159,7 +210,6 @@ class StrategySideDisabledError(StrategyError):
     例:
         swing + short
         （swingではshort禁止）
-
     """
     pass
 
@@ -176,7 +226,13 @@ class EntryPreviousPriceNotFoundError(StrategyError):
         ProcessEntryReversalLong.process()
         ProcessEntryReversalShort.process()
     """
-    pass
+    def __init__(
+        self, message,
+        level=ErrorLevel.ERROR,
+        scope=ErrorScope.TRADE,
+        code=None, data=None
+    ):
+        super().__init__(message=message, level=level, scope=scope, code=code, data=data)
 
 
 # ==================================================
@@ -187,10 +243,16 @@ class OrderError(SystemError):
     """
     Order関連エラー
     """
-    pass
+    def __init__(
+        self, message,
+        level=ErrorLevel.ERROR,
+        scope=ErrorScope.TRADE,
+        code=None, data=None
+    ):
+        super().__init__(message=message, level=level, scope=scope, code=code, data=data)
 
 
-class DuplicateOrderError(OrderError):
+class OrderDuplicateError(OrderError):
     """
     二重注文エラー
 
@@ -238,8 +300,11 @@ class OrderSubmitTimeoutError(OrderError):
     """
     pass
 
+class OrderResultError(OrderError):
+    pass
 
-class CancelOrderResult(OrderError):
+
+class OrderMarketCancelError(OrderError):
     """
     注文取消
 
@@ -251,7 +316,7 @@ class CancelOrderResult(OrderError):
     """
     pass
 
-class NotFilledOrderResult(OrderError):
+class OrderMarketNotFilledError(OrderError):
     """
     注文出来ず
 
@@ -263,6 +328,18 @@ class NotFilledOrderResult(OrderError):
     """
     pass
 
+class OrderInvalidActionError(OrderError):
+    """
+    不正なOrderAction
+
+    原因:
+        ・OrderActionの値がBUY/SELL以外
+        ・Order生成時の不整合
+        ・Orderデータ破損
+    """
+    pass
+
+
 # ==================================================
 # Asset Error
 # ==================================================
@@ -271,7 +348,13 @@ class AssetError(SystemError):
     """
     Asset関連エラー
     """
-    pass
+    def __init__(
+        self, message,
+        level=ErrorLevel.ERROR,
+        scope=ErrorScope.ENGINE,
+        code=None, data=None
+    ):
+        super().__init__(message=message, level=level, scope=scope, code=code, data=data)
 
 class AssetSyncStoreError(AssetError):
     """
@@ -300,16 +383,5 @@ class AssetOrderResultNotFoundError(AssetError):
     発生箇所:
         ProcessAsset.process()
         ProcessAsset.update_asset()
-    """
-    pass
-
-class InvalidOrderActionError(OrderError):
-    """
-    不正なOrderAction
-
-    原因:
-        ・OrderActionの値がBUY/SELL以外
-        ・Order生成時の不整合
-        ・Orderデータ破損
     """
     pass

@@ -12,9 +12,9 @@ from market.order_enums import OrderState
 
 from core.exception import (
 	OrderNotFoundError,
-	DuplicateOrderError,
-    CancelOrderResult,
-    NotFilledOrderResult,
+	OrderDuplicateError,
+    OrderMarketCancelError,
+    OrderMarketNotFilledError,
 )
 
 from market.order_enums import OrderResultStatus
@@ -28,27 +28,24 @@ class ProcessOrderWait(ProcessBase):
         Log.create("ProcessOrderWait")
 
 
-    #
-    # Order約定待ち
-    #
-    # TradeState.ORDER_WAITで呼ばれる
-    #
     def process(self, trade):
+        """
+        Order約定待ち
+
+        TradeState.ORDER_WAITで呼ばれる
+        """
 
         Log.flow(f"(#{trade.id}) ProcessOrderWait:process")
 
         order = self.get_order(trade)
-
         if order is None:
             raise OrderNotFoundError(
-                message=f"ORDER NOT FOUND (#{trade.id})",
+                message=f"(#{trade.id}) ORDER NOT FOUND",
                 code="ORDER_NOT_FOUND",
             )
 
 
-        #
         # 注文受付済み
-        #
         if order.state == OrderState.REQUESTED:
             Log.trace("ORDER_WAIT", f"(#{trade.id}) order_id={order.id} state={order.state.name}")
 
@@ -98,8 +95,8 @@ class ProcessOrderWait(ProcessBase):
                 OrderResultStatus.CANCELED_FILLED,
                 OrderResultStatus.CANCELED_UNFILLED,
             ):
-                raise CancelOrderResult(
-                    message=f"CANCEL ORDER (#{trade.id}) @({order.order_no}) ",
+                raise OrderMarketCancelError(
+                    message=f"(#{trade.id}) CANCEL ORDER order_no={order.order_no} ",
                     code="CANCEL_ORDER",
                 )
 
@@ -107,8 +104,8 @@ class ProcessOrderWait(ProcessBase):
                 OrderResultStatus.NOT_FILLED_FILLED,
                 OrderResultStatus.NOT_FILLED_UNFILLED,
             ):
-                raise NotFilledOrderResult(
-                    message=f"NOT FILLED ORDER (#{trade.id}) @({order.order_no})",
+                raise OrderMarketNotFilledError(
+                    message=f"(#{trade.id}) NOT FILLED ORDER order_no={order.order_no}",
                     code="NOT_FILLED_ORDER",
                 )
 
@@ -120,18 +117,20 @@ class ProcessOrderWait(ProcessBase):
         return False
 
 
-    #
-    # Tradeに紐づくOrder取得
-    #
     def get_order(self, trade):
+        """
+        Tradeに紐づくOrder取得
+        """
+
         order = None
         for o in self.context.cache.orders.values():
             if o.trade.id == trade.id:
                 if order:
-                    raise DuplicateOrderError(
-                        message=f"MULTIPLE ORDER trade={trade.id}",
+                    raise OrderDuplicateError(
+                        message=f"(#{trade.id}) MULTIPLE ORDER",
                         code="MULTIPLE_ORDER",
                     )
+
                 order = o
                 
         return order

@@ -14,7 +14,7 @@ from datetime import datetime
 import pythoncom
 import win32com.client
 
-from config.config_loader import Config
+from core.logger import Log
 
 from market.rakuten.config.config_loader import MarketConfig
 
@@ -31,9 +31,6 @@ class RakutenMarket:
     def __init__(self, mode="debug"):
         self.mode = mode
 
-        system_config = Config.instance().data
-        self.debug_settings = system_config.get("debug_settings", {})
-
         # Excel Application
         self.app = None
 
@@ -41,6 +38,8 @@ class RakutenMarket:
         self.book = None
 
         market_config = MarketConfig.instance().data
+
+        self.market_session = market_config["market_session"]
 
         excel_paths = market_config["excel"]["path"]
 
@@ -67,6 +66,9 @@ class RakutenMarket:
         self.internal_log_limit = 1000
 
 
+    def get_market_session(self):
+        return self.market_session
+
     def clear_last_error(self):
         self.last_error = None
 
@@ -90,7 +92,15 @@ class RakutenMarket:
 
     def add_internal_log(self, level, message, data=None):
         timestamp = datetime.now()
-        
+
+        Log.debug(
+            f"INTERNAL LOG : "
+            f"level={level}, "
+            f"message={message}, "
+            f"data={data}, "
+            f"timestamp={timestamp}"
+        )
+
         self.internal_logs.append({
             "level": level,
             "message": message,
@@ -152,16 +162,6 @@ class RakutenMarket:
 
         # Order List
         self.order_list_sheet = OrderListSheet(self, self.get_sheet(self.sheets["order_list"]), self.mode)
-
-        if self.mode == "debug":
-            price = self.debug_settings.get("quote_price")
-
-            if price is None:
-                raise Exception(
-                    "debug_settings.quote_price が設定されていません"
-                )
-
-            self.quote_sheet.debug_set_quote(price)
 
         # 国内株式銘柄情報クリア
         self.market_des_sheet.clear()
@@ -282,21 +282,12 @@ class RakutenMarket:
         #
         # 仮想注文結果の作成
         #
-        # simulator:
+        # simulator / debug::
         #   常にDEBUG注文番号を作成
         #
-        # debug:
-        #   order_enabled=false の場合だけ作成
-        #
-        if self.mode == "simulator":
+        if self.mode == "simulator" or self.mode == "debug":
 
             order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
-
-            self.order_list_sheet.debug_add_order(order_no, request)
-
-        elif (self.mode == "debug" and not self.debug_settings.get("order_enabled", False)):
-            order_no = self.order_id_list_sheet.debug_add_order(request_order_dto.order_id)
-
             self.order_list_sheet.debug_add_order(order_no, request)
 
         return True, result_code
@@ -342,12 +333,9 @@ class RakutenMarket:
 
     # ==========================================
     # 注文番号取得
-    #   return: 注文番号
+    #   return: 注文番号, 発注結果
     # ==========================================
     def get_order_no(self, order_id):
-        """
-        注文番号取得
-        """
         return self.order_id_list_sheet.get_order_no(order_id)
 
 

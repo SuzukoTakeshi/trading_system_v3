@@ -19,7 +19,7 @@ from trade.process.process_base import ProcessBase
 from trade.process.process_trailing_long import ProcessTrailingLong
 from trade.process.process_trailing_short import ProcessTrailingShort
 
-from core.exception import StrategySideDisabledError
+from core.exception import InternalError
 
 class ProcessTrailing(ProcessBase):
 
@@ -29,23 +29,14 @@ class ProcessTrailing(ProcessBase):
         Log.create("ProcessTrailing")
 
         self.long = ProcessTrailingLong(context, market)
-
         self.short = ProcessTrailingShort(context, market)
 
 
-    #
-    # TradeState.TRAILINGで呼ばれる
-    #
     def process(self, trade):
 
         if trade.param.side == SideType.LONG:
             return self.long.process(trade)
-
         elif trade.param.side == SideType.SHORT:
             return self.short.process(trade)
-
         else:
-            raise StrategySideDisabledError(
-                message=f"UNKNOWN SIDE {trade.param.side}",
-                code="UNKNOWN_SIDE",
-            )
+            raise InternalError(message=f"UNKNOWN SIDE {trade.param.side}", code="UNKNOWN_SIDE")

@@ -24,8 +24,6 @@ def main():
         # QuoteSheet
         sheet = QuoteSheet(market, ws, "debug")
 
-        sheet.debug_set_quote(3000)
-
         # 銘柄追加
         row = sheet.add_symbol("7203")
 

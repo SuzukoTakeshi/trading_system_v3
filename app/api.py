@@ -32,6 +32,12 @@ def status():
     return app_service.status()
 
 
+@app.get("/voice")
+def voice():
+
+    return app_service.voice()
+
+
 @app.get("/logs")
 def logs(limit: int = 20):
     """

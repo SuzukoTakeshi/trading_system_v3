@@ -61,7 +61,7 @@ class EmulatorExcel:
 
         if self.book is None:
             Log.error(f"EXCEL BOOK NOT FOUND : {book_name}")
-            raise FileNotFoundError(f"Excel Book not found : {book_name}")
+            raise FileNotFoundException(f"Excel Book not found : {book_name}")
 
     # ==================================================
     # 切断

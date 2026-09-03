@@ -23,11 +23,13 @@ class MarketService:
     def __init__(self, mode):
         self.mode = mode
 
-        self.market_status = MarketStatus()
-
         # Market
         self.market = RakutenMarket(self.mode)
 
+        # Market Status
+        self.market_status = MarketStatus(
+            self.market.get_market_session()
+        )
 
     def is_real(self):
         return self.mode == "real"
@@ -57,8 +59,12 @@ class MarketService:
         Log.debug("MARKET CLOSE")
         self.market.close()
 
+
     def get_status(self):
         return self.market_status.get()
+
+    def get_session_event(self):
+        return self.market_status.get_session_event()
 
     def sync_market(self, symbols):
         self.market.sync_quotes(symbols)

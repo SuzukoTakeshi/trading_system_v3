@@ -54,15 +54,7 @@ class OrderExecutor:
             result, result_code = self._submit_emulator(request)
 
         elif self.mode == "debug":
-
-            if self.market.debug_settings.get(
-                "order_enabled",
-                False,
-            ):
-                result, result_code = self._submit_order(request)
-
-            else:
-                result, result_code = self._submit_debug(request)
+            result, result_code = self._submit_debug(request)
 
         else:
             raise Exception(

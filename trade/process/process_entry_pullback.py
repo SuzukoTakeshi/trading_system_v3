@@ -11,7 +11,7 @@ from trade.process.process_base import ProcessBase
 from trade.process.process_entry_pullback_long import ProcessEntryPullbackLong
 from trade.process.process_entry_pullback_short import ProcessEntryPullbackShort
 
-from core.exception import StrategySideDisabledError
+from core.exception import InternalError
 
 
 class ProcessEntryPullback(ProcessBase):
@@ -22,7 +22,6 @@ class ProcessEntryPullback(ProcessBase):
         Log.create("ProcessEntryPullback")
 
         self.long = ProcessEntryPullbackLong(context, market)
-
         self.short = ProcessEntryPullbackShort(context, market)
 
 
@@ -32,12 +31,7 @@ class ProcessEntryPullback(ProcessBase):
 
         if trade.param.side == SideType.LONG:
             return self.long.process(trade, quote)
-
         elif trade.param.side == SideType.SHORT:
             return self.short.process(trade, quote)
-
         else:
-            raise StrategySideDisabledError(
-                message=f"UNKNOWN SIDE {trade.param.side}",
-                code="UNKNOWN_SIDE",
-            )
+            raise InternalError(message=f"UNKNOWN SIDE {trade.param.side}", code="UNKNOWN_SIDE")

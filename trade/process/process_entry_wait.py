@@ -29,13 +29,29 @@ class ProcessEntryWait(ProcessBase):
         quote = trade.runtime.quote
         current_price = quote.current_price
 
-        # 初回価格取得完了
+        # 初回価格設定
+        #
+        # ENTRY判定の基準価格
+        #   trade_price=0   : 初回取得した市場価格
+        #   trade_price!=0  : Tradeに指定された開始価格
+        #
+        if trade.param.trade_price == 0:
+            trade.runtime.entry_base_price = current_price
+        else:
+            trade.runtime.entry_base_price = trade.param.trade_price
+
+        # ENTRY判定開始時点の直前価格
+        #
+        # 連続上昇・下降判定で使用する。
+        #
         trade.runtime.entry_previous_price = current_price
 
         Log.event(
-            f"(#{trade.id}) ENTRY WAIT COMPLETE "
-            f"symbol={trade.param.symbol} "
-            f"current_price={current_price}"
+            f"(#{trade.id}) 初回価格設定 symbol={trade.param.symbol} "
+            f"entry_base_price={trade.runtime.entry_base_price}"
         )
+
+        # 通知
+        self.notify(trade, "ENTRY WAIT")
 
         return True

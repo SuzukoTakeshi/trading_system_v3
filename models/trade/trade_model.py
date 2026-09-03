@@ -29,24 +29,23 @@ from trade.trade_enums import TradeState
 from models.trade.trade_param import TradeParam
 from models.trade.trade_runtime import TradeRuntime
 
-
+# ==================================================
+# Tradeモデル
+#
+# BaseEntityから以下を継承:
+#     id
+#     created_at
+#     updated_at
+# ==================================================
 class TradeModel(BaseEntity):
-    """
-    Trade管理モデル
-
-    BaseEntityから以下を継承:
-        id
-        created_at
-        updated_at
-    """
 
     ID_FILE = "storage/json/trade_id.json"
 
     def __init__(
         self,
         symbol,
-        price,
         quantity,
+        trade_price,
         atr,
         trade_type,
         margin_type,
@@ -69,34 +68,27 @@ class TradeModel(BaseEntity):
         Log.create("TradeModel", f"symbol={symbol}")
 
         # Trade状態
-        #
-        # Trade作成完了
+        #   Trade作成完了
         self.state = TradeState.CREATED
 
         # Trade一時停止
         self.pause_flag = False
 
         # Engine 削除要求
-        #
-        # Engine稼働中にAPIからTrade削除要求を受けた場合、
-        # APIはContextから直接削除せず、
-        # このフラグを立ててEngineに削除を要求する。
-        #
+        #   Engine稼働中にAPIからTrade削除要求を受けた場合、APIはContextから直接削除せず、
+        #   このフラグを立ててEngineに削除を要求する。
         self.delete_request = False
 
         # Engine CANCEL要求
-        #
-        # Engine稼働中にAPIからTradeCANCEL要求を受けた場合、
-        # APIは直接CANCELせず、
-        # このフラグを立ててEngineにCANCELを要求する。
-        #
+        #   Engine稼働中にAPIからTradeCANCEL要求を受けた場合、APIは直接CANCELせず、
+        #   このフラグを立ててEngineにCANCELを要求する。
         self.cancel_request = False
 
         # Trade開始パラメータ
         self.param = TradeParam(
             symbol=symbol,
-            price=price,
             quantity=quantity,
+            trade_price=trade_price,
             atr=atr,
             trade_type=trade_type,
             margin_type=margin_type,
@@ -120,26 +112,25 @@ class TradeModel(BaseEntity):
         self.timeline = []
 
         # Tradeメッセージ
-        self.message = ""
+        self.message = "登録完了"
+
 
     # ==================================================
     # Trade Timeline message追加
-    #
+    # ==================================================
     def add_timeline(self, type, message, **kwargs):
         item = {
             "time": datetime.now().isoformat(),
             "type": type,
             "message": message,
         }
-
         item.update(kwargs)
-
         self.timeline.append(item)
 
 
     # ==================================================
     # Trade状態変更
-    #
+    # ==================================================
     def change_state(self, new_state):
         if self.state == new_state:
             return False
@@ -194,13 +185,17 @@ class TradeModel(BaseEntity):
             "id": self.id,
             "param": self.param.to_dict(),
             "runtime": self.runtime.to_dict(),
+
             "state": self.state.value,
-            "timeline": self.timeline,
             "message": self.message,
+
             "pause_flag": self.pause_flag,
             "cancel_request": self.cancel_request,
+
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
+
+            "timeline": self.timeline,
         }
 
 
@@ -215,28 +210,28 @@ class TradeModel(BaseEntity):
         )
 
         trade.id = data["id"]
-        trade.param = TradeParam.from_dict(data["param"])
 
-        trade.runtime = TradeRuntime.from_dict(
-            data.get("runtime", {})
-        )
+        trade.param = TradeParam.from_dict(data["param"])
+        trade.runtime = TradeRuntime.from_dict(data.get("runtime", {}))
 
         trade.state = TradeState(data["state"])
-        trade.timeline = data.get("timeline", [])
         trade.message = data.get("message")
+
         trade.pause_flag = data.get("pause_flag", False)
         trade.delete_request = False
         trade.cancel_request = data.get("cancel_request", False)
+
         trade.created_at = datetime.fromisoformat(data["created_at"])
         trade.updated_at = datetime.fromisoformat(data["updated_at"])
 
+        trade.timeline = data.get("timeline", [])
+
         return trade
 
-
+    # ==========================================
+    # API/UI表示用変換
+    # ==========================================
     def to_dict(self):
-        """
-        API/UI表示用変換
-        """
        
         data = super().to_dict()
 
@@ -246,7 +241,7 @@ class TradeModel(BaseEntity):
 
             "quantity": self.param.quantity,
             "atr": self.param.atr,
-            "price": self.param.price,
+            "trade_price": self.param.trade_price,
             "trade_type": self.param.trade_type.value,
             "margin_type": self.param.margin_type,
             "side": self.param.side.value,
@@ -294,11 +289,10 @@ class TradeModel(BaseEntity):
 
     # ==================================================
     # 最終損益計算
-    #
-    # LONG:  (EXIT価格 - ENTRY価格) * 株数
-    # SHORT: (ENTRY価格 - EXIT価格) * 株数
-    # EXIT未約定の場合はNone。
-    #
+    #   LONG:  (EXIT価格 - ENTRY価格) * 株数
+    #   SHORT: (ENTRY価格 - EXIT価格) * 株数
+    #   EXIT未約定の場合はNone。
+    # ==================================================
     def get_profit_loss(self):
         entry_price = self.runtime.entry_price
         exit_price = self.runtime.exit_price
@@ -319,11 +313,10 @@ class TradeModel(BaseEntity):
 
     # ==================================================
     # 現在価格損益計算
-    #
-    # LONG:  (EXIT価格 - ENTRY価格) * 株数
-    # SHORT: (ENTRY価格 - EXIT価格) * 株数
-    # EXIT未約定の場合はNone。
-    #
+    #   LONG:  (EXIT価格 - ENTRY価格) * 株数
+    #   SHORT: (ENTRY価格 - EXIT価格) * 株数
+    #   EXIT未約定の場合はNone。
+    # ==================================================
     def get_current_profit_loss(self):
         entry_price = self.runtime.entry_price
         quote = self.runtime.quote

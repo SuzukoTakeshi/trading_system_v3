@@ -30,16 +30,16 @@ LOG_COLORS = {
     "TRAILING": "#0080ff",
     "ASSET": "#ff00ff",
 
-    "EMULATOR": "#ff00ff",
-
     "FLOW": "#00ffff",
     "CHECK": "#ffff00",
+
+    "EMULATOR": "#ff00ff",
+
     "TRADE": "#00ff00",
     "ORDER": "#ff00ff",
     "EXECUTION": "#00ff00",
     "BREAKEVEN": "#ff00ff",
 
-    "RSS PRICE": "#0080ff",
     "ORDER_WAIT": "#808080",
 }
 

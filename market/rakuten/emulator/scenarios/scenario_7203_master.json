@@ -1,11 +1,11 @@
 {
     "trade": {
         "symbol": 7203,
-        "price": 3000,
+        "price": 0,
         "quantity": 100,
         "atr": 2.0,
         "trade_type": "margin",
-        "margin_type": 4,
+        "margin_type": "day",
         "side": "long",
         "strategy": "scalping"
     },

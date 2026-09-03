@@ -61,7 +61,7 @@ class OrderRequestDTO:
         #
         self.order_role = order_role
 
-        # 指値価格
+        # 開始価格
         self.price = price
 
         # 注文方式

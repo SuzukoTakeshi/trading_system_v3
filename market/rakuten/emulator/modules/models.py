@@ -35,22 +35,12 @@ class EmulatorOrder:
     # 数量
     quantity: int
 
-    #
-    # 注文価格
-    #
-    # LIMIT:
-    #   指値価格
-    #
-    # MARKET:
-    #   None
-    #
+    # 開始価格
+    #  市場価格とする場合0
     price: float | None
 
-    #
     # 約定価格
-    #
-    # RssExecutionListから取得
-    #
+    #   RssExecutionListから取得
     fill_price: float | None = None
 
     # 内部状態

@@ -21,7 +21,6 @@ from trade.process.process_order_base import (
 
 from core.exception import (
     InternalError,
-    StrategySideDisabledError,
     OrderSubmitTimeoutError,
 )
 
@@ -65,7 +64,7 @@ class ProcessOrderRequest(ProcessOrderBase):
                     # 発注受付待ちタイムアウト
                     if order.submitted_at is None:
                         raise InternalError(
-                            message=f"@({order.id}) Order submitted_at is None at ProcessOrderRequest",
+                            message=f"(#{trade.id}) @({order.id}) Order submitted_at is None at ProcessOrderRequest",
                             code="ORDER_SUBMIT_TIMESTAMP_MISSING",
                         )
 
@@ -73,21 +72,23 @@ class ProcessOrderRequest(ProcessOrderBase):
 
                     if elapsed >= ORDER_SUBMIT_TIMEOUT_SEC:
                         raise OrderSubmitTimeoutError(
-                            message=f"@({order.id}) Order submit timeout at ProcessOrderRequest: elapsed={elapsed:.1f}s",
+                            message=f"(#{trade.id}) @({order.id}) Order submit timeout at ProcessOrderRequest: elapsed={elapsed:.1f}s",
                             code="ORDER_SUBMIT_TIMEOUT",
                         )
 
                     order.order_no = self.get_order_no(trade, order)
                     if order.order_no is None:
+                        Log.warn(f"(#{trade.id}) @({order.id}) GET ORDER NO NONE")
                         return False
 
+                    Log.event(f"(#{trade.id}) @({order.id}) GET ORDER NO SUCCESS order_no={order.order_no}")
                     order.change_state(OrderState.REQUESTED)
 
                     # True の後は呼ばれない
                     return True
 
                 case _:
-                    raise Exception(f"UNKNOWN ORDER STATE {order.state}")
+                    raise Exception(f"(#{trade.id}) @({order.id}) UNKNOWN ORDER STATE {order.state}")
 
         return False
 
@@ -104,10 +105,7 @@ class ProcessOrderRequest(ProcessOrderBase):
             order_action = OrderAction.SELL
 
         else:
-            raise StrategySideDisabledError(
-                message=f"UNKNOWN SIDE {trade.param.side}",
-                code="UNKNOWN_SIDE",
-            )
+            raise InternalError(message=f"UNKNOWN SIDE {trade.param.side}", code="UNKNOWN_SIDE")
 
         # 成行注文
         return self.create_order(

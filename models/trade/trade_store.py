@@ -16,77 +16,91 @@
 #
 # ==================================================
 
-
 from core.store import BaseStore
 from models.trade.trade_model import TradeModel
 
 
 class TradeStore(BaseStore):
 
-
     def __init__(
         self,
-        file_path="storage/json/trades.json"
+        dir_path="storage/json/trade"
     ):
 
-        super().__init__(file_path)
+        super().__init__(dir_path)
 
 
+    # ==========================================
+    # Trade単位のファイル名
+    # ==========================================
+    def _get_file_name(self, trade_id):
 
+        return f"{trade_id}.json"
+
+
+    # ==========================================
+    # Trade保存
+    # ==========================================
     def save(self, trade):
 
-        data = self._load()
-
-        exists = False
-
-
-        for i, item in enumerate(data):
-
-            if item["id"] == trade.id:
-
-                data[i] = trade.to_storage_dict()
-                exists = True
-                break
+        self._save(
+            self._get_file_name(trade.id),
+            trade.to_storage_dict()
+        )
 
 
-        if not exists:
+    # ==========================================
+    # 全Trade取得
+    #
+    # order:
+    #   asc  : Trade ID昇順（デフォルト）
+    #   desc : Trade ID降順
+    # ==========================================
+    def find_all(self, order="asc"):
 
-            data.append(
-                trade.to_storage_dict()
-            )
+        file_paths = list(
+            self.dir_path.glob("*.json")
+        )
 
-
-        self._save(data)
-
-
-
-    def find_all(self):
-
-        data = self._load()
+        file_paths.sort(
+            key=lambda path: int(path.stem),
+            reverse=(order == "desc")
+        )
 
         return [
-            TradeModel.from_storage_dict(item)
-            for item in data
+            TradeModel.from_storage_dict(
+                self._load(file_path.name)
+            )
+            for file_path in file_paths
         ]
 
 
-
+    # ==========================================
+    # Trade取得
+    # ==========================================
     def find_by_id(self, trade_id):
 
-        data = self._find_by_id(
-            trade_id
-        )
+        file_name = self._get_file_name(trade_id)
 
-        if data is None:
+        file_path = self.dir_path / file_name
+
+        if not file_path.exists():
             return None
 
+        data = self._load(file_name)
 
         return TradeModel.from_storage_dict(data)
 
 
-
+    # ==========================================
+    # Trade削除
+    # ==========================================
     def delete(self, trade_id):
 
-        self._delete_by_id(
-            trade_id
+        file_path = (
+            self.dir_path
+            / self._get_file_name(trade_id)
         )
+
+        if file_path.exists():
+            file_path.unlink()

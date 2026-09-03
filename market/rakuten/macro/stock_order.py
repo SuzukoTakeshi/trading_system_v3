@@ -38,6 +38,8 @@
 #       Excel.Application.Workbooks
 #
 
+from core.logger import Log
+
 from market.rakuten.macro.macro_base import MacroBase
 
 
@@ -46,17 +48,17 @@ class StockOrder(MacroBase):
     def __init__(self, client):
         super().__init__(client)
 
-
+    # ==========================================
+    # 現物注文
+    #
+    #     現物注文
+    #
+    #     使用RSS:
+    #         RssStockOrder_V
+    #     request:
+    #         Market Order Request dict
+    # ==========================================
     def submit(self, request):
-        """
-        現物注文
-
-        使用RSS:
-            RssStockOrder_V
-
-        request:
-            Market Order Request dict
-        """
 
         # ------------------------------------------
         # RssStockOrder_V 引数
@@ -175,6 +177,27 @@ class StockOrder(MacroBase):
         #   RESULT : 注文ID=345 は既に使用済みです。
         #
         # ------------------------------------------
+        self._log_params(
+            order_id,
+            symbol,
+            action,
+            order_type,
+            sor,
+            quantity,
+            price_type,
+            price,
+            condition,
+            expire,
+            account,
+            trigger_price,
+            trigger_type,
+            trigger_price_type,
+            trigger_order_price,
+            set_order_type,
+            set_order_price,
+            set_order_condition,
+            set_order_expire,
+        )
 
         result, macro_result = self.run(
             order_id, symbol,
@@ -201,15 +224,58 @@ class StockOrder(MacroBase):
             set_order_expire,
         )
 
-        #
         # 正常
-        #
         if macro_result == "":
+            Log.debug(f"現物注文: 正常")
             return True, None
 
-        #
         # RSSエラー
-        #
         result_code = self.get_result_code(macro_result)
+        Log.debug(f"現物注文{request["order_action"]}: エラー={macro_result} result_code={result_code.value}")
 
         return False, result_code
+
+
+    def _log_params(
+        self,
+        order_id,
+        symbol,
+        action,
+        order_type,
+        sor,
+        quantity,
+        price_type,
+        price,
+        condition,
+        expire,
+        account,
+        trigger_price,
+        trigger_type,
+        trigger_price_type,
+        trigger_order_price,
+        set_order_type,
+        set_order_price,
+        set_order_condition,
+        set_order_expire,
+    ):
+
+        Log.debug("RssStockOrder_V PARAMS")
+        Log.debug(f"  order_id             = {order_id}")
+        Log.debug(f"  symbol               = {symbol}")
+        Log.debug(f"  action               = {action}")
+        Log.debug(f"  order_type           = {order_type}")
+        Log.debug(f"  sor                  = {sor}")
+        Log.debug(f"  quantity             = {quantity}")
+        Log.debug(f"  price_type           = {price_type}")
+        Log.debug(f"  price                = {price}")
+        Log.debug(f"  condition            = {condition}")
+        Log.debug(f"  expire               = {expire}")
+        Log.debug(f"  account              = {account}")
+        Log.debug(f"  trigger_price        = {trigger_price}")
+        Log.debug(f"  trigger_type         = {trigger_type}")
+        Log.debug(f"  trigger_price_type   = {trigger_price_type}")
+        Log.debug(f"  trigger_order_price  = {trigger_order_price}")
+        Log.debug(f"  set_order_type       = {set_order_type}")
+        Log.debug(f"  set_order_price      = {set_order_price}")
+        Log.debug(f"  set_order_condition  = {set_order_condition}")
+        Log.debug(f"  set_order_expire     = {set_order_expire}")

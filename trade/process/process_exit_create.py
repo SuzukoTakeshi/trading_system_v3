@@ -21,7 +21,6 @@ from trade.process.process_order_base import (
 
 from core.exception import (
     InternalError,
-    StrategySideDisabledError,
     OrderSubmitTimeoutError,
 )
 
@@ -64,6 +63,7 @@ class ProcessExitCreate(ProcessOrderBase):
                 case OrderState.SUBMITTED:
 
                     # 発注受付待ちタイムアウト
+
                     if order.submitted_at is None:
                         raise InternalError(
                             message=f"@({order.id}) Order submitted_at is None at ProcessExitCreate",
@@ -104,10 +104,7 @@ class ProcessExitCreate(ProcessOrderBase):
             order_action = OrderAction.BUY
 
         else:
-            raise StrategySideDisabledError(
-                message=f"UNKNOWN SIDE {trade.param.side}",
-                code="UNKNOWN_SIDE",
-            )
+            raise InternalError(message=f"UNKNOWN SIDE {trade.param.side}", code="UNKNOWN_SIDE")
 
         return self.create_order(
             trade,

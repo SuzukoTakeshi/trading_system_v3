@@ -10,9 +10,9 @@ from market.order_enums import OrderState
 
 from core.exception import (
     OrderNotFoundError,
-    DuplicateOrderError,
-    CancelOrderResult,
-    NotFilledOrderResult,
+    OrderDuplicateError,
+    OrderMarketCancelError,
+    OrderMarketNotFilledError,
 )
 
 from market.order_enums import OrderResultStatus
@@ -86,8 +86,8 @@ class ProcessExitWait(ProcessBase):
                 OrderResultStatus.CANCELED_FILLED,
                 OrderResultStatus.CANCELED_UNFILLED,
             ):
-                raise CancelOrderResult(
-                    message=f"CANCEL ORDER (#{trade.id}) @({order.order_no}) ",
+                raise OrderMarketCancelError(
+                    message=f"(#{trade.id}) CANCEL ORDER order_no={order.order_no}",
                     code="CANCEL_ORDER",
                 )
 
@@ -95,8 +95,8 @@ class ProcessExitWait(ProcessBase):
                 OrderResultStatus.NOT_FILLED_FILLED,
                 OrderResultStatus.NOT_FILLED_UNFILLED,
             ):
-                raise NotFilledOrderResult(
-                    message=f"(#{trade.id}) (@{order.order_no}) NOT FILLED ORDER",
+                raise OrderMarketNotFilledError(
+                    message=f"(#{trade.id}) NOT FILLED ORDER order_no={order.order_no}",
                     code="NOT_FILLED_ORDER",
                 )
 
@@ -124,7 +124,7 @@ class ProcessExitWait(ProcessBase):
 
             # 2件以上存在したら異常
             if order is not None:
-                raise DuplicateOrderError(
+                raise OrderDuplicateError(
                     message=f"(#{trade.id}) MULTIPLE ORDER",
                     code="MULTIPLE_ORDER",
                 )

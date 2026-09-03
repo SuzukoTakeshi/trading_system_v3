@@ -69,6 +69,10 @@ class TradeRuntime:
         # ENTRY判定管理
         # ---------------------------------------
 
+        # LONG/SHORT共通
+        # ENTRY監視開始時点の基準価格
+        self.entry_base_price = None
+
         # LONG: 押し込み中の最安値
         self.entry_lowest_price = None
 
@@ -130,6 +134,7 @@ class TradeRuntime:
             "trailing_lowest_price": self.trailing_lowest_price,
 
             # ENTRY判定管理
+            "entry_base_price": self.entry_base_price,
             "entry_lowest_price": self.entry_lowest_price,
             "entry_highest_price": self.entry_highest_price,
             "entry_previous_price": self.entry_previous_price,
@@ -166,6 +171,7 @@ class TradeRuntime:
         runtime.trailing_lowest_price = data.get("trailing_lowest_price")
 
         # ENTRY判定管理
+        runtime.entry_base_price = data.get("entry_base_price")
         runtime.entry_lowest_price = data.get("entry_lowest_price")
         runtime.entry_highest_price = data.get("entry_highest_price")
         runtime.entry_previous_price = data.get("entry_previous_price")
