@@ -112,18 +112,20 @@ SCENARIO_LABEL = {
 
 # ==========================================
 # EXIT理由
-# ==========================================
-
-EXIT_REASON_LABEL = {
-    "stop": "損切り",
-    "time": "時間決済",
-    "close": "指定時刻決済",
-    "margin_day_close": "1日信用大引け",
-    "manual": "手動決済",
-}
-
-# ==========================================
-# EXIT理由
+#   margin_day_close: 1日信用大引けによる決済
+#       1日信用取引の強制手仕舞い時刻に到達したか
+#       ※有効/無効の設定はない
+#   time_exit: 時間制限による決済
+#       ENTRY約定から設定された時間が経過したか
+#       trade.param.time_enabled       : 時間決済機能の有効/無効
+#       trade.param.time_limit_minutes : ENTRY約定からEXITするまでの制限時間（分）
+#   close_exit: 指定時刻による決済
+#       指定された時刻に到達したか
+#       trade.param.close_enabled : 指定時刻決済機能の有効/無効
+#       trade.param.close_time    : 指定時刻 HH:MM"形式で設定する。
+#   manual_exit: 手動決済
+#   stop_line_exit: 損切ライン到達による決済
+#
 # ==========================================
 
 EXIT_REASON_LABEL = {
@@ -138,17 +140,18 @@ EXIT_REASON_LABEL = {
 # EXIT理由のUI表示文字列を取得する。
 #
 # STOPの場合は実損益によって表示を変更する。
-#     profit_loss >= 0 → 💰 プラス決済
+#     profit_loss >  0 → 💰 プラス決済
 #     profit_loss <  0 → 🔻 マイナス決済
+#     profit_loss == 0 → ⚪ ±0決済
 # ==========================================
 def get_exit_reason_label(exit_reason, profit_loss=None):
 
-    if exit_reason == "stop_line_exit":
-
-        if profit_loss is not None and profit_loss >= 0:
+    if exit_reason == "stop_line_exit" and profit_loss is not None:
+        if profit_loss > 0:
             return "💰 プラス決済"
-
-        return "🔻 マイナス決済"
+        elif profit_loss < 0:
+            return "🔻 マイナス決済"
+        return "⚪ ±0決済"
 
     if exit_reason:
         return EXIT_REASON_LABEL.get(

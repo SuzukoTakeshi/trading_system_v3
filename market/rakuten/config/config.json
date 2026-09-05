@@ -2,7 +2,7 @@
   "excel": {
     "path": {
       "real": "C:\\StockProjects\\TradingData\\楽天RSS_v3.xlsm",
-      "simulator": "C:\\StockProjects\\TradingData\\楽天RSS_v3.xlsm",
+      "simulator": "C:\\StockProjects\\TradingData\\楽天RSS_v3_Debug.xlsm",
       "emulator": "C:\\StockProjects\\TradingData\\楽天RSS_v3_Debug.xlsm",
       "debug": "C:\\StockProjects\\TradingData\\楽天RSS_v3_Debug.xlsm"
     },

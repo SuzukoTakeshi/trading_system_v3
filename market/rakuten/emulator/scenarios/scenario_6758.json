@@ -1,7 +1,7 @@
 {
     "trade": {
         "symbol": 6758,
-        "price": 0,
+        "trade_price": 0,
         "quantity": 100,
         "atr": 2,
         "trade_type": "margin",

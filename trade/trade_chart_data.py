@@ -31,6 +31,7 @@ def add_trade_chart_data(context, trade):
         TradeState.COMPLETED,
         TradeState.CANCELED,
         TradeState.ERROR,
+        TradeState.CLOSED,
     ]
 
     chart_data_list = context.cache.trade_chart_datas.get(

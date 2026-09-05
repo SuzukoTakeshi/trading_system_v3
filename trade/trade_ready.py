@@ -269,17 +269,12 @@ class TradeReady:
         if out_of_limit:
 
             if not trade.runtime.price_limit_waiting:
-                Log.event(
-                    f"(#%s) PRICE LIMIT WAIT symbol=%s current_price=%s "
-                    f"lower=%s upper=%s"
-                    % (
-                        trade.id,
-                        trade.param.symbol,
-                        current_price,
-                        trade.param.lower_limit,
-                        trade.param.upper_limit,
-                    )
+                message = (
+                    f"PRICE LIMIT WAIT symbol={trade.param.symbol} current_price={current_price} "
+                    f"lower={trade.param.lower_limit} upper={trade.param.upper_limit}"
                 )
+                Log.event(f"(#{trade.id}) {message}")
+                trade.add_timeline(event="TRADE_READY", message=message, current_price=current_price)
 
                 trade.runtime.price_limit_waiting = True
 
@@ -288,14 +283,9 @@ class TradeReady:
 
         # 値幅制限内へ復帰
         if trade.runtime.price_limit_waiting:
-            Log.event(
-                f"(#%s) PRICE LIMIT RESUME symbol=%s current_price=%s"
-                % (
-                    trade.id,
-                    trade.param.symbol,
-                    current_price,
-                )
-            )
+            message = f"PRICE LIMIT RESUME symbol={trade.param.symbol} current_price={current_price}"
+            Log.event(f"(#{trade.id}) {message}")
+            trade.add_timeline(event="TRADE_READY", message=message, current_price=current_price)
 
             trade.runtime.price_limit_waiting = False
 

@@ -91,24 +91,9 @@ class TradeEngineAPI:
 
         self.context.trades[trade.id] = trade
 
-        trade.add_timeline(
-            type = "ENGINE",
-            message = (
-                f"CREATE "
-                f"quantity={trade.param.quantity} "
-                f"trade_price={trade.param.trade_price} "
-                f"atr={trade.param.atr} "
-                f"type={trade.param.trade_type.value} "
-                f"margin_type={trade.param.margin_type} "
-                f"side={trade.param.side.value} "
-                f"strategy={trade.param.strategy.value}"
-            )
-        )
-
         self._save_trade(trade)
 
         Log.event(f"(#{trade.id}) TRADE CREATED symbol={trade.param.symbol}")
-
         Log.event(
             f"(#{trade.id}) TRADE PARAM "
             f"symbol={trade.param.symbol} "
@@ -148,6 +133,20 @@ class TradeEngineAPI:
             f"close_enabled={strategy_cfg['exit']['close']['enabled']} "
             f"close_time={strategy_cfg['exit']['close']['time']} "
             f"chart_interval={strategy_cfg['chart']['interval_seconds']}s"
+        )
+
+        trade.add_timeline(
+            event = "ENGINE",
+            message = (
+                f"TRADE CREATED "
+                f"quantity={trade.param.quantity} "
+                f"trade_price={trade.param.trade_price} "
+                f"atr={trade.param.atr} "
+                f"type={trade.param.trade_type.value} "
+                f"margin_type={trade.param.margin_type} "
+                f"side={trade.param.side.value} "
+                f"strategy={trade.param.strategy.value}"
+            )
         )
 
         self.context.notifier_trade.notify(trade, "TRADE CREATED")

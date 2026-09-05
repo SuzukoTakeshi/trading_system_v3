@@ -1,5 +1,5 @@
 {
-  "mode": "real",
+  "mode": "debug",
   "market": "rakuten",
 
   "market_rules": {

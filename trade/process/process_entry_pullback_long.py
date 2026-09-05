@@ -69,9 +69,12 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
                 # Entry状態更新
                 trade.entry_state = EntryState.PULLBACK
 
-                text = f"PULLBACK ENTRY LONG symbol={trade.param.symbol} current_price={current_price}"
-                Log.event(f"(#{trade.id}) {text}")
-                trade.add_timeline(type="ENTRY", message=text)
+                message = (
+                    f"PULLBACK ENTRY LONG symbol={trade.param.symbol} current_price={current_price} "
+                    f"entry_lowest_price={trade.runtime.entry_lowest_price}"
+                )
+                Log.event(f"(#{trade.id}) {message}")
+                trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
 
                 # 通知
                 self.notify(trade, "PULLBACK ENTRY LONG")
@@ -82,9 +85,9 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
         # 押し込み中
         #   安値更新確認
         if current_price < trade.runtime.entry_lowest_price:
-            text = f"PULLBACK UPDATE LOW LONG symbol={trade.param.symbol} current_price={current_price}"
-            Log.trace("ENTRY", f"(#{trade.id}) {text}")
-            trade.add_timeline(type="ENTRY", message=text)
+            message = f"PULLBACK UPDATE LOW LONG symbol={trade.param.symbol} current_price={current_price}"
+            Log.trace("ENTRY", f"(#{trade.id}) {message}")
+            trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
 
             # 最安値更新
             trade.runtime.entry_lowest_price = current_price
@@ -97,9 +100,9 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
             and
             current_price > trade.runtime.entry_previous_price
         ):
-            text = f"PULLBACK END LONG symbol={trade.param.symbol} current_price={current_price}"
-            Log.event(f"(#{trade.id}) {text}")
-            trade.add_timeline(type="ENTRY", message=text)
+            message = f"PULLBACK END LONG symbol={trade.param.symbol} current_price={current_price}"
+            Log.event(f"(#{trade.id}) {message}")
+            trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
 
             # 通知
             self.notify(trade, "PULLBACK END LONG")

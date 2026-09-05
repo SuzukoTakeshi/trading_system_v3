@@ -23,7 +23,6 @@
 #   ・create()     ：クラス生成
 #   ・state()      ：状態変更
 #   ・market()     ：マーケット処理
-#   ・trailing()   ：Trailing情報
 #   ・asset()      ：資産処理
 #
 #   ・flow()       ：処理経路確認
@@ -52,7 +51,6 @@
 #   ・CREATE      ：クラス生成
 #   ・STATE       ：状態変更
 #   ・MARKET      ：マーケット処理
-#   ・TRAILING    ：Trailing
 #   ・ASSET       ：資産処理
 
 #   ・FLOW        ：処理経路確認
@@ -107,7 +105,6 @@ class Log:
         "CREATE": Fore.GREEN,
         "STATE": Fore.YELLOW,
         "MARKET": Fore.LIGHTMAGENTA_EX,
-        "TRAILING": Fore.BLUE,
         "ASSET": Fore.MAGENTA,
 
         "FLOW": Fore.CYAN,
@@ -306,24 +303,6 @@ class Log:
     @classmethod
     def market(cls, *args):
         cls._write_log("MARKET", *args)
-
-
-    # ========================
-    # TRAILING Trailing情報
-    # ========================
-    _last_trailing_message = None
-
-    @classmethod
-    def trailing(cls, trade_id, *args):
-        message = " ".join(str(arg) for arg in args)
-        current_message = (trade_id, message)
-
-        if current_message == cls._last_trailing_message:
-            return
-
-        cls._last_trailing_message = current_message
-
-        cls._write_log("TRAILING", f"(#{trade_id})", message)
 
 
     # ========================

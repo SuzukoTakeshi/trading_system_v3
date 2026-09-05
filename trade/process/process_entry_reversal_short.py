@@ -60,9 +60,9 @@ class ProcessEntryReversalShort(ProcessEntryBase):
             trade.runtime.entry_reversal_count = 0
 
         if previous_count != trade.runtime.entry_reversal_count:
-            text = f"REVERSAL ENTRY SHORT count={trade.runtime.entry_reversal_count}"
-            Log.debug(f"(#{trade.id}) {text}")
-            trade.add_timeline(type="ENTRY", message=text)
+            message = f"REVERSAL ENTRY SHORT count={trade.runtime.entry_reversal_count}"
+            Log.event(f"(#{trade.id}) {message}")
+            trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
 
 
         # 前回価格更新
@@ -74,13 +74,13 @@ class ProcessEntryReversalShort(ProcessEntryBase):
             >=
             cfg["reversal_confirm_count"]
         ):
-            text = (
+            message = (
                 f"REVERSAL COMPLETE SHORT symbol={trade.param.symbol} "
                 f"count={trade.runtime.entry_reversal_count} "
                 f"current_price={current_price}"
             )
-            Log.event(f"(#{trade.id}) {text}")
-            trade.add_timeline(type="ENTRY", message=text)
+            Log.event(f"(#{trade.id}) {message}")
+            trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
 
             # 通知
             self.notify(trade, "REVERSAL COMPLETE SHORT")

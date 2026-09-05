@@ -5,8 +5,6 @@
 #
 # 役割:
 #   ・注文結果を管理
-#   ・OrderListから取得した結果を保持
-#
 #
 
 from core.entity import BaseEntity
@@ -15,12 +13,11 @@ from market.order_enums import OrderResultStatus
 
 class OrderResultModel(BaseEntity):
 
-
     def __init__(
         self,
         order_no,
         status: OrderResultStatus,
-        order_datetime,
+        result_datetime,
         quantity,
         price,
         generate_id=True,
@@ -33,8 +30,8 @@ class OrderResultModel(BaseEntity):
         # 注文状態
         self.status = status
 
-        # 発注/受注日時
-        self.order_datetime = order_datetime
+        # 結果取得日時
+        self.result_datetime  = result_datetime 
 
         # 約定数量
         self.quantity = quantity
@@ -56,7 +53,7 @@ class OrderResultModel(BaseEntity):
         data.update({
             "order_no": self.order_no,
             "status": self.status.value,
-            "order_datetime": self.order_datetime,
+            "result_datetime": self.result_datetime,
             "quantity": self.quantity,
             "price": self.price,
             "amount": self.amount,

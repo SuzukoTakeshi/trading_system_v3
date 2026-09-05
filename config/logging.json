@@ -8,7 +8,6 @@
     "CREATE": true,
     "STATE": true,
     "MARKET": true,
-    "TRAILING": false,
     "ASSET": true,
     "FLOW": true,
 

@@ -95,11 +95,6 @@ class EmulatorEngine:
         if not self.wait_backend_engine():
             return False
 
-        # Trade作成
-        if self.create_trade:
-            if not self.start_trade():
-                return False
-
         self.running = True
 
         self.thread = threading.Thread(target=self.run, daemon=True)
@@ -252,6 +247,17 @@ class EmulatorEngine:
 
             Log.emulator("EMULATOR LOOP START")
 
+            # Quote初期クリア
+            self.update_price(self.symbol, None)
+
+            # 初期WAIT
+            time.sleep(self.interval)
+
+            # Trade作成
+            if self.create_trade:
+                if not self.start_trade():
+                    return False
+
             scenario_no = 0
 
             while self.running:
@@ -307,7 +313,9 @@ class EmulatorEngine:
                 continue
 
             # 既存銘柄
-            sheet.Cells(row, 2).Value = price
+            sheet.Cells(row, 2).Value = (
+                "" if price is None else price
+            )
 
             return True
 

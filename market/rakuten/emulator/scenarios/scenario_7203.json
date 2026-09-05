@@ -1,7 +1,7 @@
 {
     "trade": {
         "symbol": 7203,
-        "price": 0,
+        "trade_price": 0,
         "quantity": 100,
         "atr": 2.0,
         "trade_type": "cash",

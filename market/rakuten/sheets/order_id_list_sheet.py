@@ -53,8 +53,15 @@ class OrderIDListSheet(BaseSheet):
 
     # ==========================================
     # 注文番号取得
-    #   return
-    #       order_no, result_text       
+    #
+    #   return:
+    #       (order_no, result_text)
+    #
+    #   発注IDが存在しない場合:
+    #       None
+    #
+    #   発注結果がエラーの場合:
+    #       (None, result_text)
     # ==========================================
     def get_order_no(self, order_id):
 

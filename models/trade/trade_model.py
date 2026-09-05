@@ -115,68 +115,52 @@ class TradeModel(BaseEntity):
         self.message = "登録完了"
 
 
-    # ==================================================
-    # Trade Timeline message追加
-    # ==================================================
-    def add_timeline(self, type, message, **kwargs):
+    def add_timeline(self, event, message, current_price=None, **kwargs):
+        """
+        Timeline 追加
+        """
+
         item = {
             "time": datetime.now().isoformat(),
-            "type": type,
+            "event": event,
             "message": message,
+            "state": self.state.value,
         }
+
+        if current_price is not None:
+            item["current_price"] = current_price
+
         item.update(kwargs)
+
         self.timeline.append(item)
 
 
-    # ==================================================
-    # Trade状態変更
-    # ==================================================
     def change_state(self, new_state):
+        """
+        Trade状態変更
+        """
+
         if self.state == new_state:
             return False
 
         old_state = self.state
-
         self.state = new_state
 
-        # Timeline記録
+        current_price = (
+            self.runtime.quote.current_price
+            if self.runtime.quote is not None
+            else None
+        )
+
         self.add_timeline(
-            type="STATE",
+            event="STATE",
             message=f"STATE {old_state.value} -> {new_state.value}",
-            state=self.state.value,
+            current_price=current_price
         )
 
         Log.state(self.id, old_state.value, new_state.value)
 
         return True
-
-
-    # ==================================================
-    # Timeline種別取得
-    #
-    def get_timeline_by_type(self, event_type):
-
-        return [
-            item
-            for item in self.timeline
-            if item.get("type") == event_type
-        ]
-
-
-    # ==================================================
-    # 状態履歴確認
-    #
-    def has_state(self, state):
-        state_value = state.value
-
-        for item in self.timeline:
-            if (
-                item.get("type") == "STATE"
-                and item.get("state") == state_value
-            ):
-                return True
-
-        return False
 
 
     def to_storage_dict(self):
@@ -228,10 +212,11 @@ class TradeModel(BaseEntity):
 
         return trade
 
-    # ==========================================
-    # API/UI表示用変換
-    # ==========================================
+
     def to_dict(self):
+        """
+        API/UI表示用変換
+        """
        
         data = super().to_dict()
 
@@ -287,13 +272,14 @@ class TradeModel(BaseEntity):
         return data
 
 
-    # ==================================================
-    # 最終損益計算
-    #   LONG:  (EXIT価格 - ENTRY価格) * 株数
-    #   SHORT: (ENTRY価格 - EXIT価格) * 株数
-    #   EXIT未約定の場合はNone。
-    # ==================================================
     def get_profit_loss(self):
+        """
+        最終損益計算
+            LONG:  (EXIT価格 - ENTRY価格) * 株数
+            SHORT: (ENTRY価格 - EXIT価格) * 株数
+            EXIT未約定の場合はNone。
+        """
+
         entry_price = self.runtime.entry_price
         exit_price = self.runtime.exit_price
         quantity = self.param.quantity
@@ -311,27 +297,24 @@ class TradeModel(BaseEntity):
         return None
 
 
-    # ==================================================
-    # 現在価格損益計算
-    #   LONG:  (EXIT価格 - ENTRY価格) * 株数
-    #   SHORT: (ENTRY価格 - EXIT価格) * 株数
-    #   EXIT未約定の場合はNone。
-    # ==================================================
     def get_current_profit_loss(self):
-        entry_price = self.runtime.entry_price
+        """
+        現在価格損益計算
+            LONG:  (EXIT価格 - ENTRY価格) * 株数
+            SHORT: (ENTRY価格 - EXIT価格) * 株数
+            EXIT未約定の場合はNone。
+        """
         quote = self.runtime.quote
+        if quote is None:
+            return None
+        current_price = quote.current_price
+
+        entry_price = self.runtime.entry_price
         quantity = self.param.quantity
         side = self.param.side.value
 
-        if (
-            entry_price is None
-            or quote is None
-            or quote.current_price is None
-            or quantity is None
-        ):
+        if (entry_price is None or current_price is None or quantity is None):
             return None
-
-        current_price = quote.current_price
 
         if side == "long":
             return (current_price - entry_price) * quantity

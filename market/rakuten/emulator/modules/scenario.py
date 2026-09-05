@@ -78,7 +78,7 @@ class Scenario:
 
             if not path.exists():
 
-                raise FileNotFoundException(
+                raise FileNotFoundError(
                     f"SCENARIO NOT FOUND : {path}"
                 )
 
@@ -88,7 +88,7 @@ class Scenario:
 
             if not path.exists():
 
-                raise FileNotFoundException(
+                raise FileNotFoundError(
                     f"SCENARIO NOT FOUND : {path}"
                 )
 
@@ -157,7 +157,7 @@ class Scenario:
 
             if not self.range:
 
-                raise ValueException(
+                raise ValueError(
                     "RANDOM SCENARIO RANGE NOT FOUND"
                 )
 
@@ -168,7 +168,7 @@ class Scenario:
 
         else:
 
-            raise ValueException(
+            raise ValueError(
                 f"UNKNOWN SCENARIO MODE : {self.mode}"
             )
 
@@ -180,7 +180,7 @@ class Scenario:
         if self.trade:
 
             self.current_price = float(
-                self.trade["price"]
+                self.trade["trade_price"]
             )
 
 
@@ -246,7 +246,6 @@ class Scenario:
 
                 comment = command["comment"]
 
-
                 if isinstance(
                     comment,
                     list
@@ -263,9 +262,6 @@ class Scenario:
                     Log.emulator(
                         f"SCENARIO : {comment}"
                     )
-
-
-                continue
 
 
             # --------------------------------------

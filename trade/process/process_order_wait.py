@@ -2,25 +2,12 @@
 # trade/process/process_order_wait.py
 #
 
-from datetime import datetime
-
 from core.logger import Log
 
-from trade.process.process_base import ProcessBase
-
-from market.order_enums import OrderState
-
-from core.exception import (
-	OrderNotFoundError,
-	OrderDuplicateError,
-    OrderMarketCancelError,
-    OrderMarketNotFilledError,
-)
-
-from market.order_enums import OrderResultStatus
+from trade.process.process_order_base import ProcessOrderBase
 
 
-class ProcessOrderWait(ProcessBase):
+class ProcessOrderWait(ProcessOrderBase):
 
     def __init__(self, context, market):
         super().__init__(context, market)
@@ -30,107 +17,30 @@ class ProcessOrderWait(ProcessBase):
 
     def process(self, trade):
         """
-        Order約定待ち
-
-        TradeState.ORDER_WAITで呼ばれる
+        Order約定待ち TradeState.ORDER_WAITで呼ばれる
         """
 
         Log.flow(f"(#{trade.id}) ProcessOrderWait:process")
 
-        order = self.get_order(trade)
-        if order is None:
-            raise OrderNotFoundError(
-                message=f"(#{trade.id}) ORDER NOT FOUND",
-                code="ORDER_NOT_FOUND",
-            )
+        return self.order_result(trade)
 
 
-        # 注文受付済み
-        if order.state == OrderState.REQUESTED:
-            Log.trace("ORDER_WAIT", f"(#{trade.id}) order_id={order.id} state={order.state.name}")
-
-            # 確認用：OrderListの生データを取得
-            order.order_list_sheet_data = self.market.get_order_list_data(order.order_no)
-            if order.order_list_sheet_data is None:
-                return False
-
-            # 注文結果取得　OrderResultModel
-            result, order_result = self.market.get_order_result(order.order_no)
-
-            if result:
-                # 注文結果をOrderへ設定
-                order.result = order_result
-
-                order.change_state(OrderState.FILLED)
-
-                trade.runtime.entry_price = order_result.price
-                trade.runtime.entry_time = datetime.now()
-
-                Log.event(
-                    f"ORDER FILLED (#{trade.id}) (@{order.id}) symbol={order.symbol} "
-                    f"order_no={order.order_no} price={order_result.price}"
-                )
-
-                trade.add_timeline(
-                    type="ORDER",
-                    message=f"FILLED id={order.id} order_no={order.order_no} price={order_result.price}",
-                )
-
-                return True
-
-            if order_result.status in (
-                OrderResultStatus.PARTIAL_FILLED,   # 一部約定
-            ):
-                return False
-
-            if order_result.status in (
-                OrderResultStatus.EXECUTION_WAIT,
-                OrderResultStatus.EXECUTING,
-            ):
-                return False
-
-            if order_result.status in (
-                OrderResultStatus.CANCELING_FILLED,
-                OrderResultStatus.CANCELING_UNFILLED,
-                OrderResultStatus.CANCELED_FILLED,
-                OrderResultStatus.CANCELED_UNFILLED,
-            ):
-                raise OrderMarketCancelError(
-                    message=f"(#{trade.id}) CANCEL ORDER order_no={order.order_no} ",
-                    code="CANCEL_ORDER",
-                )
-
-            if order_result.status in (
-                OrderResultStatus.NOT_FILLED_FILLED,
-                OrderResultStatus.NOT_FILLED_UNFILLED,
-            ):
-                raise OrderMarketNotFilledError(
-                    message=f"(#{trade.id}) NOT FILLED ORDER order_no={order.order_no}",
-                    code="NOT_FILLED_ORDER",
-                )
-
-            if order_result.status in (     #訂正済
-                OrderResultStatus.CORRECTED,
-            ):
-                return False
-
-        return False
-
-
-    def get_order(self, trade):
+    def on_order_filled(self, trade, order, order_result):
         """
-        Tradeに紐づくOrder取得
+        全量約定処理 ProcessOrderBase:order_result()内より呼び出される。
         """
 
-        order = None
-        for o in self.context.cache.orders.values():
-            if o.trade.id == trade.id:
-                if order:
-                    raise OrderDuplicateError(
-                        message=f"(#{trade.id}) MULTIPLE ORDER",
-                        code="MULTIPLE_ORDER",
-                    )
+        trade.runtime.entry_price = order_result.price
+        trade.runtime.entry_time = order_result.result_datetime
 
-                order = o
-                
-        return order
+        message = (
+            f"(@{order.id}) ORDER FILLED "
+            f"order_no={order.order_no} "
+            f"symbol={order.symbol} "
+            f"quantity={order_result.quantity} "
+            f"price={order_result.price}"
+        )
+        Log.event(f"(#{trade.id}) {message}")
+        trade.add_timeline(event="ORDER", message=message)
+
+        return True

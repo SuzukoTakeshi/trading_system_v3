@@ -26,9 +26,9 @@ from config.config_loader import Config
 
 from core.logger import Log
 from core.exception import (
+    ErrorScope,
 	ExcelArgumentError,
     QuoteNotFoundError,
-    OrderSubmitTimeoutError,
 )
 from core.voice_manager import VoiceManager
 from core.voice_enums import VoiceType
@@ -71,10 +71,10 @@ from notifier.notifier_trade import NotifierTrade
 class TradeEngine:
 
     # proc interval
-    PROC_MARKET_INTERVAL_SEC = 0.5
-    PROC_ORDER_INTERVAL_SEC = 0.5
-    PROC_STRATEGY_INTERVAL_SEC = 0.5
-    PROC_ASSET_INTERVAL_SEC = 1.0
+    # PROC_MARKET_INTERVAL_SEC = 0.5
+    # PROC_ORDER_INTERVAL_SEC = 0.5
+    # PROC_STRATEGY_INTERVAL_SEC = 0.5
+    # PROC_ASSET_INTERVAL_SEC = 1.0
 
     # persistence
     SAVE_INTERVAL_SEC = 0.5
