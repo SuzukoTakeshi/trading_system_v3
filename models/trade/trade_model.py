@@ -115,6 +115,14 @@ class TradeModel(BaseEntity):
         self.message = "登録完了"
 
 
+    def get_quote(self):
+        return self.runtime.quote
+
+
+    def set_quote(self, quote):
+        self.runtime.quote = quote
+
+
     def add_timeline(self, event, message, current_price=None, **kwargs):
         """
         Timeline 追加
@@ -233,9 +241,24 @@ class TradeModel(BaseEntity):
             "strategy": self.param.strategy.value,
 
             "state": self.state.value,
+
+            # 現在値
+            #   ・取引中      : Quoteの現在値
+            #   ・CLOSED後    : Quoteは存在しないため、決済価格を使用
+            # CLOSED後もTrade一覧に最後の価格を表示するため
             "current_price": (
-                self.runtime.quote.current_price
-                if self.runtime.quote is not None
+                self.runtime.exit_price
+                if self.state == TradeState.CLOSED
+                else (
+                    self.get_quote().current_price
+                    if self.get_quote() is not None
+                    else None
+                )
+            ),
+
+            "previous_price": (
+                self.get_quote().previous_price
+                if self.get_quote() is not None
                 else None
             ),
 

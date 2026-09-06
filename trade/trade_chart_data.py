@@ -18,7 +18,9 @@ from trade.trade_enums import TradeState
 # ==========================================
 def add_trade_chart_data(context, trade):
 
-    if trade.runtime.quote is None:
+    quote = trade.get_quote()
+
+    if quote is None:
         return
 
     state = trade.state
@@ -57,20 +59,23 @@ def add_trade_chart_data(context, trade):
     if interval <= 0:
         interval = 1
 
-    cycle_time = context.cycle_time
+    chart_time = quote.current_datetime
+
+    if chart_time is None:
+        return
 
     # UNIX時刻を時間枠で切り捨てる
-    timestamp = cycle_time.timestamp()
+    timestamp = chart_time.timestamp()
     frame_timestamp = (
         int(timestamp / interval) * interval
     )
 
     frame_time = datetime.fromtimestamp(
         frame_timestamp,
-        tz=cycle_time.tzinfo
+        tz=chart_time.tzinfo
     )
 
-    current_price = trade.runtime.quote.current_price
+    current_price = quote.current_price
 
     # ==================================================
     # 同一時間枠のデータを更新

@@ -157,6 +157,8 @@ def trade_list():
 
         trades = get_trades()
 
+        # st.write(trades)
+
         display_trades = []
 
         for trade in trades:
@@ -168,8 +170,20 @@ def trade_list():
             row.pop("symbol", None)
             row.pop("name", None)
 
-            # 売買方向
-            row["side"] = SIDE_LABEL.get(row.get("side", ""), row.get("side", ""))
+            # 現在値
+            current_price = row.get("current_price")
+            previous_price = row.get("previous_price")
+
+            if current_price is None:
+                row["current_price"] = "-"
+            elif previous_price is None:
+                row["current_price"] = f"{current_price:,.2f}"
+            elif current_price > previous_price:
+                row["current_price"] = f"{current_price:,.2f} ↑"
+            elif current_price < previous_price:
+                row["current_price"] = f"{current_price:,.2f} ↓"
+            else:
+                row["current_price"] = f"{current_price:,.2f}"
 
             # 取引区分
             row["trade_type"] = TRADE_TYPE_LABEL.get(
@@ -197,6 +211,9 @@ def trade_list():
                 else f'{profit_loss:,.2f}'
             )
 
+            # 売買方向
+            row["side"] = SIDE_LABEL.get(row.get("side", ""), row.get("side", ""))
+
             # 状態
             pause_flag = row.get("pause_flag", False)
             if pause_flag:
@@ -214,6 +231,26 @@ def trade_list():
                 )
             else:
                 row["message"] = row.get("message")
+
+            # ENTRY
+            row["entry_price"] = (
+                "-"
+                if row.get("entry_price") is None
+                else f'{row["entry_price"]:,.2f}'
+            )
+
+            # ENTRY日時
+            row["entry_time"] = fmt_dt(row.get("entry_time"))
+
+            # EXIT
+            row["exit_price"] = (
+                "-"
+                if row.get("exit_price") is None
+                else f'{row["exit_price"]:,.2f}'
+            )
+
+            # EXIT日時
+            row["exit_time"] = fmt_dt(row.get("exit_time"))
 
             # 登録日時
             row["created_at"] = fmt_dt(row.get("created_at"))
@@ -237,6 +274,10 @@ def trade_list():
                     "profit_loss": "",
                     "state": "",
                     "message": "",
+                    "entry_price": "",
+                    "entry_time": "",
+                    "exit_price": "",
+                    "exit_time": "",
                     "created_at": "",
                 }
             ]
@@ -277,6 +318,10 @@ def trade_list():
                 "profit_loss",
                 "state",
                 "message",
+                "entry_price",
+                "entry_time",
+                "exit_price",
+                "exit_time",
                 "created_at",
             ],
 
@@ -284,16 +329,20 @@ def trade_list():
                 "select": st.column_config.CheckboxColumn("選択", width="small"),
                 "trade_id": st.column_config.NumberColumn("ID", width="small"),
                 "symbol_name": st.column_config.TextColumn("銘柄", width="medium"),
-                "current_price": st.column_config.NumberColumn("現在値", width="small", format="%,.2f"),
+                "current_price": st.column_config.TextColumn("現在値", width="small"),
                 "quantity": st.column_config.NumberColumn("数量", width="small", format="%,d"),
                 "atr": st.column_config.NumberColumn("ATR", width="small", format="%.1f"),
-                "trade_type": st.column_config.TextColumn("取引", width="small"),
+                "trade_type": st.column_config.TextColumn("取引区分", width="small"),
                 "margin_type": st.column_config.TextColumn("信用区分", width="small"),
                 "strategy": st.column_config.TextColumn("戦略", width="small"),
                 "side": st.column_config.TextColumn("トレード区分", width="small"),
                 "profit_loss": st.column_config.TextColumn("損益", width="small"),
                 "state": st.column_config.TextColumn("状態", width="small"),
                 "message": st.column_config.TextColumn("メッセージ", width="large"),
+                "entry_price": st.column_config.TextColumn("ENTRY金額", width="small"),
+                "entry_time": st.column_config.TextColumn("ENTRY日時", width="medium"),
+                "exit_price": st.column_config.TextColumn("EXIT金額", width="small"),
+                "exit_time": st.column_config.TextColumn("EXIT日時", width="medium"),
                 "created_at": st.column_config.TextColumn("登録日時", width="medium")
             },
 
@@ -312,6 +361,10 @@ def trade_list():
                 "profit_loss",
                 "state",
                 "message",
+                "entry_price",
+                "entry_time",
+                "exit_price",
+                "exit_time",
                 "created_at",
             ],
         )

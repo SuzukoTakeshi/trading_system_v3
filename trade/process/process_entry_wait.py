@@ -26,7 +26,7 @@ class ProcessEntryWait(ProcessBase):
 
         Log.flow(f"(#{trade.id}) ProcessEntryWait:process")
 
-        quote = trade.runtime.quote
+        quote = trade.get_quote()
         current_price = quote.current_price
 
         # 初回価格設定

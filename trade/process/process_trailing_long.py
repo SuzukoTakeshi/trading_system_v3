@@ -26,8 +26,9 @@ class ProcessTrailingLong(ProcessTrailingBase):
 
     def process(self, trade):
 
+        # quote = trade.get_quote()
         # message = (
-        #     f"TRAILING CHECK LONG price={trade.runtime.quote.current_price} "
+        #     f"TRAILING CHECK LONG price={quote.current_price} "
         #     f"highest={trade.runtime.trailing_highest_price} stop={trade.runtime.stop_price}"
         # )
         # Log.event(f"(#{trade.id}) {message}")

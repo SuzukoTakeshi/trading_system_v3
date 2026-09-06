@@ -11,6 +11,7 @@
 #   ・Trade作成
 #   ・Scenario価格供給ループ
 #
+from datetime import datetime
 
 import threading
 import time
@@ -80,6 +81,11 @@ class EmulatorEngine:
         }
 
         return mapping.get(value, value)
+
+
+    def get_datetime(self):
+        return datetime.now()
+
 
     # ==================================================
     # Start
@@ -266,13 +272,20 @@ class EmulatorEngine:
                 if price is None:
                     break
 
+                current_datetime = self.get_datetime()
+
                 scenario_no += 1
 
                 # Price Scenario
-                Log.emulator(f"SCENARIO({self.symbol}): no={scenario_no} price={price}")
+                Log.emulator(
+                    f"SCENARIO({self.symbol}): "
+                    f"no={scenario_no} "
+                    f"price={price} "
+                    f"datetime={current_datetime}"
+                )
 
                 # Excel Quote更新
-                if not self.update_price(self.symbol, price):
+                if not self.update_price(self.symbol, price, current_datetime):
                     Log.emulator("SCENARIO SYMBOL NOT FOUND symbol={self.symbol}")
                     break
 
@@ -296,7 +309,7 @@ class EmulatorEngine:
     #
     # ==================================================
 
-    def update_price(self, symbol, price):
+    def update_price(self, symbol, price, current_datetime=None):
 
         sheet = self.excel.book.Worksheets(self.excel.sheets["quote"])
 
@@ -317,6 +330,16 @@ class EmulatorEngine:
                 "" if price is None else price
             )
 
+            sheet.Cells(row, 3).Value = (
+                "" if current_datetime is None
+                else current_datetime.strftime("%Y/%m/%d")
+            )
+
+            sheet.Cells(row, 4).Value = (
+                "" if current_datetime is None
+                else current_datetime.strftime("%H:%M")
+            )
+
             return True
 
 
@@ -324,11 +347,22 @@ class EmulatorEngine:
         # symbolが存在しない場合
         # 新規追加
         # ------------------------------------------
-
         row = last_row + 1
 
         sheet.Cells(row, 1).Value = symbol
-        sheet.Cells(row, 2).Value = price
+        sheet.Cells(row, 2).Value = (
+            "" if price is None else price
+        )
+
+        sheet.Cells(row, 3).Value = (
+            "" if current_datetime is None
+            else current_datetime.strftime("%Y/%m/%d")
+        )
+
+        sheet.Cells(row, 4).Value = (
+            "" if current_datetime is None
+            else current_datetime.strftime("%H:%M:%S")
+        )
 
         Log.emulator(f"SCENARIO SYMBOL ADD symbol={symbol} price={price}")
 

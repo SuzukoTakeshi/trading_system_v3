@@ -27,7 +27,7 @@ class ProcessEntryPullback(ProcessBase):
 
     def process(self, trade):
 
-        quote = trade.runtime.quote
+        quote = trade.get_quote()
 
         if trade.param.side == SideType.LONG:
             return self.long.process(trade, quote)

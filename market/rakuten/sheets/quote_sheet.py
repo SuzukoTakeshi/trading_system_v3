@@ -19,7 +19,7 @@ class QuoteSheet(BaseSheet):
 
     CURRENT_PRICE_COLUMN = "現在値"
     CURRENT_DATE_COLUMN = "現在日付"
-    CURRENT_TIME_COLUMN = "現在値時刻"
+    CURRENT_TIME_COLUMN = "現在値詳細時刻"
     CURRENT_TICK_COLUMN = "現在値ティック"
 
     CHANGE_COLUMN = "前日比"

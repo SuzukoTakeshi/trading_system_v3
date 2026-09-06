@@ -38,7 +38,7 @@ class ProcessTrailingBase(ProcessBase):
         STOP判定      ○    ○         ○
         """
 
-        self.quote = trade.runtime.quote
+        self.quote = trade.get_quote()
 
         # 約定価格確認ガード
         if trade.runtime.entry_price is None:

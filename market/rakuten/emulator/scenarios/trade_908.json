@@ -1,0 +1,149 @@
+{
+    "trade": {
+        "symbol": "7203",
+        "trade_price": 0,
+        "quantity": 100,
+        "atr": 2.0,
+        "trade_type": "margin",
+        "margin_type": "day",
+        "side": "long",
+        "strategy": "scalping"
+    },
+    "market": {
+        "mode": "scenario",
+        "interval": 2.0,
+        "scenario": [
+            {
+                "price": 3000.0
+            },
+            {
+                "price": 3000.0,
+                "comment": "STATE created -> entry_wait"
+            },
+            {
+                "price": 3000.0,
+                "comment": "STATE entry_wait -> entry_pullback"
+            },
+            {
+                "price": 2997.5
+            },
+            {
+                "price": 2998.5,
+                "comment": "PULLBACK ENTRY LONG symbol=7203 current_price=2998.5 entry_lowest_price=2998.5"
+            },
+            {
+                "price": 2997.5,
+                "comment": "PULLBACK UPDATE LOW LONG symbol=7203 current_price=2997.5"
+            },
+            {
+                "price": 2996.0,
+                "comment": "PULLBACK UPDATE LOW LONG symbol=7203 current_price=2996.0"
+            },
+            {
+                "price": 2996.5,
+                "comment": "PULLBACK END LONG symbol=7203 current_price=2996.5"
+            },
+            {
+                "price": 2996.5,
+                "comment": "STATE entry_pullback -> entry_reversal"
+            },
+            {
+                "price": 2996.5,
+                "comment": "REVERSAL ENTRY LONG count=1"
+            },
+            {
+                "price": 2997.0,
+                "comment": "REVERSAL ENTRY LONG count=2"
+            },
+            {
+                "price": 2997.0,
+                "comment": "REVERSAL COMPLETE LONG symbol=7203 count=2 current_price=2997.0"
+            },
+            {
+                "price": 2997.0,
+                "comment": "STATE entry_reversal -> order_request"
+            },
+            {
+                "price": 2997.0,
+                "comment": "STATE order_request -> order_wait"
+            },
+            {
+                "price": 2997.5,
+                "comment": "STATE order_wait -> trailing"
+            },
+            {
+                "price": 2997.5,
+                "comment": "INITIAL TRAILING entry=2997.0 stop=2996.0"
+            },
+            {
+                "price": 2997.5,
+                "comment": "TRAILING HIGH UPDATE LONG current_price=2997.5"
+            },
+            {
+                "price": 2998.0,
+                "comment": "TRAILING HIGH UPDATE LONG current_price=2998.0"
+            },
+            {
+                "price": 2998.2,
+                "comment": "TRAILING HIGH UPDATE LONG current_price=2998.2"
+            },
+            {
+                "price": 2998.2,
+                "comment": "TRAILING UPDATE LONG current_price=2998.2 stop=2996.2"
+            },
+            {
+                "price": 2998.4,
+                "comment": "TRAILING HIGH UPDATE LONG current_price=2998.4"
+            },
+            {
+                "price": 2998.4,
+                "comment": "TRAILING UPDATE LONG current_price=2998.4 stop=2996.4"
+            },
+            {
+                "price": 2998.6,
+                "comment": "TRAILING HIGH UPDATE LONG current_price=2998.6"
+            },
+            {
+                "price": 2998.6,
+                "comment": "TRAILING UPDATE LONG current_price=2998.6 stop=2996.6"
+            },
+            {
+                "price": 2998.8,
+                "comment": "TRAILING HIGH UPDATE LONG current_price=2998.8"
+            },
+            {
+                "price": 2998.8,
+                "comment": "TRAILING UPDATE LONG current_price=2998.8 stop=2996.8"
+            },
+            {
+                "price": 2997.6
+            },
+            {
+                "price": 2996.8
+            },
+            {
+                "price": 2996.8,
+                "comment": "STOP HIT LONG current_price=2996.8 <= stop_price=2996.8"
+            },
+            {
+                "price": 2996.8,
+                "comment": "STATE trailing -> exit_create"
+            },
+            {
+                "price": 2996.8,
+                "comment": "STATE exit_create -> exit_wait"
+            },
+            {
+                "price": 2996.8,
+                "comment": "STATE exit_wait -> completed"
+            },
+            {
+                "price": 2996.8,
+                "comment": "STATE completed -> closed"
+            },
+            {
+                "end": true
+            }
+        ]
+    }
+}

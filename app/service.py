@@ -238,6 +238,7 @@ class AppService:
 
                 # Position
                 "current_price": trade["current_price"],
+                "previous_price": trade["previous_price"],
                 "stop_price": trade["stop_price"],
 
                 # Entry

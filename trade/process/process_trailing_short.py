@@ -26,8 +26,9 @@ class ProcessTrailingShort(ProcessTrailingBase):
 
     def process(self, trade):
 
+        # quote = trade.get_quote()
         # message = (
-        #     f"TRAILING CHECK SHORT price={trade.runtime.quote.current_price} "
+        #     f"TRAILING CHECK SHORT price={quote.current_price} "
         #     f"lowest={trade.runtime.trailing_lowest_price} stop={trade.runtime.stop_price}"
         # )
         # Log.event(f"(#{trade.id}) {message}")

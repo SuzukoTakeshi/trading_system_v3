@@ -21,6 +21,8 @@
 #   MarketDesが取得できない場合はTradeを進めない。
 #
 
+from datetime import datetime
+
 from core.logger import Log
 
 from models.quote.quote_model import QuoteModel
@@ -195,14 +197,14 @@ class TradeReady:
             trade.message = "現在価格待ち"
             return False
 
-        quote = self.context.cache.quotes.get(symbol)
+        current_datetime = self.context.cycle_time
 
+        quote = self.context.cache.quotes.get(symbol)
         if quote is None:
             quote = QuoteModel(
                 symbol=symbol,
                 current_price=market_quote["current_price"],
-                current_date=market_quote["current_date"],
-                current_time=market_quote["current_time"],
+                current_datetime=current_datetime,
                 current_tick=market_quote["current_tick"],
                 change=market_quote["change"],
                 change_rate=market_quote["change_rate"],
@@ -217,8 +219,7 @@ class TradeReady:
         else:
             quote.update(
                 current_price=market_quote["current_price"],
-                current_date=market_quote["current_date"],
-                current_time=market_quote["current_time"],
+                current_datetime=current_datetime,
                 current_tick=market_quote["current_tick"],
                 change=market_quote["change"],
                 change_rate=market_quote["change_rate"],
@@ -229,7 +230,7 @@ class TradeReady:
             )
 
         # Tradeが参照するQuoteを設定
-        trade.runtime.quote = quote
+        trade.set_quote(quote)
 
         return True
 
