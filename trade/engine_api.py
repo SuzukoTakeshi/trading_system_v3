@@ -270,7 +270,7 @@ class TradeEngineAPI:
                 return (False, f"Trade #{trade_id} は現在の状態({trade.state.value})ではCANCELできません。")
 
         # CANCEL要求
-        Log.event(f"(#{trade_id}) CANCEL REQUEST force={force}")
+        Log.debug(f"(#{trade_id}) CANCEL REQUEST force={force}")
 
         trade.cancel_request = True
 
@@ -305,7 +305,7 @@ class TradeEngineAPI:
                 state_text = trade.state.value
                 return False, f"状態が{state_text}の為、削除はできません。"
 
-            Log.event(f"(#{trade_id}) TRADE DELETE REQUEST")
+            Log.debug(f"(#{trade_id}) TRADE DELETE REQUEST")
 
             trade.delete_request = True
 
@@ -329,8 +329,6 @@ class TradeEngineAPI:
 
         # Engine停止中なので直接削除
         self.engine.delete_trade(trade)
-
-        Log.event(f"(#{trade_id}) TRADE DELETED")
 
         return True, ""
 

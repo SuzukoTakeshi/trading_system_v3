@@ -18,11 +18,11 @@ from core.logger import Log
 
 from trade.trade_enums import ExitReason
 
-class TradeRuntime:
+class TradeRuntimeModel:
 
     def __init__(self):
 
-        Log.create("TradeRuntime")
+        Log.create("TradeRuntimeModel")
 
         # ---------------------------------------
         # TRADE READY管理

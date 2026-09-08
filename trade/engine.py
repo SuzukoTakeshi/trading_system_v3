@@ -62,7 +62,7 @@ from trade.process.process_exit_wait import ProcessExitWait
 from trade.process.process_complated import ProcessComplated
 from trade.process.process_asset import ProcessAsset
 
-from trade.trade_chart_data import add_trade_chart_data
+from trade.trade_chart import add_trade_chart_data
 
 from notifier.notifier_market_session import NotifierMarketSession
 from notifier.notifier_trade import NotifierTrade
@@ -664,7 +664,7 @@ class TradeEngine:
         # Contextから削除
         del self.context.trades[trade_id]
 
-        Log.debug(f"(#{trade_id}) TRADE DELETED")
+        Log.event(f"(#{trade_id}) TRADE DELETED")
 
         self.context.notifier_trade.notify(trade, "TRADE DELETED")
 

@@ -19,14 +19,14 @@
 # ==================================================
 
 from core.store import BaseStore
-from models.trade.trade_chart_data import TradeChartData
+from models.trade.trade_chart_model import TradeChartModel
 
 
 class TradeChartStore(BaseStore):
 
     def __init__(
         self,
-        dir_path="storage/json/trade_chart_data"
+        dir_path="storage/json/trade_chart"
     ):
 
         super().__init__(dir_path)
@@ -71,7 +71,7 @@ class TradeChartStore(BaseStore):
         data = self._load(file_name)
 
         return [
-            TradeChartData.from_dict(item)
+            TradeChartModel.from_dict(item)
             for item in data
         ]
 

@@ -16,7 +16,7 @@
 #
 # 読込み:
 #   storage/json/trade/[trade_no].json
-#   storage/json/trade_chat_data/[trade_no].json
+#   storage/json/trade_chat/[trade_no].json
 #
 # 起動:
 #   Timelineのみ:

@@ -27,9 +27,11 @@
 # | 15 | 特別空売り料(円) | 特別空売り料              |
 #
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from market.rakuten.sheets.base_sheet import BaseSheet
+
+from trade.trade_enums import MarginType
 
 
 class ExecutionListSheet(BaseSheet):
@@ -238,41 +240,102 @@ class ExecutionListSheet(BaseSheet):
         return results
 
 
-    #
-    # DEBUG Execution List追加
-    #
-    def debug_add_execution(
-        self,
-        execution_datetime,
-        settlement_date,
-        symbol,
-        symbol_name,
-        account_type,
-        market,
-        margin_type,
-        repayment_period,
-        trade_type,
-        order_type,
-        quantity,
-        price,
-        amount,
-        tax_type,
-        special_short_selling_fee,
-    ):
+    def debug_add_execution_list(self, request):
         """
-        Debug用 約定一覧追加
+        DEBUG用 約定一覧追加
+
+        request:
+            dic
 
         return:
             True
         """
 
+        now = datetime.now()
+
+        settlement_date = (now + timedelta(days=4)).strftime("%Y%m%d")
+
+        execution_datetime = now.strftime("%Y/%m/%d %H:%M:%S")
+
+        # ------------------------------------------
+        # 取引種別
+        # ------------------------------------------
+
+        if request["trade_type"] == "cash":
+
+            trade_type = "現物"
+
+            if request["order_action"] == "buy":
+                order_type = "買付"
+            else:
+                order_type = "売付"
+
+            margin_type = ""
+            repayment_period = ""
+
+        elif request["trade_type"] == "margin":
+
+            if request["order_role"] == "entry":
+                trade_type = "信用新規"
+
+                if request["order_action"] == "buy":
+                    order_type = "買建"
+                else:
+                    order_type = "売建"
+
+            elif request["order_role"] == "exit":
+                trade_type = "信用返済"
+
+                if request["order_action"] == "buy":
+                    order_type = "買埋"
+                else:
+                    order_type = "売埋"
+
+            else:
+                raise Exception(
+                    f"未対応order_role: {request['order_role']}"
+                )
+
+            match request["margin_type"]:
+
+                case MarginType.SYSTEM:
+                    margin_type = "制度"
+                    repayment_period = "6ヶ月"
+
+                case MarginType.UNLIMITED:
+                    margin_type = "一般"
+                    repayment_period = "無期限"
+
+                case MarginType.TWO_WEEKS:
+                    margin_type = "一般"
+                    repayment_period = "14日"
+
+                case MarginType.DAY:
+                    margin_type = "一般"
+                    repayment_period = "1日"
+
+                case _:
+                    raise Exception(
+                        f"未対応margin_type: {request['margin_type']}"
+                    )
+
+        else:
+            raise Exception(
+                f"未対応trade_type: {request['trade_type']}"
+            )
+
+
+        quantity = request["quantity"]
+        price = request["price"]
+        amount = quantity * price
+
         values = {
             self.EXECUTION_DATETIME_COLUMN: execution_datetime,
             self.SETTLEMENT_DATE_COLUMN: settlement_date,
-            self.SYMBOL_COLUMN: symbol,
-            self.SYMBOL_NAME_COLUMN: symbol_name,
-            self.ACCOUNT_TYPE_COLUMN: account_type,
-            self.MARKET_COLUMN: market,
+            self.SYMBOL_COLUMN: request["symbol"],
+            self.SYMBOL_NAME_COLUMN: "DEBUG",
+            self.ACCOUNT_TYPE_COLUMN: "特定",
+            self.MARKET_COLUMN: "東証",
             self.MARGIN_TYPE_COLUMN: margin_type,
             self.REPAYMENT_PERIOD_COLUMN: repayment_period,
             self.TRADE_TYPE_COLUMN: trade_type,
@@ -280,8 +343,8 @@ class ExecutionListSheet(BaseSheet):
             self.EXECUTION_QUANTITY_COLUMN: quantity,
             self.EXECUTION_PRICE_COLUMN: price,
             self.EXECUTION_AMOUNT_COLUMN: amount,
-            self.TAX_TYPE_COLUMN: tax_type,
-            self.SPECIAL_SHORT_SELLING_FEE_COLUMN: special_short_selling_fee,
+            self.TAX_TYPE_COLUMN: "源泉あり",
+            self.SPECIAL_SHORT_SELLING_FEE_COLUMN: 0,
         }
 
         self.add_row(values)
@@ -291,7 +354,7 @@ class ExecutionListSheet(BaseSheet):
             message="DEBUG ADD EXECUTION LIST",
             data={
                 "execution_datetime": execution_datetime,
-                "symbol": symbol,
+                "symbol": request["symbol"],
                 "trade_type": trade_type,
                 "order_type": order_type,
                 "quantity": quantity,

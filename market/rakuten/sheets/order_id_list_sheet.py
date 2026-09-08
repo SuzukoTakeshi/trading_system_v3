@@ -112,13 +112,13 @@ class OrderIDListSheet(BaseSheet):
 
 
     # ==========================================
-    # DEBUG用 注文番号リスト作成
+    # DEBUG用 ORDER_ID_LIST追加
     #
     # 目的:
-    #     OrderID → 注文番号取得テスト用
+    #     OrderList作成後の
+    #     OrderID → 注文番号対応を登録
     # ==========================================
-    def debug_add_order(self, order_id):
-        order_no = order_id + 10000
+    def debug_add_order_id_list(self, order_id, order_no):
 
         values = {
             self.ORDER_ID_COLUMN: order_id,
@@ -131,4 +131,4 @@ class OrderIDListSheet(BaseSheet):
 
         self.add_row(values)
 
-        return order_no
+        return True

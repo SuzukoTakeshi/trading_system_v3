@@ -15,7 +15,7 @@ from trade.trade_enums import (
     StrategyType,
 )
 
-class TradeParam:
+class TradeParamModel:
 
     def __init__(
         self,

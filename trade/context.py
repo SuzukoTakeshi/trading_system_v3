@@ -18,6 +18,12 @@ class EngineCache:
         #
         self.quotes = {}
 
+        # MarketDes cache
+        #   key:   symbol
+        #   value: MarketDesModel
+        #
+        self.market_des = {}
+
         # Order cache
         #   key:   trade_id
         #   value: Order
@@ -26,7 +32,7 @@ class EngineCache:
 
         # Trade chart data cache
         #   key:   trade_id
-        #   value: list[TradeChartData]
+        #   value: list[TradeChartModel]
         #
         self.trade_chart_datas = {}
 

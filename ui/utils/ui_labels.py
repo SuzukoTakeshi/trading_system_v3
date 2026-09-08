@@ -160,3 +160,18 @@ def get_exit_reason_label(exit_reason, profit_loss=None):
         )
 
     return "-"
+
+
+# ==================================================
+# Timeline Event
+# ==================================================
+TIMELINE_EVENT_LABEL = {
+    "STATE": "状態変更",
+    "TRADE_READY": "Trade Ready",
+    "ENTRY": "エントリー",
+    "ORDER": "注文",
+    "EXIT": "決済",
+    "TRAILING": "トレール",
+    "ENGINE": "Engine",
+}
+TIMELINE_EVENT_UNKNOWN = "UNKNOWN"

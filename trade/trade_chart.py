@@ -10,7 +10,7 @@
 
 from datetime import datetime
 
-from models.trade.trade_chart_data import TradeChartData
+from models.trade.trade_chart_model import TradeChartModel
 from trade.trade_enums import TradeState
 
 # ==========================================
@@ -118,7 +118,7 @@ def add_trade_chart_data(context, trade):
     # 新しい時間枠
     # ==================================================
 
-    trade_chart_data = TradeChartData(
+    trade_chart_data = TradeChartModel(
         time=frame_time,
 
         # Trade情報

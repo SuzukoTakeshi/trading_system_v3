@@ -131,7 +131,7 @@ class OrderListSheet(BaseSheet):
         return data
 
 
-    def debug_add_order(self, order_no, request):
+    def debug_add_order_list(self, order_id, request):
         """
         Debug用 注文一覧追加
 
@@ -139,8 +139,9 @@ class OrderListSheet(BaseSheet):
             dic
 
         return:
-            True
+            order_no
         """
+        order_no = order_id + 10000
 
         # ------------------------------------------
         # 取引種別
@@ -248,4 +249,4 @@ class OrderListSheet(BaseSheet):
             },
         )
 
-        return True
+        return order_no

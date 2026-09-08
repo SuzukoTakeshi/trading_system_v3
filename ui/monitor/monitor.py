@@ -32,6 +32,7 @@ from ui.config.ui import MONITOR_REFRESH_INTERVAL_MS
 from ui.monitor.components.header import render_header
 from ui.monitor.components.trail_card import render_trail_card
 from ui.monitor.components.trail_chart import render_trail_chart
+from ui.monitor.components.timeline_card import render_timeline_card
 
 # --------------------------------------
 # API
@@ -185,3 +186,8 @@ else:
                     target.get("chart_datas", []),
                     target.get("symbol", "")
                 )
+
+                render_timeline_card(
+                    target.get("timeline", [])
+                )
+

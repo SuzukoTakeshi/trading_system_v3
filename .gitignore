@@ -42,7 +42,8 @@ dist/
 
 # runtime storage
 storage/json/*.json
-storage/json/trade_chart_data/*.json
+storage/json/trade/*.json
+storage/json/trade_chart/*.json
 storage/logs/*.log
 
 ui/console/auditor/images/

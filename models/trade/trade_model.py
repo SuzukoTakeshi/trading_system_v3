@@ -26,8 +26,8 @@ from core.entity import BaseEntity
 
 from trade.trade_enums import TradeState
 
-from models.trade.trade_param import TradeParam
-from models.trade.trade_runtime import TradeRuntime
+from models.trade.trade_param_model import TradeParamModel
+from models.trade.trade_runtime_model import TradeRuntimeModel
 
 # ==================================================
 # Tradeモデル
@@ -85,7 +85,7 @@ class TradeModel(BaseEntity):
         self.cancel_request = False
 
         # Trade開始パラメータ
-        self.param = TradeParam(
+        self.param = TradeParamModel(
             symbol=symbol,
             quantity=quantity,
             trade_price=trade_price,
@@ -106,7 +106,7 @@ class TradeModel(BaseEntity):
         )
 
         # Trade実行中データ
-        self.runtime = TradeRuntime()
+        self.runtime = TradeRuntimeModel()
 
         # Trade履歴
         self.timeline = []
@@ -203,8 +203,8 @@ class TradeModel(BaseEntity):
 
         trade.id = data["id"]
 
-        trade.param = TradeParam.from_dict(data["param"])
-        trade.runtime = TradeRuntime.from_dict(data.get("runtime", {}))
+        trade.param = TradeParamModel.from_dict(data["param"])
+        trade.runtime = TradeRuntimeModel.from_dict(data.get("runtime", {}))
 
         trade.state = TradeState(data["state"])
         trade.message = data.get("message")
@@ -290,6 +290,9 @@ class TradeModel(BaseEntity):
             "message": self.message,
 
             "pause_flag": self.pause_flag,
+
+            # Timeline
+            "timeline": self.timeline,
         })
 
         return data

@@ -16,7 +16,7 @@ from trade.trade_enums import (
 )
 
 
-class TradeChartData:
+class TradeChartModel:
 
     def __init__(
         self,

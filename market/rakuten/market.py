@@ -9,7 +9,7 @@
 #   ・Excel管理
 #
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pythoncom
 import win32com.client
@@ -25,8 +25,6 @@ from market.rakuten.sheets.quote_sheet import QuoteSheet
 from market.rakuten.sheets.order_id_list_sheet import OrderIDListSheet
 from market.rakuten.sheets.order_list_sheet import OrderListSheet
 from market.rakuten.sheets.execution_list_sheet import ExecutionListSheet
-
-from trade.trade_enums import MarginType
 
 
 class RakutenMarket:
@@ -215,17 +213,6 @@ class RakutenMarket:
 
 
     def get_market_des(self, symbol):
-
-        now = datetime.now()
-
-        # 今日の開場後クリアがまだなら実施
-        if (
-            self.market_des_cleared_at is None
-            or self.market_des_cleared_at.date() != now.date()
-        ):
-            self.market_des_sheet.clear()
-            self.market_des_cleared_at = now
-
         return self.market_des_sheet.get_market_des(symbol)
 
 
@@ -435,97 +422,12 @@ class RakutenMarket:
         )
 
 
-
     def _debug_set(self, request):
 
-        order_no = self.order_id_list_sheet.debug_add_order(request["order_id"])
+        order_id = request["order_id"]
 
-        self.order_list_sheet.debug_add_order(order_no, request)
+        order_no = self.order_list_sheet.debug_add_order_list(order_id, request)
 
-        # execution_list_sheet
+        self.order_id_list_sheet.debug_add_order_id_list(order_id, order_no)
 
-        now = datetime.now()
-
-        settlement_date = (now + timedelta(days=4)).strftime("%Y%m%d")
-
-        execution_datetime = now.strftime("%Y/%m/%d %H:%M:%S")
-
-        if request["trade_type"] == "cash":
-
-            trade_type = "現物"
-
-            if request["order_action"] == "buy":
-                order_type = "買付"
-            else:
-                order_type = "売付"
-
-            margin_type = ""
-            repayment_period = ""
-
-        elif request["trade_type"] == "margin":
-
-            if request["order_role"] == "entry":
-                trade_type = "信用新規"
-
-                if request["order_action"] == "buy":
-                    order_type = "買建"
-                else:
-                    order_type = "売建"
-
-            elif request["order_role"] == "exit":
-                trade_type = "信用返済"
-
-                if request["order_action"] == "buy":
-                    order_type = "買埋"
-                else:
-                    order_type = "売埋"
-
-            else:
-                raise Exception(f"未対応order_role: {request['order_role']}")
-
-
-            match request["margin_type"]:
-
-                case MarginType.SYSTEM:
-                    margin_type = "制度"
-                    repayment_period = "6ヶ月"
-
-                case MarginType.UNLIMITED:
-                    margin_type = "一般"
-                    repayment_period = "無期限"
-
-                case MarginType.TWO_WEEKS:
-                    margin_type = "一般"
-                    repayment_period = "14日"
-
-                case MarginType.DAY:
-                    margin_type = "一般"
-                    repayment_period = "1日"
-
-                case _:
-                    raise Exception(f"未対応margin_type: {request['margin_type']}")
-
-        else:
-            raise Exception(f"未対応trade_type: {request['trade_type']}")
-
-        quantity = request["quantity"]
-        price = request["price"]
-        amount = quantity * price
-
-        self.execution_list_sheet.debug_add_execution(
-            execution_datetime=execution_datetime,
-            settlement_date=settlement_date,
-            symbol=request["symbol"],
-            symbol_name="DEBUG",
-            account_type="特定",
-            market="東証",
-            margin_type=margin_type,
-            repayment_period=repayment_period,
-            trade_type=trade_type,
-            order_type=order_type,
-            quantity=quantity,
-            price=price,
-            amount=amount,
-            tax_type="源泉あり",
-            special_short_selling_fee=0,
-        )
+        self.execution_list_sheet.debug_add_execution_list(request)

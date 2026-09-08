@@ -21,11 +21,10 @@
 #   MarketDesが取得できない場合はTradeを進めない。
 #
 
-from datetime import datetime
-
 from core.logger import Log
 
 from models.quote.quote_model import QuoteModel
+from models.market.market_des_model import MarketDesModel
 from trade.trade_enums import TradeState
 
 
@@ -55,7 +54,7 @@ class TradeReady:
             return True
 
 
-        # Trade状態チェック
+        # Trade状態(status)チェック
         if not self._is_trade_status_ready(trade):
             return False
 
@@ -121,6 +120,8 @@ class TradeReady:
     # ==========================================
     # 市場情報チェック
     #
+    # 前場の開場後に呼ばれることを前提とする。
+    #
     # Return:
     #   True  = 市場情報利用可能
     #   False = 市場情報待ち
@@ -135,50 +136,66 @@ class TradeReady:
     def _is_market_des_ready(self, trade):
 
         symbol = trade.param.symbol
+        current_datetime = self.context.cycle_time
 
-        # Debugでは実際のMarketDesを使用しない。
-        #   市場時間やRSSの状態に関係なく、Trade処理をテストできるよう固定値を使用する。
-        if self.market.mode == "debug":
+        market_des = self.context.cache.market_des.get(symbol)
 
-            market_des = {
-                "trading_unit": 100,
-                "lower_limit": 1,
-                "upper_limit": 999999,
-            }
+        # 前場の開場後に呼ばれることを前提とする為、日付のみの判定としている。
+        if (
+            market_des is None
+            or market_des.get_datetime.date() != current_datetime.date()
+        ):
 
-            # market_des = {
-            #     "trading_unit": 100,
+            # Debugでは実際のMarketDesを使用しない。
+            #   市場時間やRSSの状態に関係なく、Trade処理をテストできるよう固定値を使用する。
+            if self.market.mode == "debug":
 
-            #     # Debugテスト:
-            #     # 現在価格が2998未満になるとTradeReadyで処理停止
-            #     "lower_limit": 2995.0,
+                market_des = MarketDesModel(
+                    symbol=symbol,
+                    trading_unit=100,
+                    lower_limit=1,
+                    upper_limit=999999,
+                    get_datetime=current_datetime,
+                )
+                # market_des = MarketDesModel(
+                #     symbol=symbol,
+                #     trading_unit=100,
+                #
+                #     # Debugテスト:
+                #     # 現在価格が2998未満になるとTradeReadyで処理停止
+                #     lower_limit=2995.0,
+                #     upper_limit=3010,
+                # }
 
-            #     "upper_limit": 3010,
-            # }
+            # Real / Simulator
+            # 実際のMarketDesを取得する。
+            #   MarketDesが取得できない場合は、売買単位や制限値幅が不明なため、Tradeを次の処理へ進めない。
+            #
+            else:
 
-        #
-        # Real / Simulator
-        #
-        # 実際のMarketDesを取得する。
-        #
-        # MarketDesが取得できない場合は、売買単位や制限値幅が不明なため、
-        # Tradeを次の処理へ進めない。
-        #
-        else:
-            market_des = self.market.get_market_des(symbol)
+                market_des_data = self.market.get_market_des(symbol)
 
-            if market_des is None:
-                trade.message = "市場情報待ち"
-                return False
+                if market_des_data is None:
+                    trade.message = "市場情報待ち"
+                    return False
 
-        #
+                market_des = MarketDesModel(
+                    symbol=symbol,
+                    trading_unit=market_des_data["trading_unit"],
+                    lower_limit=market_des_data["lower_limit"],
+                    upper_limit=market_des_data["upper_limit"],
+                    get_datetime=current_datetime,
+                )
+
+            self.context.cache.market_des[symbol] = market_des
+
         # Tradeへ市場情報を反映
-        #
-        trade.param.trading_unit = market_des["trading_unit"]
-        trade.param.lower_limit = market_des["lower_limit"]
-        trade.param.upper_limit = market_des["upper_limit"]
+        trade.param.trading_unit = market_des.trading_unit
+        trade.param.lower_limit = market_des.lower_limit
+        trade.param.upper_limit = market_des.upper_limit
 
         return True
+
 
     # ==========================================
     # 現在価格チェック

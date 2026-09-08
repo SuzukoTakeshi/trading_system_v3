@@ -256,6 +256,9 @@ class AppService:
 
                 # System
                 "created_at": trade["created_at"],
+
+                # Timeline
+                "timeline": trade["timeline"],
             })
 
         return result
