@@ -106,7 +106,7 @@ class ProcessExitCreate(ProcessOrderBase):
         else:
             raise InternalError(message=f"UNKNOWN SIDE {trade.param.side}", code="UNKNOWN_SIDE")
 
-        return self.create_order(
+        order = self.create_order(
             trade,
             order_action,
             # 成行(OrderType.MARKET)だが、DEBUGで約定単価とする為、priceを渡している。
@@ -114,3 +114,7 @@ class ProcessExitCreate(ProcessOrderBase):
             OrderType.MARKET,       # 成行注文固定
             order_role="exit",
         )
+
+        trade.exit_order = order
+
+        return order

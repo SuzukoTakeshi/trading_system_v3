@@ -12,7 +12,7 @@ from core.logger import Log
 
 from market.status import MarketStatus
 
-from market.rakuten.market import RakutenMarket
+from market.rakuten.rakuten_client import RakutenClient
 
 from core.exception import OrderResultError
 
@@ -22,12 +22,12 @@ class MarketService:
     def __init__(self, mode):
         self.mode = mode
 
-        # Market
-        self.market = RakutenMarket(self.mode)
+        # RakutenClient
+        self.rakuten_client = RakutenClient(self.mode)
 
         # Market Status
         self.market_status = MarketStatus(
-            self.market.get_market_session()
+            self.rakuten_client.get_market_session()
         )
 
     def is_real(self):
@@ -44,19 +44,19 @@ class MarketService:
 
 
     # ==========================================
-    # Market開始
+    # 楽天CLIENT OPEN
     # ==========================================
     def open(self):
-        Log.debug("MARKET OPEN")
-        self.market.open()
+        Log.debug("RAKUTEN CLIENT OPEN")
+        self.rakuten_client.open()
 
 
     # ==========================================
-    # Market終了
+    # 楽天CLIENT CLOSE
     # ==========================================
     def close(self):
-        Log.debug("MARKET CLOSE")
-        self.market.close()
+        Log.debug("RAKUTEN CLIENT CLOSE")
+        self.rakuten_client.close()
 
 
     def get_status(self):
@@ -66,56 +66,56 @@ class MarketService:
         return self.market_status.get_session_event()
 
     def sync_market(self, symbols):
-        self.market.sync_quotes(symbols)
+        self.rakuten_client.sync_quotes(symbols)
 
 
     def get_quote(self, symbol):
-        return self.market.get_quote(symbol)
+        return self.rakuten_client.get_quote(symbol)
 
 
     def get_market_des(self, symbol):
-        return self.market.get_market_des(symbol)
+        return self.rakuten_client.get_market_des(symbol)
 
 
     def remove_quote_symbol(self, symbol):
-        self.market.remove_quote_symbol(symbol)
+        self.rakuten_client.remove_quote_symbol(symbol)
 
 
     # ==========================================
     # 発注依頼
-    #   ・Marketへ注文を依頼する
+    #   ・RakutenClientへ注文を依頼する
     #   ・Trade層とはDTOで分離
     # ==========================================
     def request_order(self, request_dto):
-         return self.market.request_order(request_dto)
+         return self.rakuten_client.request_order(request_dto)
 
 
     # ==========================================
     # 発注ID一覧データ取得
-    #   ・Marketから発注ID一覧シートの1行分データを取得する
+    #   ・RakutenClientから発注ID一覧シートの1行分データを取得する
     #   ・Trade層とはデータで分離
     # ==========================================
     def get_order_id_data(self, order_id):
-        return self.market.get_order_id_data(order_id)
+        return self.rakuten_client.get_order_id_data(order_id)
 
 
     # ==========================================
     # 注文一覧データ取得
-    #   ・Marketから注文一覧シートの1行分の生データを取得する
+    #   ・RakutenClientから注文一覧シートの1行分の生データを取得する
     #   ・Trade層とはデータで分離
     # ==========================================
     def get_order_list_data(self, order_no):
-        return self.market.get_order_list_data(order_no)
+        return self.rakuten_client.get_order_list_data(order_no)
 
 
     # ==========================================
     # 注文番号取得
-    #   ・Marketから注文番号を取得する
+    #   ・RakutenClientから注文番号を取得する
     #   ・Trade層とはDTOで分離
     # ==========================================
     def get_order_no(self, order_id):
 
-        order_no, order_result = self.market.get_order_no(order_id)
+        order_no, order_result = self.rakuten_client.get_order_no(order_id)
 
         if order_no is None:
             raise OrderResultError(
@@ -133,7 +133,7 @@ class MarketService:
     # 注文結果取得
     # ==========================================
     def get_order_result(self, order_no):
-        return self.market.get_order_result(order_no)
+        return self.rakuten_client.get_order_result(order_no)
 
 
     # ==========================================
@@ -154,16 +154,34 @@ class MarketService:
     #
     #       ※単純な約定単価の平均ではなく、
     #         約定数量を考慮した加重平均となる
+    #
     # ==========================================
-    def get_filled_result(self, order_datetime, symbol, trade_type, order_type):
+    def get_filled_result(
+        self,
+        order_datetime,
+        symbol,
+        account_type,
+        margin_type,
+        repayment_period,
+        trade_type,
+        order_type,
+    ):
         """
+        order_datetime: OrderListから取得した発注/受注日時
+        symbol: 銘柄コード
+        account_type: 口座区分
+        margin_type: 信用区分
+        repayment_period: 弁済期限
         trade_type(取引): 現物 / 信用新規 / 信用返済
         order_type(売買): 買付 / 買建 / 買埋 / 売付 / 売建 / 売埋
         """
 
-        results = self.market.get_execution_results(
+        results = self.rakuten_client.get_execution_results(
             order_datetime=order_datetime,
             symbol=symbol,
+            account_type=account_type,
+            margin_type=margin_type,
+            repayment_period=repayment_period,
             trade_type=trade_type,
             order_type=order_type,
         )
@@ -195,8 +213,17 @@ class MarketService:
             for result in results
         )
 
+        # 実約定市場
+        execution_market_name = results[0]["execution_market_name"]
+
+        # 実約定単価
+        execution_price = results[0]["execution_price"]
+
         return {
+            "execution_datetime": last_execution_datetime,
+            "execution_market_name": execution_market_name,
+            "execution_price": execution_price,
+
             "quantity": quantity,
             "price": price,
-            "execution_datetime": last_execution_datetime,
         }

@@ -9,7 +9,6 @@
 #   ・ヘッダー行管理
 #   ・ヘッダー行指定時、列タイトル辞書作成
 #
-from core.logger import Log
 
 from core.exception import (
     ExcelArgumentError,
@@ -19,10 +18,10 @@ from core.exception import (
 
 class BaseSheet:
 
-    def __init__(self, market, ws, mode="real", header_row=None, stopper="--------"):
+    def __init__(self, rakuten_client, ws, header_row=None, stopper="--------"):
 
         # Rakuten Client
-        self.market = market
+        self.rakuten_client = rakuten_client
 
         # Worksheet
         self.ws = ws
@@ -35,14 +34,6 @@ class BaseSheet:
 
         # ストッパー
         self.stopper = stopper
-
-        # 動作モード
-        #   real      : 本番運用
-        #   simulator : RSS価格取得と仮想環境
-        #   debug     : 固定値デバッグ
-        #   emulator  : 仮想環境
-        #
-        self.mode = mode
 
         # 列タイトル辞書
         #   {
@@ -58,16 +49,20 @@ class BaseSheet:
 
 
     def is_real(self):
-        return self.mode == "real"
+        # real : 本番運用
+        return self.rakuten_client.mode == "real"
 
     def is_simulator(self):
-        return self.mode == "simulator"
+        # simulator : RSS価格取得と仮想環境
+        return self.rakuten_client.mode == "simulator"
 
     def is_emulator(self):
-        return self.mode == "emulator"
+        # emulator : 仮想環境
+        return self.rakuten_client.mode == "emulator"
 
     def is_debug(self):
-        return self.mode == "debug"
+        # debug : 固定値デバッグ
+        return self.rakuten_client.mode == "debug"
 
 
     def validate_row(self, row):

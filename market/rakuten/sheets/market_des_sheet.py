@@ -27,8 +27,8 @@ class MarketDesSheet(BaseSheet):
     BLOCK_ROW_STEP = 3
 
 
-    def __init__(self, market, ws, mode):
-        super().__init__(market, ws, mode=mode)
+    def __init__(self, rakuten_client, ws):
+        super().__init__(rakuten_client, ws)
 
 
     # ==========================================

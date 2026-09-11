@@ -10,10 +10,19 @@
 
 from datetime import datetime
 
+from market.rakuten.rakuten_log import RakutenLog
+
 from market.rakuten.sheets.base_sheet import BaseSheet
 
-from trade.trade_enums import MarginType
+from trade.trade_enums import (
+	MarginType,
+    TradeType
+)
 
+from market.order_enums import (
+    OrderRole,
+    OrderAction,
+)
 
 class OrderListSheet(BaseSheet):
 
@@ -40,29 +49,31 @@ class OrderListSheet(BaseSheet):
     SYMBOL_COLUMN = "銘柄コード"            # 英数字4桁（or 5桁）
     SYMBOL_NAME_COLUMN = "銘柄名称"         # 例) ＮＴＴ
 
-    ACCOUNT_TYPE_COLUMN = "口座区分"        # 特定 / 一般
+    ACCOUNT_TYPE_COLUMN = "口座区分"        # 一般 / 特定 / NISA / 旧NISA
+
+    MARKET_NAME_COLUMN = "市場名称"         # 東証 / 東証(SOR) / JAX / JNX
 
     ORDER_DATETIME_COLUMN = "発注/受注日時" # 例) 2026/07/22 11:10:55
 
-    ORDER_TYPE_COLUMN = "売買"                    # 買付 / 売付
+    ORDER_TYPE_COLUMN = "売買"              # 買付 / 買建 / 買埋 / 売付 / 売建 / 売埋
 
-    TRADE_TYPE_COLUMN = "取引"              # 現物
+    TRADE_TYPE_COLUMN = "取引"              # 現物 / 信用新規 / 信用返済
 
     # 信用取引用
-    MARGIN_TYPE_COLUMN = "信用区分"
-    REPAYMENT_PERIOD_COLUMN = "弁済期限"
+    MARGIN_TYPE_COLUMN = "信用区分"         # 制度 / 一般
+    REPAYMENT_PERIOD_COLUMN = "弁済期限"    # 6ヶ月 / 無期限 / 14日 / 1日 
 
-    EXECUTION_CONDITION_COLUMN = "執行条件" # 本日中
+    EXECUTION_CONDITION_COLUMN = "執行条件" # 本日中 / 今週中 / 期間指定 / 寄付 / 引け / 不成 / 大引不成
     ORDER_EXPIRATION_COLUMN = "注文期限"    # 例) 20260722
 
-    ORDER_QUANTITY_COLUMN = "注文数量"      # 
+    ORDER_QUANTITY_COLUMN = "注文数量"      # 例) 100
     FILLED_QUANTITY_COLUMN = "約定数量"     # 注)取消済（出来無）では0
 
     ORDER_PRICE_COLUMN = "注文単価"         # 例) 150.5
 
 
-    def __init__(self, market, ws, mode):
-        super().__init__(market, ws, mode=mode, header_row=2)
+    def __init__(self, rakuten_client, ws):
+        super().__init__(rakuten_client, ws, header_row=2)
 
 
     #
@@ -90,9 +101,9 @@ class OrderListSheet(BaseSheet):
         data = self.get_row_data(row)
 
         # 取得したExcel行をそのまま記録
-        self.market.add_internal_log(
-            level="DEBUG", message="ORDER LIST",
-            data={
+        RakutenLog.debug(
+            "ORDER LIST",
+            {
                 "order_no": order_no,
                 "row": data,
             },
@@ -108,24 +119,35 @@ class OrderListSheet(BaseSheet):
 
         order_no_column = self.require_column(self.ORDER_NO_COLUMN)
         status_column = self.require_column(self.ORDER_STATUS_COLUMN)
+        symbol_column = self.require_column(self.SYMBOL_COLUMN)
+        account_type_column = self.require_column(self.ACCOUNT_TYPE_COLUMN)
+        market_name_column = self.require_column(self.MARKET_NAME_COLUMN)
         order_datetime_column = self.require_column(self.ORDER_DATETIME_COLUMN)
-        filled_quantity_column = self.require_column(self.FILLED_QUANTITY_COLUMN)
-        order_price_column = self.require_column(self.ORDER_PRICE_COLUMN)
         order_type_column = self.require_column(self.ORDER_TYPE_COLUMN)
         trade_type_column = self.require_column(self.TRADE_TYPE_COLUMN)
+        margin_type_column = self.require_column(self.MARGIN_TYPE_COLUMN)
+        repayment_period_column = self.require_column(self.REPAYMENT_PERIOD_COLUMN)
+        filled_quantity_column = self.require_column(self.FILLED_QUANTITY_COLUMN)
+        order_price_column = self.require_column(self.ORDER_PRICE_COLUMN)
 
         row = self.find_row(order_no_column, str(order_no))
+
         if row is None:
             return None
 
         data = {
             "order_no": self.get_value(row, order_no_column),
             "status": self.get_value(row, status_column),
+            "symbol": self.get_value(row, symbol_column),
+            "account_type": self.get_value(row, account_type_column),
+            "market_name": self.get_value(row, market_name_column),
             "order_datetime": self.get_value(row, order_datetime_column),
-            "quantity": self.get_value(row, filled_quantity_column),
-            "price": self.get_value(row, order_price_column),
             "order_type": self.get_value(row, order_type_column),
             "trade_type": self.get_value(row, trade_type_column),
+            "margin_type": self.get_value(row, margin_type_column),
+            "repayment_period": self.get_value(row, repayment_period_column),
+            "quantity": self.get_value(row, filled_quantity_column),
+            "price": self.get_value(row, order_price_column),
         }
 
         return data
@@ -157,8 +179,8 @@ class OrderListSheet(BaseSheet):
         #   弁済期限 = 6ヶ月 / 無期限 / 14日 / 1日
         # ------------------------------------------
 
-        if request["trade_type"] == "cash":
-            if request["order_action"] == "buy":
+        if request["trade_type"] == TradeType.CASH:
+            if request["order_action"] == OrderAction.BUY:
                 order_type = "買付"
             else:
                 order_type = "売付"
@@ -167,20 +189,21 @@ class OrderListSheet(BaseSheet):
             margin_type = ""
             repayment_period = ""
 
-        elif request["trade_type"] == "margin":
+        elif request["trade_type"] == TradeType.MARGIN:
+            # 信用取引
 
-            if request["order_role"] == "entry":
+            if request["order_role"] == OrderRole.ENTRY:
                 trade_type = "信用新規"
 
-                if request["order_action"] == "buy":
+                if request["order_action"] == OrderAction.BUY:
                     order_type = "買建"
                 else:
                     order_type = "売建"
 
-            elif request["order_role"] == "exit":
+            elif request["order_role"] == OrderRole.EXIT:
                 trade_type = "信用返済"
 
-                if request["order_action"] == "buy":
+                if request["order_action"] == OrderAction.BUY:
                     order_type = "買埋"
                 else:
                     order_type = "売埋"
@@ -213,6 +236,12 @@ class OrderListSheet(BaseSheet):
         else:
             raise Exception(f"未対応trade_type: {request['trade_type']}")
 
+
+        order_datetime = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+        order_quantity = request["quantity"]
+        filled_quantity = request["quantity"]
+        order_price = request["price"]
+
         # ------------------------------------------
         # DEBUG Order List
         # ------------------------------------------
@@ -224,28 +253,33 @@ class OrderListSheet(BaseSheet):
             self.SYMBOL_COLUMN: request["symbol"],
             self.SYMBOL_NAME_COLUMN: "DEBUG",
             self.ACCOUNT_TYPE_COLUMN: "特定",
-            self.ORDER_DATETIME_COLUMN: datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
+            self.MARKET_NAME_COLUMN: "東証(SOR)",
+            self.ORDER_DATETIME_COLUMN: order_datetime,
             self.ORDER_TYPE_COLUMN: order_type,
             self.TRADE_TYPE_COLUMN: trade_type,
             self.MARGIN_TYPE_COLUMN: margin_type,
             self.REPAYMENT_PERIOD_COLUMN: repayment_period,
             self.EXECUTION_CONDITION_COLUMN: "本日中",
             self.ORDER_EXPIRATION_COLUMN: datetime.now().strftime("%Y%m%d"),
-            self.ORDER_QUANTITY_COLUMN: request["quantity"],
-            self.FILLED_QUANTITY_COLUMN: request["quantity"],
-            self.ORDER_PRICE_COLUMN: request["price"],
+            self.ORDER_QUANTITY_COLUMN: order_quantity,
+            self.FILLED_QUANTITY_COLUMN: filled_quantity,
+            self.ORDER_PRICE_COLUMN: order_price,
         }
 
         self.add_row(values)
 
-        self.market.add_internal_log(
-            level="DEBUG", message="DEBUG ADD ORDER LIST",
-            data={
+        RakutenLog.debug(
+            "DEBUG ADD ORDER LIST",
+            {
                 "order_no": order_no,
+                "order_datetime": order_datetime,
                 "order_type": order_type,
                 "trade_type": trade_type,
                 "margin_type": margin_type,
                 "repayment_period": repayment_period,
+                "order_quantity": order_quantity,
+                "filled_quantity": filled_quantity,
+                "order_price": order_price,
             },
         )
 

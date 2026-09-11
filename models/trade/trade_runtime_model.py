@@ -88,16 +88,17 @@ class TradeRuntimeModel:
         self.entry_reversal_count = 0
 
         # 約定情報 (注文約定後に確定するデータ)
+        #   RssMarginCloseOrder_Vのパラメータとしても利用
 
         # 実際の約定価格
         self.entry_price = None
         # 約定時刻
         self.entry_time = None
 
-        # ENTRY約定市場 (信用返済時の建市場として使用)
-        #   1：東証 4：JNX 5：JAX 6：Chi-X
-        # 現時点では東証を1固定
-        self.entry_market = 1
+        # 実際のEXIT約定価格
+        self.exit_price = None
+        # EXIT約定時刻
+        self.exit_time = None
 
         # ---------------------------------------
         # EXIT判定管理
@@ -110,12 +111,6 @@ class TradeRuntimeModel:
         #   判定: 損切り・利益確定条件で使用
         #
         self.stop_price = None
-
-        # 実際のEXIT約定価格
-        self.exit_price = None
-
-        # EXIT約定時刻
-        self.exit_time = None
 
         # EXIT理由
         self.exit_reason: ExitReason | None = None
@@ -140,14 +135,15 @@ class TradeRuntimeModel:
             "entry_previous_price": self.entry_previous_price,
             "entry_reversal_count": self.entry_reversal_count,
 
+            # ENTRY注文
             "entry_price": self.entry_price,
             "entry_time": (self.entry_time.isoformat() if self.entry_time else None),
-            "entry_market": self.entry_market,
 
-            # EXIT判定管理
-            "stop_price": self.stop_price,
+            # EXIT注文
             "exit_price": self.exit_price,
             "exit_time": (self.exit_time.isoformat() if self.exit_time else None),
+
+            "stop_price": self.stop_price,
 
             # Enum → JSON
             "exit_reason": (self.exit_reason.value if self.exit_reason else None),
@@ -177,21 +173,19 @@ class TradeRuntimeModel:
         runtime.entry_previous_price = data.get("entry_previous_price")
         runtime.entry_reversal_count = data.get("entry_reversal_count", 0)
 
+        # ENTRY注文
         runtime.entry_price = data.get("entry_price")
-
         entry_time_str = data.get("entry_time")
         if entry_time_str:
             runtime.entry_time = datetime.fromisoformat(entry_time_str)
 
-        runtime.entry_market = data.get("entry_market", 1)
-
-        # EXIT判定管理
-        runtime.stop_price = data.get("stop_price")
+        # EXIT注文
         runtime.exit_price = data.get("exit_price")
-
         exit_time_str = data.get("exit_time")
         if exit_time_str:
             runtime.exit_time = datetime.fromisoformat(exit_time_str)
+
+        runtime.stop_price = data.get("stop_price")
 
         # JSON → Enum
         exit_reason_str = data.get("exit_reason")

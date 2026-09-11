@@ -16,6 +16,7 @@ from pathlib import Path
 from abc import ABC
 
 from core.exception import StoreError
+from core.logger import Log
 
 
 class BaseStore(ABC):
@@ -48,6 +49,15 @@ class BaseStore(ABC):
                 return json.load(f)
 
         except json.JSONDecodeError as e:
+
+            Log.error(
+                "STORE JSON INVALID",
+                {
+                    "file": str(file_path),
+                    "line": e.lineno,
+                    "column": e.colno,
+                },
+            )
 
             raise StoreError(
                 message=(

@@ -22,11 +22,11 @@
 # 注意:
 #   ・本体コードは変更しない
 #   ・RssCancelOrder_V は楽天RSS側の機能
-#   ・このテストでは RakutenMarket.run_macro() を直接呼び出す
+#   ・このテストでは RakutenClient.run_macro() を直接呼び出す
 #
 
 
-from market.rakuten.market import RakutenMarket
+from market.rakuten.rakuten_client import RakutenClient
 
 
 # ============================================================
@@ -40,7 +40,7 @@ ORDER_NUMBER = "51077129"
 def main():
 
     # debug環境の楽天RSSクライアントを生成
-    market = RakutenMarket("debug")
+    market = RakutenClient("debug")
 
     try:
 

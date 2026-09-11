@@ -26,7 +26,7 @@
 # 注意:
 #   ・本体コードは変更しない
 #   ・RssStockOrder_V は楽天RSS側の機能
-#   ・このテストでは RakutenMarket.run_macro() を直接呼び出す
+#   ・このテストでは RakutenClient.run_macro() を直接呼び出す
 #
 # 今回のテスト結果:
 #   ・結果:
@@ -37,7 +37,7 @@
 #
 
 
-from market.rakuten.market import RakutenMarket
+from market.rakuten.rakuten_client import RakutenClient
 
 
 def main():
@@ -45,7 +45,7 @@ def main():
     # debug環境の楽天RSSクライアントを生成
     #   real=本番運用 / simulator=楽天RSS価格・仮想売買
     #   emulator=仮想市場環境 / debug=内部デバッグ"
-    market = RakutenMarket("simulator")
+    market = RakutenClient("simulator")
 
     try:
 

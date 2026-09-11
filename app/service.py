@@ -13,7 +13,7 @@ from fastapi import HTTPException
 from core.logger import Log
 from core.response import Response
 
-from market.service import MarketService
+from market.market_service import MarketService
 
 from storage.symbol_store import SymbolStore
 

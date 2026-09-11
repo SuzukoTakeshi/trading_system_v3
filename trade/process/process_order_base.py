@@ -112,29 +112,25 @@ class ProcessOrderBase(ProcessBase):
         発注処理
         """
 
-        open_date = None
-        open_price = None
-        open_market = None
+        entry_time = None
+        entry_price = None
+        entry_market = None
 
         if order.order_role == "exit":
 
-            # 建日 ENTRY約定時刻から取得
-            if trade.runtime.entry_time is None:
-                raise Exception(f"ENTRYの約定時刻がありません (#{trade.id})")
+            entry_result = trade.entry_order.result
 
-            open_date = trade.runtime.entry_time.strftime("%Y%m%d")
+            if entry_result is None:
+                raise Exception(f"ENTRYの約定結果がありません (#{trade.id})")
 
-            # 建単価 実際のENTRY約定価格
-            if trade.runtime.entry_price is None:
-                raise Exception(f"ENTRYの約定価格がありません (#{trade.id})")
+            # ENTRY約定時刻
+            entry_time = entry_result.result_datetime.strftime("%Y%m%d")
 
-            open_price = trade.runtime.entry_price
+            # ENTRY約定価格
+            entry_price = entry_result.price
 
-            # 建市場 1：東証 4：JNX 5：JAX 6：Chi-X
-            if trade.runtime.entry_market is None:
-                raise Exception(f"ENTRYの約定市場がありません (#{trade.id})")
-
-            open_market = trade.runtime.entry_market
+            # ENTRY約定市場 1：東証 4：JNX 5：JAX 6：Chi-X
+            entry_market = entry_result.market_name
 
 
         request = OrderRequestDTO(
@@ -152,10 +148,10 @@ class ProcessOrderBase(ProcessBase):
             # 注文役割
             order_role=order.order_role,
 
-            # 返済建玉情報
-            open_date=open_date,
-            open_price=open_price,
-            open_market=open_market,
+            # ENTRY情報
+            entry_time=entry_time,
+            entry_price=entry_price,
+            entry_market=entry_market,
 
             price=order.price,
             order_type=order.order_type,
@@ -287,12 +283,12 @@ class ProcessOrderBase(ProcessBase):
         # ------------------------------------------
         # 注文結果取得
         # ------------------------------------------
-        data = self.market.get_order_result(order.order_no)
+        order_result_data = self.market.get_order_result(order.order_no)
 
-        if data is None:
+        if order_result_data is None:
             return False
 
-        order_result_status = OrderResultStatus(data["status"])
+        order_result_status = OrderResultStatus(order_result_data["status"])
 
         # ------------------------------------------
         # OrderResultModel作成
@@ -302,11 +298,11 @@ class ProcessOrderBase(ProcessBase):
         #   ExecutionListから実約定を取得して更新する。
         # ------------------------------------------
         order_result = OrderResultModel(
-            order_no=data["order_no"],
+            order_no=order_result_data["order_no"],
             status=order_result_status,
             result_datetime=None,
-            quantity=data["quantity"],
-            price=data["price"],
+            quantity=order_result_data["quantity"],
+            price=order_result_data["price"],
         )
 
         # ------------------------------------------
@@ -320,15 +316,22 @@ class ProcessOrderBase(ProcessBase):
             # --------------------------------------
             # 実約定を取得
             #
-            #   OrderListでは約定済みであることだけ確認し、
-            #   実際の約定数量・約定単価・約定日時は
+            #   OrderListでは約定済みであることだけ確認し、実際の約定数量・約定単価・約定日時は
             #   ExecutionListから取得する。
+            #
+            #   filled_result
+            #   {
+            #
+            #   }
             # --------------------------------------
             filled_result = self.market.get_filled_result(
-                order_datetime=data["order_datetime"],
-                symbol=order.symbol,
-                trade_type=data["trade_type"],
-                order_type=data["order_type"],
+                symbol=order.symbol,                                    # 7203 (orderより設定)
+                order_datetime=order_result_data["order_datetime"],     # 2026/07/22 11:10:55
+                account_type=order_result_data["account_type"],         # 口座区分 (一般 / 特定 / NISA / 旧NISA)
+                margin_type=order_result_data["margin_type"],           # 信用区分 (制度 / 一般)
+                repayment_period=order_result_data["repayment_period"], # 弁済期限 (6ヶ月 / 無期限 / 14日 / 1日)
+                order_type=order_result_data["order_type"],             # 売買 (買付 / 買建 / 買埋 / 売付 / 売建 / 売埋)
+                trade_type=order_result_data["trade_type"],             # 取引 (現物 / 信用新規 / 信用返済)
             )
 
             if filled_result is None:
@@ -340,6 +343,7 @@ class ProcessOrderBase(ProcessBase):
             order_result.quantity = filled_result["quantity"]
             order_result.price = filled_result["price"]
             order_result.result_datetime = filled_result["execution_datetime"]
+            order_result.market_name = filled_result["execution_market_name"]
 
             order.result = order_result
 

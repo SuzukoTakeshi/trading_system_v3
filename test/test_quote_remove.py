@@ -5,21 +5,21 @@
 #
 #
 
-from market.rakuten.market import RakutenMarket
-from market.rakuten.quote_sheet import QuoteSheet
+from market.rakuten.rakuten_client import RakutenClient
+from market.rakuten.sheets.quote_sheet import QuoteSheet
 
 
 def main():
 
-    market = RakutenMarket()
+    rakuten_client = RakutenClient()
 
     try:
 
         # Excel接続
-        market.open()
+        rakuten_client.open()
 
         # Quotesシート取得
-        ws = market.get_sheet("Quotes")
+        ws = rakuten_client.get_sheet("Quotes")
 
         # QuoteSheet
         sheet = QuoteSheet(ws)
@@ -48,7 +48,7 @@ def main():
             print(symbol, price)
 
     finally:
-        market.close()
+        rakuten_client.close()
 
 
 

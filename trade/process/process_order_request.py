@@ -108,7 +108,7 @@ class ProcessOrderRequest(ProcessOrderBase):
             raise InternalError(message=f"UNKNOWN SIDE {trade.param.side}", code="UNKNOWN_SIDE")
 
         # 成行注文
-        return self.create_order(
+        order = self.create_order(
             trade,
             order_action,
             # 成行(OrderType.MARKET)だが、
@@ -116,3 +116,7 @@ class ProcessOrderRequest(ProcessOrderBase):
             trade.runtime.entry_previous_price,
             OrderType.MARKET,
         )
+
+        trade.entry_order = order
+
+        return order

@@ -41,7 +41,7 @@ class BaseEntity:
                     data = json.load(f)
 
                 if "last_id" not in data:
-                    raise ValueException("INVALID ID FILE FORMAT")
+                    raise ValueError("INVALID ID FILE FORMAT")
 
             else:
                 data = {"last_id": 0}

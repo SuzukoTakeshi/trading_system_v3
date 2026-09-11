@@ -46,8 +46,8 @@ class QuoteSheet(BaseSheet):
     ]
 
 
-    def __init__(self, market, ws, mode):
-        super().__init__(market, ws, mode=mode, header_row=1, stopper=None)
+    def __init__(self, market, ws):
+        super().__init__(market, ws, header_row=1, stopper=None)
 
         # Quotesシート初期化
         self.initialize()

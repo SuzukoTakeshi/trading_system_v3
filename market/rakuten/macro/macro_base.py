@@ -12,6 +12,8 @@ import re
 
 from enum import Enum
 
+from market.rakuten.rakuten_log import RakutenLog
+
 
 class MacroResultCode(Enum):
     SUCCESS = "SUCCESS"
@@ -19,11 +21,12 @@ class MacroResultCode(Enum):
     ORDER_LOCKED = "ORDER_LOCKED"
     ORDER_REJECTED = "ORDER_REJECTED"
 
+from trade.trade_enums import MarginType
 
 class MacroBase:
 
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, rakuten_client):
+        self.rakuten_client = rakuten_client
 
 
     # ==========================================
@@ -31,35 +34,21 @@ class MacroBase:
     # ==========================================
     def run(self, order_id, symbol, macro_name, *args):
 
-        macro_result = self.client.run_macro(macro_name, *args)
+        macro_result = self.rakuten_client.run_macro(macro_name, *args)
 
-        self.client.add_internal_log(
-            level="DEBUG",
-            message=f"{macro_name} RESULT",
-            data={
+        result_code = self.get_result_code(macro_result)
+
+        RakutenLog.debug(
+            f"{macro_name} RESULT",
+            {
                 "order_id": order_id,
                 "symbol": symbol,
-                "status": macro_result,
+                "result_code": result_code,
+                "macro_result": macro_result,
             },
         )
 
-        # 正常
-        if macro_result == "":
-            return True, macro_result
-
-        # RSSエラー
-        self.client.set_last_error(
-            code="ORDER_REJECTED",
-            message=macro_result,
-            source="RSS",
-            data={
-                "macro": macro_name,
-                "order_id": order_id,
-                "symbol": symbol,
-            },
-        )
-
-        return False, macro_result
+        return result_code, macro_result
 
 
     # ==========================================
@@ -88,3 +77,22 @@ class MacroBase:
 
         # その他RSSエラー
         return MacroResultCode.ORDER_REJECTED
+
+
+    # 6: 信用区分 (1:制度（6ヶ月） / 2:一般（無期限） / 3:一般（14日） / 4:一般（1日）)
+    def get_margin_type_code(self, margin_type):
+        match margin_type:
+            case MarginType.SYSTEM:
+                return 1
+
+            case MarginType.UNLIMITED:
+                return 2
+
+            case MarginType.TWO_WEEKS:
+                return 3
+
+            case MarginType.DAY:
+                return 4
+
+            case _:
+                raise ValueError(f"Unsupported margin type: {margin_type}")

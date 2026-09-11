@@ -27,12 +27,21 @@
 # | 15 | 特別空売り料(円) | 特別空売り料              |
 #
 
+from market.rakuten.rakuten_log import RakutenLog
+
 from datetime import datetime, timedelta
 
 from market.rakuten.sheets.base_sheet import BaseSheet
 
-from trade.trade_enums import MarginType
+from trade.trade_enums import (
+	MarginType,
+    TradeType
+)
 
+from market.order_enums import (
+    OrderRole,      # 注文役割
+    OrderAction,    # 売買方向
+)
 
 class ExecutionListSheet(BaseSheet):
 
@@ -43,7 +52,7 @@ class ExecutionListSheet(BaseSheet):
     SYMBOL_NAME_COLUMN = "銘柄名称"
 
     ACCOUNT_TYPE_COLUMN = "口座区分"
-    MARKET_COLUMN = "市場名称"
+    MARKET_NAME_COLUMN = "市場名称"
 
     MARGIN_TYPE_COLUMN = "信用区分"
     REPAYMENT_PERIOD_COLUMN = "弁済期限"
@@ -59,9 +68,9 @@ class ExecutionListSheet(BaseSheet):
     SPECIAL_SHORT_SELLING_FEE_COLUMN = "特別空売り料"
 
 
-    def __init__(self, market, ws, mode):
+    def __init__(self, rakuten_client, ws):
 
-        super().__init__(market, ws, mode=mode, header_row=2)
+        super().__init__(rakuten_client, ws, header_row=2)
 
 
     # ==========================================
@@ -76,14 +85,32 @@ class ExecutionListSheet(BaseSheet):
     #
     # order_datetime:
     #   OrderListから取得した発注/受注日時
+    # symbol:
+    #
+    # trade_type:
+    #
+    # order_type:
+    #
     #
     # return:
     #   約定結果のlist
     # ==========================================
-    def get_execution_results(self, order_datetime, symbol, trade_type, order_type):
+    def get_execution_results(
+        self,
+        order_datetime,
+        symbol,
+        account_type,
+        margin_type,
+        repayment_period,
+        trade_type,
+        order_type,
+    ):
 
         execution_datetime_column = self.require_column(self.EXECUTION_DATETIME_COLUMN)
         symbol_column = self.require_column(self.SYMBOL_COLUMN)
+        account_type_column = self.require_column(self.ACCOUNT_TYPE_COLUMN)
+        margin_type_column = self.require_column(self.MARGIN_TYPE_COLUMN)
+        repayment_period_column = self.require_column(self.REPAYMENT_PERIOD_COLUMN)
         trade_type_column = self.require_column(self.TRADE_TYPE_COLUMN)
         order_type_column = self.require_column(self.ORDER_TYPE_COLUMN)
 
@@ -105,32 +132,20 @@ class ExecutionListSheet(BaseSheet):
 
         for row in range(self.header_row + 1, max_row + 1):
 
-            execution_datetime = self.get_value(row, execution_datetime_column)
-
             # --------------------------------------
             # STOPPER
             # --------------------------------------
-            if str(execution_datetime) == self.stopper:
+            check_stopper = self.get_value(row, execution_datetime_column)
+            if str(check_stopper) == self.stopper:
                 break
 
-            if execution_datetime is None:
+            if check_stopper is None:
                 continue
 
             # --------------------------------------
             # 約定日時
             # --------------------------------------
-            # if isinstance(execution_datetime, datetime):
-            #     execution_datetime_value = execution_datetime
-
-            # else:
-            #     try:
-            #         execution_datetime_value = datetime.strptime(
-            #             str(execution_datetime),
-            #             "%Y/%m/%d %H:%M:%S",
-            #         )
-
-            #     except ValueError:
-            #         continue
+            execution_datetime = self.get_value(row, execution_datetime_column)
 
             if isinstance(execution_datetime, datetime):
                 execution_datetime_value = execution_datetime.replace(tzinfo=None)
@@ -145,9 +160,7 @@ class ExecutionListSheet(BaseSheet):
                 except ValueError:
                     continue
 
-            # --------------------------------------
             # 指定時刻より前は対象外
-            # --------------------------------------
             if execution_datetime_value < start_datetime:
                 continue
 
@@ -155,15 +168,37 @@ class ExecutionListSheet(BaseSheet):
             # 銘柄コード
             # --------------------------------------
             execution_symbol = self.get_value(row, symbol_column)
-
             if str(execution_symbol) != str(symbol):
+                continue
+
+            # --------------------------------------
+            # 口座区分
+            # --------------------------------------
+            execution_account_type = self.get_value(row, account_type_column)
+            if execution_account_type != account_type:
+                continue
+
+            # --------------------------------------
+            # 信用区分
+            # --------------------------------------
+            execution_margin_type = self.get_value(row, margin_type_column)
+            if execution_margin_type != margin_type:
+                continue
+
+            # --------------------------------------
+            # 弁済期限
+            # --------------------------------------
+            execution_repayment_period = self.get_value(
+                row,
+                repayment_period_column,
+            )
+            if execution_repayment_period != repayment_period:
                 continue
 
             # --------------------------------------
             # 取引
             # --------------------------------------
             execution_trade_type = self.get_value(row, trade_type_column)
-
             if execution_trade_type != trade_type:
                 continue
 
@@ -171,17 +206,15 @@ class ExecutionListSheet(BaseSheet):
             # 売買
             # --------------------------------------
             execution_order_type = self.get_value(row, order_type_column)
-
             if execution_order_type != order_type:
                 continue
 
             # --------------------------------------
             # 約定結果
             # --------------------------------------
-            self.market.add_internal_log(
-                level="DEBUG",
-                message="EXECUTION DATETIME",
-                data={
+            RakutenLog.debug(
+                "EXECUTION DATETIME",
+                {
                     "raw": execution_datetime,
                     "raw_tzinfo": getattr(execution_datetime, "tzinfo", None),
                     "value": execution_datetime_value,
@@ -189,20 +222,28 @@ class ExecutionListSheet(BaseSheet):
                 },
             )
 
+            # 市場名称
+            execution_market_name = self.get_value(row, self.require_column(self.MARKET_NAME_COLUMN))
+
+            # 約定単価
+            execution_price = self.get_value(row, self.require_column(self.EXECUTION_PRICE_COLUMN))
+
             result = {
+                # 約定日  (RssMarginCloseOrder_Vの建日で必須使用)
                 "execution_datetime": execution_datetime_value,
 
                 "symbol": execution_symbol,
 
                 "symbol_name": self.get_value(row, self.require_column(self.SYMBOL_NAME_COLUMN)),
 
-                "account_type": self.get_value(row, self.require_column(self.ACCOUNT_TYPE_COLUMN)),
+                "account_type": execution_account_type,
 
-                "market": self.get_value(row, self.require_column(self.MARKET_COLUMN)),
+                # 市場名称 (RssMarginCloseOrder_Vの建市場で必須使用)
+                "execution_market_name": execution_market_name,
 
-                "margin_type": self.get_value(row, self.require_column(self.MARGIN_TYPE_COLUMN)),
+                "margin_type": execution_margin_type,
 
-                "repayment_period": self.get_value(row, self.require_column(self.REPAYMENT_PERIOD_COLUMN)),
+                "repayment_period": execution_repayment_period,
 
                 "trade_type": execution_trade_type,
 
@@ -210,7 +251,8 @@ class ExecutionListSheet(BaseSheet):
 
                 "quantity": self.get_value(row, self.require_column(self.EXECUTION_QUANTITY_COLUMN)),
 
-                "price": self.get_value(row, self.require_column(self.EXECUTION_PRICE_COLUMN)),
+                # 約定単価 (RssMarginCloseOrder_Vの建単価で必須使用)
+                "execution_price": execution_price,
 
                 "amount": self.get_value(row, self.require_column(self.EXECUTION_AMOUNT_COLUMN)),
 
@@ -219,23 +261,12 @@ class ExecutionListSheet(BaseSheet):
                 "special_short_selling_fee": self.get_value(row, self.require_column(self.SPECIAL_SHORT_SELLING_FEE_COLUMN)),
             }
 
-            results.append(result)
+            RakutenLog.debug(
+                "EXECUTION LIST",
+                { "result": result },
+            )
 
-        # ------------------------------------------
-        # Internal Log
-        # ------------------------------------------
-        self.market.add_internal_log(
-            level="DEBUG",
-            message="EXECUTION LIST",
-            data={
-                "order_datetime": order_datetime,
-                "symbol": symbol,
-                "trade_type": trade_type,
-                "order_type": order_type,
-                "count": len(results),
-                "results": results,
-            },
-        )
+            results.append(result)
 
         return results
 
@@ -261,11 +292,11 @@ class ExecutionListSheet(BaseSheet):
         # 取引種別
         # ------------------------------------------
 
-        if request["trade_type"] == "cash":
+        if request["trade_type"] == TradeType.CASH:
 
             trade_type = "現物"
 
-            if request["order_action"] == "buy":
+            if request["order_action"] == OrderAction.BUY:
                 order_type = "買付"
             else:
                 order_type = "売付"
@@ -273,20 +304,20 @@ class ExecutionListSheet(BaseSheet):
             margin_type = ""
             repayment_period = ""
 
-        elif request["trade_type"] == "margin":
+        elif request["trade_type"] == TradeType.MARGIN:
 
-            if request["order_role"] == "entry":
+            if request["order_role"] == OrderRole.ENTRY:
                 trade_type = "信用新規"
 
-                if request["order_action"] == "buy":
+                if request["order_action"] == OrderAction.BUY:
                     order_type = "買建"
                 else:
                     order_type = "売建"
 
-            elif request["order_role"] == "exit":
+            elif request["order_role"] == OrderRole.EXIT:
                 trade_type = "信用返済"
 
-                if request["order_action"] == "buy":
+                if request["order_action"] == OrderAction.BUY:
                     order_type = "買埋"
                 else:
                     order_type = "売埋"
@@ -326,39 +357,38 @@ class ExecutionListSheet(BaseSheet):
 
 
         quantity = request["quantity"]
-        price = request["price"]
-        amount = quantity * price
+        execution_price = request["price"]
+        amount = quantity * execution_price
 
         values = {
-            self.EXECUTION_DATETIME_COLUMN: execution_datetime,
-            self.SETTLEMENT_DATE_COLUMN: settlement_date,
-            self.SYMBOL_COLUMN: request["symbol"],
-            self.SYMBOL_NAME_COLUMN: "DEBUG",
-            self.ACCOUNT_TYPE_COLUMN: "特定",
-            self.MARKET_COLUMN: "東証",
-            self.MARGIN_TYPE_COLUMN: margin_type,
-            self.REPAYMENT_PERIOD_COLUMN: repayment_period,
-            self.TRADE_TYPE_COLUMN: trade_type,
-            self.ORDER_TYPE_COLUMN: order_type,
-            self.EXECUTION_QUANTITY_COLUMN: quantity,
-            self.EXECUTION_PRICE_COLUMN: price,
-            self.EXECUTION_AMOUNT_COLUMN: amount,
-            self.TAX_TYPE_COLUMN: "源泉あり",
-            self.SPECIAL_SHORT_SELLING_FEE_COLUMN: 0,
+            self.EXECUTION_DATETIME_COLUMN: execution_datetime, # 約定日 (YYYY/MM/DD HH:MM:SS)
+            self.SETTLEMENT_DATE_COLUMN: settlement_date,   # 受渡日 (YYYYMMDD)
+            self.SYMBOL_COLUMN: request["symbol"],          # 銘柄コード
+            self.SYMBOL_NAME_COLUMN: "DEBUG",               # 銘柄名称
+            self.ACCOUNT_TYPE_COLUMN: "特定",               # 口座区分 (一般 / 特定 / NISA / 旧NISA)
+            self.MARKET_NAME_COLUMN: "JAX",                 # 市場名称 (東証 / JNX / JAX)
+            self.MARGIN_TYPE_COLUMN: margin_type,           # 信用区分 (制度 / 一般)
+            self.REPAYMENT_PERIOD_COLUMN: repayment_period, # 弁済期限 (6ヶ月 / 無期限 / 14日 / 1日)
+            self.TRADE_TYPE_COLUMN: trade_type,             # 取引 (現物 / 信用新規 / 信用返済)
+            self.ORDER_TYPE_COLUMN: order_type,             # 売買 (買付 / 買建 / 買埋 / 売付 / 売建 / 売埋)
+            self.EXECUTION_QUANTITY_COLUMN: quantity,       # 約定数量
+            self.EXECUTION_PRICE_COLUMN: execution_price,   # 約定単価
+            self.EXECUTION_AMOUNT_COLUMN: amount,           # 約定代金
+            self.TAX_TYPE_COLUMN: "源泉あり",                # 税区分 (申告 / 源泉あり)
+            self.SPECIAL_SHORT_SELLING_FEE_COLUMN: 0,       # 特別空売り料
         }
 
         self.add_row(values)
 
-        self.market.add_internal_log(
-            level="DEBUG",
-            message="DEBUG ADD EXECUTION LIST",
-            data={
+        RakutenLog.debug(
+            "DEBUG ADD EXECUTION LIST",
+            {
                 "execution_datetime": execution_datetime,
                 "symbol": request["symbol"],
                 "trade_type": trade_type,
                 "order_type": order_type,
                 "quantity": quantity,
-                "price": price,
+                "execution_price": execution_price,
                 "amount": amount,
             },
         )

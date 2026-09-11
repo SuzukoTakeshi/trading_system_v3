@@ -33,7 +33,7 @@ from core.exception import (
 from core.voice_manager import VoiceManager
 from core.voice_enums import VoiceType
 
-from market.service import MarketService
+from market.market_service import MarketService
 
 from trade.trade_enums import (
     EngineState,
@@ -439,7 +439,6 @@ class TradeEngine:
                     # ・EXIT注文生成
                     # ==========================================
                     case TradeState.EXIT_CREATE:
-                        print("TradeState.EXIT_CREATE")
                         if self.process_exit_create.process(trade):
                             trade.change_state(TradeState.EXIT_WAIT)
 

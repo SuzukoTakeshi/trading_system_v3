@@ -38,15 +38,23 @@
 #       Excel.Application.Workbooks
 #
 
-from core.logger import Log
+from market.rakuten.rakuten_log import RakutenLog
 
-from market.rakuten.macro.macro_base import MacroBase
+from market.rakuten.macro.macro_base import (
+    MacroBase,
+    MacroResultCode,
+)
+
+from market.order_enums import (
+    OrderAction,    # 売買方向
+    OrderType,      # 注文方式
+)
 
 
 class StockOrder(MacroBase):
 
-    def __init__(self, client):
-        super().__init__(client)
+    def __init__(self, rakuten_client):
+        super().__init__(rakuten_client)
 
     # ==========================================
     # 現物注文
@@ -93,7 +101,7 @@ class StockOrder(MacroBase):
         # 3: 売買区分
         # 1：売
         # 3：買
-        if request["order_action"] == "buy":
+        if request["order_action"] == OrderAction.BUY:
             action = 3
         else:
             action = 1
@@ -115,13 +123,13 @@ class StockOrder(MacroBase):
         # 7: 価格区分
         # 0：成行
         # 1：指値
-        if request["order_type"] == "market":
+        if request["order_type"] == OrderType.MARKET:
             price_type = 0
         else:
             price_type = 1
 
         # 8: 注文価格
-        if request["order_type"] == "market":
+        if request["order_type"] == OrderType.MARKET:
             price = ""
         else:
             price = request["price"]
@@ -199,39 +207,45 @@ class StockOrder(MacroBase):
             set_order_expire,
         )
 
-        result, macro_result = self.run(
-            order_id, symbol,
+        if self.rakuten_client.mode == "real":
 
-            "RssStockOrder_V",
-            order_id,
-            symbol,
-            action,
-            order_type,
-            sor,
-            quantity,
-            price_type,
-            price,
-            condition,
-            expire,
-            account,
-            trigger_price,
-            trigger_type,
-            trigger_price_type,
-            trigger_order_price,
-            set_order_type,
-            set_order_price,
-            set_order_condition,
-            set_order_expire,
-        )
+            # MacroBaseのrun()を呼出し
+            result_code, macro_result = self.run(
+                order_id, symbol,
+
+                "RssStockOrder_V",
+                order_id,
+                symbol,
+                action,
+                order_type,
+                sor,
+                quantity,
+                price_type,
+                price,
+                condition,
+                expire,
+                account,
+                trigger_price,
+                trigger_type,
+                trigger_price_type,
+                trigger_order_price,
+                set_order_type,
+                set_order_price,
+                set_order_condition,
+                set_order_expire,
+            )
+
+        else:
+            result_code = MacroResultCode.SUCCESS
+            macro_result = ""
 
         # 正常
-        if macro_result == "":
-            Log.debug(f"現物注文: 正常")
-            return True, None
+        if result_code == MacroResultCode.SUCCESS:
+            RakutenLog.debug(f"現物注文: 正常")
+            return True, result_code
 
         # RSSエラー
-        result_code = self.get_result_code(macro_result)
-        Log.debug(f"現物注文{request["order_action"]}: エラー={macro_result} result_code={result_code.value}")
+        RakutenLog.debug(f"現物注文: エラー result_code={result_code.value} macro_result={macro_result}")
 
         return False, result_code
 
@@ -259,23 +273,23 @@ class StockOrder(MacroBase):
         set_order_expire,
     ):
 
-        Log.debug("RssStockOrder_V PARAMS")
-        Log.debug(f"  order_id             = {order_id}")
-        Log.debug(f"  symbol               = {symbol}")
-        Log.debug(f"  action               = {action}")
-        Log.debug(f"  order_type           = {order_type}")
-        Log.debug(f"  sor                  = {sor}")
-        Log.debug(f"  quantity             = {quantity}")
-        Log.debug(f"  price_type           = {price_type}")
-        Log.debug(f"  price                = {price}")
-        Log.debug(f"  condition            = {condition}")
-        Log.debug(f"  expire               = {expire}")
-        Log.debug(f"  account              = {account}")
-        Log.debug(f"  trigger_price        = {trigger_price}")
-        Log.debug(f"  trigger_type         = {trigger_type}")
-        Log.debug(f"  trigger_price_type   = {trigger_price_type}")
-        Log.debug(f"  trigger_order_price  = {trigger_order_price}")
-        Log.debug(f"  set_order_type       = {set_order_type}")
-        Log.debug(f"  set_order_price      = {set_order_price}")
-        Log.debug(f"  set_order_condition  = {set_order_condition}")
-        Log.debug(f"  set_order_expire     = {set_order_expire}")
+        RakutenLog.debug("RssStockOrder_V PARAMS")
+        RakutenLog.debug(f"  order_id             = {order_id}")
+        RakutenLog.debug(f"  symbol               = {symbol}")
+        RakutenLog.debug(f"  action               = {action}")
+        RakutenLog.debug(f"  order_type           = {order_type}")
+        RakutenLog.debug(f"  sor                  = {sor}")
+        RakutenLog.debug(f"  quantity             = {quantity}")
+        RakutenLog.debug(f"  price_type           = {price_type}")
+        RakutenLog.debug(f"  price                = {price}")
+        RakutenLog.debug(f"  condition            = {condition}")
+        RakutenLog.debug(f"  expire               = {expire}")
+        RakutenLog.debug(f"  account              = {account}")
+        RakutenLog.debug(f"  trigger_price        = {trigger_price}")
+        RakutenLog.debug(f"  trigger_type         = {trigger_type}")
+        RakutenLog.debug(f"  trigger_price_type   = {trigger_price_type}")
+        RakutenLog.debug(f"  trigger_order_price  = {trigger_order_price}")
+        RakutenLog.debug(f"  set_order_type       = {set_order_type}")
+        RakutenLog.debug(f"  set_order_price      = {set_order_price}")
+        RakutenLog.debug(f"  set_order_condition  = {set_order_condition}")
+        RakutenLog.debug(f"  set_order_expire     = {set_order_expire}")

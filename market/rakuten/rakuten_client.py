@@ -9,12 +9,10 @@
 #   ・Excel管理
 #
 
-from datetime import datetime
-
 import pythoncom
 import win32com.client
 
-from core.logger import Log
+from market.rakuten.rakuten_log import RakutenLog
 
 from market.rakuten.config.config_loader import MarketConfig
 
@@ -25,9 +23,10 @@ from market.rakuten.sheets.quote_sheet import QuoteSheet
 from market.rakuten.sheets.order_id_list_sheet import OrderIDListSheet
 from market.rakuten.sheets.order_list_sheet import OrderListSheet
 from market.rakuten.sheets.execution_list_sheet import ExecutionListSheet
+from market.rakuten.sheets.margin_position_list_sheet import MarginPositionListSheet
 
 
-class RakutenMarket:
+class RakutenClient:
 
     def __init__(self, mode="debug"):
         self.mode = mode
@@ -56,16 +55,13 @@ class RakutenMarket:
         self.order_id_list_sheet = None
         self.order_list_sheet = None
         self.execution_list_sheet = None
+        self.margin_position_list_sheet = None
 
         # MarketDes
         self.market_des_cleared_at = None
 
         # Last Error
         self.last_error = None
-
-        # Internal Log
-        self.internal_logs = []
-        self.internal_log_limit = 1000
 
 
     def get_market_session(self):
@@ -86,37 +82,6 @@ class RakutenMarket:
         return self.last_error
 
 
-    # ========================
-    # Internal Log
-    # ========================
-    def clear_internal_logs(self):
-        self.internal_logs.clear()
-
-    def add_internal_log(self, level, message, data=None):
-        timestamp = datetime.now()
-
-        Log.debug(
-            f"INTERNAL LOG : "
-            f"level={level}, "
-            f"message={message}, "
-            f"data={data}, "
-            f"timestamp={timestamp}"
-        )
-
-        self.internal_logs.append({
-            "level": level,
-            "message": message,
-            "data": data or {},
-            "timestamp": timestamp,
-        })
-
-        if len(self.internal_logs) > self.internal_log_limit:
-            self.internal_logs.pop(0)
-
-    def get_internal_logs(self, limit=100):
-        return self.internal_logs[-limit:]
-
-
     # ==========================================
     # Excel接続
     # ==========================================
@@ -129,13 +94,13 @@ class RakutenMarket:
         self.order_id_list_sheet = None
         self.order_list_sheet = None
         self.execution_list_sheet = None
+        self.margin_position_list_sheet = None
 
         pythoncom.CoInitialize()
 
-        self.add_internal_log(
-            level="EVENT",
-            message="EXCEL OPEN",
-            data={"path": self.path},
+        RakutenLog.debug(
+            "EXCEL OPEN",
+            {"path": self.path},
         )
 
         try:
@@ -152,26 +117,28 @@ class RakutenMarket:
         if self.book is None:
             raise Exception(f"Workbookが見つかりません: {self.path}")
 
-        self.market_des_sheet = MarketDesSheet(self, self.get_sheet(self.sheets["market_des"]), self.mode)
+        self.market_des_sheet = MarketDesSheet(self, self.get_sheet(self.sheets["market_des"]))
 
         # Quote
-        self.quote_sheet = QuoteSheet(self, self.get_sheet(self.sheets["quote"]), self.mode)
+        self.quote_sheet = QuoteSheet(self, self.get_sheet(self.sheets["quote"]))
 
         # Order Executor
-        self.order_executor = OrderExecutor(self, self.mode)
+        self.order_executor = OrderExecutor(self)
 
         # Order ID List
-        self.order_id_list_sheet = OrderIDListSheet(self, self.get_sheet(self.sheets["order_id_list"]), self.mode)
+        self.order_id_list_sheet = OrderIDListSheet(self, self.get_sheet(self.sheets["order_id_list"]))
 
         # Order List
-        self.order_list_sheet = OrderListSheet(self, self.get_sheet(self.sheets["order_list"]), self.mode)
+        self.order_list_sheet = OrderListSheet(self, self.get_sheet(self.sheets["order_list"]))
 
         # Execution List
-        self.execution_list_sheet = ExecutionListSheet(self, self.get_sheet(self.sheets["execution_list"]), self.mode)
+        self.execution_list_sheet = ExecutionListSheet(self, self.get_sheet(self.sheets["execution_list"]))
 
-        # 国内株式銘柄情報クリア
+        # Margin Position List
+        self.margin_position_list_sheet = MarginPositionListSheet(self, self.get_sheet(self.sheets["margin_position_list"]))
+
+        # 国内株式銘柄情報クリア (売買単位 / 制限値幅下限 / 制限値幅上限)
         self.market_des_sheet.clear()
-
         self.market_des_cleared_at = None
 
 
@@ -187,6 +154,7 @@ class RakutenMarket:
         self.order_id_list_sheet = None
         self.order_list_sheet = None
         self.execution_list_sheet = None
+        self.margin_position_list_sheet = None
 
         self.book = None
         self.app = None
@@ -194,7 +162,7 @@ class RakutenMarket:
         # COM解放
         pythoncom.CoUninitialize()
 
-        self.add_internal_log(level="EVENT", message="EXCEL CLOSE")
+        RakutenLog.debug("EXCEL CLOSE")
 
 
     def get_sheet(self, name):
@@ -237,10 +205,13 @@ class RakutenMarket:
             # 売買
             # BUY  -> "buy"
             # SELL -> "sell"
-            "order_action": request_order_dto.order_action.value,
+            "order_action": request_order_dto.order_action,
 
             # 数量
             "quantity": request_order_dto.quantity,
+
+            # 価格
+            "price": request_order_dto.price,
 
             # 取引
             "trade_type": request_order_dto.trade_type.value,
@@ -249,24 +220,37 @@ class RakutenMarket:
             "margin_type": request_order_dto.margin_type,
 
             # 注文役割
-            # entry : 新規
-            # exit  : 決済
+            # OrderRole.ENTRY : 新規注文
+            # OrderRole.EXIT  : 決済注文
             "order_role": request_order_dto.order_role,
 
-            # 価格
-            "price": request_order_dto.price,
-
             # 注文方式
-            # LIMIT  -> "limit"
-            # MARKET -> "market"
-            "order_type": request_order_dto.order_type.value,
+            # OrderType.LIMIT  : 指値注文
+            # OrderType.MARKET : 成行注文
+            "order_type": request_order_dto.order_type,
 
-            # 返済建玉情報
-            # exit / 信用返済で使用
-            "open_date": request_order_dto.open_date,
-            "open_price": request_order_dto.open_price,
-            "open_market": request_order_dto.open_market,
+            # ENTRY情報 (exitのdebug設定で使用)
+            "entry_time": request_order_dto.entry_time,
+            "entry_price": request_order_dto.entry_price,
+            "entry_market": request_order_dto.entry_market,
         }
+
+        # ------------------------------------------
+        # ENTRY情報
+        #   EXIT注文では信用返済建玉の指定に使用
+        #   ENTRY / 現物注文でも設定されるが、不要な場合は使用されない
+        # ------------------------------------------
+        request["position_date"] = request_order_dto.entry_time
+        request["position_price"] = request_order_dto.entry_price
+        position_market_map = {
+            "東証": 1,
+            "JNX": 4,
+            "JAX": 5,
+            "Chi-X": 6,
+        }
+        request["position_market"] = position_market_map.get(
+            request_order_dto.entry_market
+        )
 
         # Order実行
         result, result_code = self.order_executor.request_order(request)
@@ -287,6 +271,26 @@ class RakutenMarket:
         return True, result_code
 
 
+    def find_margin_position(self, request_order_dto):
+
+        positions = self.margin_position_list_sheet.get_positions()
+
+        if positions is None:
+            raise Exception("信用建玉一覧を取得できませんでした")
+
+        # 検索
+        for position in positions:
+
+            symbol = self.margin_position_list_sheet.normalize_symbol(
+                position["銘柄コード"]
+            )
+
+            if symbol == request_order_dto.symbol:
+                return position
+
+        return None
+
+
     # ==========================================
     # Excel VBAマクロ実行
     #   macro_name: VBAマクロ名
@@ -294,10 +298,9 @@ class RakutenMarket:
     # ==========================================
     def run_macro(self, macro_name, *args):
 
-        self.add_internal_log(
-            level="DEBUG",
-            message="RUN MACRO",
-            data={
+        RakutenLog.debug(
+            "RUN MACRO",
+            {
                 "name": macro_name,
                 "args": args,
             },
@@ -305,10 +308,9 @@ class RakutenMarket:
 
         result = self.app.Run(macro_name, *args)
 
-        self.add_internal_log(
-            level="DEBUG",
-            message="RUN MACRO RESULT",
-            data={
+        RakutenLog.debug(
+            "RUN MACRO RESULT",
+            {
                 "name": macro_name,
                 "result": result,
             },
@@ -408,15 +410,27 @@ class RakutenMarket:
     # ==========================================
     # 約定結果取得
     #   指定時刻以降の約定を取得
-    #   銘柄コード・取引・売買で検索
+    #   銘柄コード・口座区分・信用区分・弁済期限・取引・売買で検索
     #
     #   return:
     #       約定結果のlist
     # ==========================================
-    def get_execution_results(self, order_datetime, symbol, trade_type, order_type):
+    def get_execution_results(
+        self,
+        order_datetime,
+        symbol,
+        account_type,
+        margin_type,
+        repayment_period,
+        trade_type,
+        order_type,
+    ):
         return self.execution_list_sheet.get_execution_results(
             order_datetime=order_datetime,
             symbol=symbol,
+            account_type=account_type,
+            margin_type=margin_type,
+            repayment_period=repayment_period,
             trade_type=trade_type,
             order_type=order_type,
         )

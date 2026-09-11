@@ -6,23 +6,23 @@
 # python -m test.test_quote_add
 #
 
-from market.rakuten.market import RakutenMarket
+from market.rakuten.rakuten_client import RakutenClient
 from market.rakuten.sheets.quote_sheet import QuoteSheet
 
 
 def main():
 
-    market = RakutenMarket("debug")
+    rakuten_client = RakutenClient("debug")
 
     try:
         # Excel接続
-        market.open()
+        rakuten_client.open()
 
         # Quotesシート取得
-        ws = market.get_sheet("Quotes")
+        ws = rakuten_client.get_sheet("Quotes")
 
         # QuoteSheet
-        sheet = QuoteSheet(market, ws, "debug")
+        sheet = QuoteSheet(rakuten_client, ws, "debug")
 
         # 銘柄追加
         row = sheet.add_symbol("7203")
@@ -38,7 +38,7 @@ def main():
             print(symbol, price)
 
     finally:
-        market.close()
+        rakuten_client.close()
 
 
 if __name__ == "__main__":

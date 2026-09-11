@@ -13,7 +13,8 @@
       "order": "Order",
       "order_id_list": "OrderIDList",
       "order_list": "OrderList",
-      "execution_list": "ExecutionList"
+      "execution_list": "ExecutionList",
+      "margin_position_list": "MarginPositionList"
     }
   },
 

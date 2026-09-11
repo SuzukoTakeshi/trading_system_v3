@@ -114,6 +114,12 @@ class TradeModel(BaseEntity):
         # Tradeメッセージ
         self.message = "登録完了"
 
+        # ENTRY Order
+        self.entry_order = None
+
+        # EXIT Order
+        self.exit_order = None
+
 
     def get_quote(self):
         return self.runtime.quote
@@ -262,21 +268,38 @@ class TradeModel(BaseEntity):
                 else None
             ),
 
-            "entry_price": self.runtime.entry_price,
+            "entry_price": (
+                self.entry_order.result.price
+                if self.entry_order is not None
+                and self.entry_order.result is not None
+                else None
+            ),
+
             "entry_time": (
-                self.runtime.entry_time.isoformat()
-                if self.runtime.entry_time
+                self.entry_order.result.result_datetime.isoformat()
+                if self.entry_order is not None
+                and self.entry_order.result is not None
+                and self.entry_order.result.result_datetime is not None
+                else None
+            ),
+
+            "exit_price": (
+                self.exit_order.result.price
+                if self.exit_order is not None
+                and self.exit_order.result is not None
+                else None
+            ),
+
+            "exit_time": (
+                self.exit_order.result.result_datetime.isoformat()
+                if self.exit_order is not None
+                and self.exit_order.result is not None
+                and self.exit_order.result.result_datetime is not None
                 else None
             ),
 
             "stop_price": self.runtime.stop_price,
 
-            "exit_price": self.runtime.exit_price,
-            "exit_time": (
-                self.runtime.exit_time.isoformat()
-                if self.runtime.exit_time
-                else None
-            ),
             "exit_reason": (
                 self.runtime.exit_reason.value
                 if self.runtime.exit_reason

@@ -14,8 +14,8 @@ from core.entity import BaseEntity
 from market.order_enums import (
     OrderAction,
     OrderType,
+    OrderRole,
 )
-
 from models.order.order_result_model import OrderResultModel
 
 
@@ -31,8 +31,8 @@ class OrderModel(BaseEntity):
         order_action: OrderAction,
         price,
         quantity,
-        order_type: OrderType = OrderType.MARKET,
-        order_role="entry",
+        order_role: OrderRole,
+        order_type: OrderType,
         generate_id=True,
     ):
 
@@ -40,23 +40,6 @@ class OrderModel(BaseEntity):
             self.ID_FILE,
             generate_id=generate_id
         )
-
-        # 発注ID枝番
-        #
-        # 楽天RSSでは、使用済みの発注IDを再利用すると
-        # 「注文ID=xxxx は既に使用済みです。」となる。
-        #
-        # その場合、同じOrderのまま発注IDだけを変更して
-        # 再発注するために枝番を使用する。
-        #
-        # RSS発注ID:
-        #   Order ID 345
-        #   3450 ～ 3459
-        #
-        # 枝番:
-        #   0 ～ 9
-        #
-        self.order_id_sub_no = 0
 
         # 親Trade
         self.trade = trade
@@ -71,25 +54,19 @@ class OrderModel(BaseEntity):
         self.price = price
         self.quantity = quantity
 
-        # 注文方式
-        #
-        # LIMIT  : 指値注文
-        # MARKET : 成行注文
-        #
-        self.order_type = order_type
-
         # 注文役割
         #
-        # entry : 新規注文
-        # exit  : 決済注文
+        # OrderRole.ENTRY : 新規注文
+        # OrderRole.EXIT  : 決済注文
         #
         self.order_role = order_role
 
-        # 注文番号
+        # 注文方式
         #
-        # 発注後、OrderIDListから取得
+        # OrderType.LIMIT  : 指値注文
+        # OrderType.MARKET : 成行注文
         #
-        self.order_no = None
+        self.order_type = order_type
 
         # 注文状態
         #
@@ -105,6 +82,7 @@ class OrderModel(BaseEntity):
         #
         self.submitted_at = None
 
+
         # 注文結果
         #
         # 約定確認後に設定
@@ -112,6 +90,26 @@ class OrderModel(BaseEntity):
         # OrderListから取得した結果
         #
         self.result: OrderResultModel | None = None
+
+
+        # 注文番号
+        #
+        # 発注後、OrderIDListから取得
+        #
+        self.order_no = None
+
+        # 発注ID枝番
+        #   楽天RSSでは、使用済みの発注IDを再利用すると注文ID=xxxx は既に使用済みです。」となる。
+        #   その場合、同じOrderのまま発注IDだけを変更して再発注するために枝番を使用する。
+        #
+        # RSS発注ID:
+        #   Order ID 345
+        #   3450 ～ 3459
+        #
+        # 枝番:
+        #   0 ～ 9
+        #
+        self.order_id_sub_no = 0
 
 
         # 発注ID一覧シートの生データ
@@ -173,10 +171,10 @@ class OrderModel(BaseEntity):
             # 注文情報
             "symbol": self.symbol,
             "order_action": self.order_action.value,
-            "order_type": self.order_type.value,
-            "order_role": self.order_role,
             "price": self.price,
             "quantity": self.quantity,
+            "order_role": self.order_role.value,
+            "order_type": self.order_type.value,
 
             # 注文結果
             "result": (

@@ -32,13 +32,16 @@ class ProcessOrderWait(ProcessOrderBase):
 
         trade.runtime.entry_price = order_result.price
         trade.runtime.entry_time = order_result.result_datetime
+        trade.runtime.entry_market = order_result.market_name
 
         message = (
             f"(@{order.id}) ORDER FILLED "
             f"order_no={order.order_no} "
             f"symbol={order.symbol} "
             f"quantity={order_result.quantity} "
-            f"price={order_result.price}"
+            f"price={order_result.price} "
+            f"result_datetime={order_result.result_datetime} "
+            f"market_name={order_result.market_name}"
         )
         Log.event(f"(#{trade.id}) {message}")
         trade.add_timeline(event="ORDER", message=message)

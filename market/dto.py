@@ -9,8 +9,8 @@
 from market.order_enums import (
     OrderAction,
     OrderType,
+    OrderRole,
 )
-
 
 #
 # Order発注要求DTO
@@ -27,14 +27,15 @@ class OrderRequestDTO:
         symbol,
         order_action: OrderAction,
         quantity,
+        price,
         trade_type,
         margin_type,
-        order_role,
-        price,
-        order_type: OrderType = OrderType.MARKET,
-        open_date=None,
-        open_price=None,
-        open_market=None,
+        order_role: OrderRole,
+        order_type: OrderType,
+
+        entry_time=None,
+        entry_price=None,
+        entry_market=None,
     ):
         # 発注ID
         self.order_id = order_id
@@ -44,6 +45,9 @@ class OrderRequestDTO:
 
         # 売買
         self.order_action = order_action
+
+        # 開始価格
+        self.price = price
 
         # 数量
         self.quantity = quantity
@@ -56,30 +60,25 @@ class OrderRequestDTO:
 
         # 注文役割
         #
-        # entry : 新規注文
-        # exit  : 決済注文
+        # OrderRole.ENTRY : 新規注文
+        # OrderRole.EXIT  : 決済注文
         #
         self.order_role = order_role
 
-        # 開始価格
-        self.price = price
-
         # 注文方式
         #
-        # LIMIT  : 指値
-        # MARKET : 成行
+        # OrderType.LIMIT  : 指値注文
+        # OrderType.MARKET : 成行注文
         #
         self.order_type = order_type
 
-        # 返済建玉情報
+        # ENTRY情報
         #
-        # exit / 信用返済で使用
-        #
-        # 建日
-        self.open_date = open_date
+        # ENTRY約定日
+        self.entry_time = entry_time
 
-        # 建単価
-        self.open_price = open_price
+        # ENTRY約定単価
+        self.entry_price = entry_price
 
-        # 建市場
-        self.open_market = open_market
+        # ENTRY約定市場
+        self.entry_market = entry_market

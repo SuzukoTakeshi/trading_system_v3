@@ -9,6 +9,17 @@
 from enum import Enum
 
 #
+# Order Role
+#
+# ENTRY : 建玉を作る注文
+# EXIT  : 建玉を決済する注文
+#
+class OrderRole(str, Enum):
+    ENTRY = "entry"
+    EXIT = "exit"
+
+
+#
 # 注文操作
 #
 # BUY  : 買付注文

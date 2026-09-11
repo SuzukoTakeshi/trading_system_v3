@@ -26,17 +26,17 @@
 # 注意:
 #   ・本体コードは変更しない
 #   ・RssMarginOpenOrder_V は楽天RSS側の機能
-#   ・このテストでは RakutenMarket.run_macro() を直接呼び出す
+#   ・このテストでは RakutenClient.run_macro() を直接呼び出す
 #
 
 
-from market.rakuten.market import RakutenMarket
+from market.rakuten.rakuten_client import RakutenClient
 
 
 def main():
 
     # debug環境の楽天RSSクライアントを生成
-    market = RakutenMarket("debug")
+    market = RakutenClient("debug")
 
     try:
 
@@ -75,9 +75,12 @@ def main():
 
         args = (
 
-            360,        #  1 発注ID
+            997,        #  1 発注ID
 
-            "9432",     #  2 銘柄コード
+            # "9432",     #  2 銘柄コード NTT
+            # "7203",     #  2 銘柄コード
+            # "6613",     #  2 銘柄コード QDレーザー
+            "3436",     #  2 銘柄コード SUMCO
                         #   「銘柄コード.市場」の形式で入力。
                         #   市場は省略可。
 

@@ -39,6 +39,9 @@ class OrderResultModel(BaseEntity):
         # 約定単価
         self.price = price
 
+        # 約定市場名称 (東証 / JNX / JAX)
+        self.market_name = None
+
     #
     # 約定金額
     #
@@ -56,6 +59,7 @@ class OrderResultModel(BaseEntity):
             "result_datetime": self.result_datetime,
             "quantity": self.quantity,
             "price": self.price,
+            "market_name": self.market_name,
             "amount": self.amount,
         })
 
