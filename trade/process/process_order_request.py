@@ -36,7 +36,7 @@ class ProcessOrderRequest(ProcessOrderBase):
 
         Log.flow(f"(#{trade.id}) ProcessOrderRequest:process")
 
-        order = self.find_order(trade)
+        order = trade.entry_order
 
         if order is None:
             order = self.create_entry_order(trade)

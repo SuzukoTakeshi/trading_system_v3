@@ -22,7 +22,7 @@ class ProcessOrderWait(ProcessOrderBase):
 
         Log.flow(f"(#{trade.id}) ProcessOrderWait:process")
 
-        return self.order_result(trade)
+        return self.order_result(trade, trade.entry_order)
 
 
     def on_order_filled(self, trade, order, order_result):
@@ -31,8 +31,6 @@ class ProcessOrderWait(ProcessOrderBase):
         """
 
         trade.runtime.entry_price = order_result.price
-        trade.runtime.entry_time = order_result.result_datetime
-        trade.runtime.entry_market = order_result.market_name
 
         message = (
             f"(@{order.id}) ORDER FILLED "

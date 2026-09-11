@@ -48,7 +48,7 @@ class ProcessAsset(ProcessBase):
 
         Log.asset(trade.id, "PROCESS START")
 
-        order = self.find_order(trade)
+        order = self._find_order(trade)
 
         if order is None:
             raise OrderNotFoundError(
@@ -60,7 +60,7 @@ class ProcessAsset(ProcessBase):
 
         asset = self.store.load()
 
-        self.update_asset(asset, order)
+        self._update_asset(asset, order)
 
         # 損益計算
         profit_loss = self.calculate_profit_loss(order)
@@ -108,7 +108,7 @@ class ProcessAsset(ProcessBase):
     # ==========================================
     # 資産更新
     # ==========================================
-    def update_asset(self, asset, order):
+    def _update_asset(self, asset, order):
         result = order.result
 
         if result is None:
@@ -144,66 +144,55 @@ class ProcessAsset(ProcessBase):
                 code="ASSET_ORDER_RESULT_NOT_FOUND",
             )
 
-        # 同一Tradeの相手Orderを検索
-        opposite_order = None
+        trade = order.trade
 
-        for other in self.context.cache.orders.values():
-
-            if other.id == order.id:
-                continue
-
-            if other.trade.id != order.trade.id:
-                continue
-
-            if other.state != OrderState.CLOSED:
-                continue
-
-            if other.result is None:
-                continue
-
-            # BUY → SELL
-            if (order.order_action == OrderAction.SELL and other.order_action == OrderAction.BUY):
-                opposite_order = other
-                break
-
-            # SELL → BUY
-            if (order.order_action == OrderAction.BUY and other.order_action == OrderAction.SELL):
-                opposite_order = other
-                break
-
-        # Entry側のOrderでは損益確定しない
-        if opposite_order is None:
+        if order == trade.entry_order:
             return None
 
-        entry_price = opposite_order.result.price
-        exit_price = order.result.price
-        quantity = order.result.quantity
-
-        if (order.order_action == OrderAction.SELL and opposite_order.order_action == OrderAction.BUY):
-            # BUY → SELL
-            profit_loss = (exit_price - entry_price) * quantity
-
-        elif (order.order_action == OrderAction.BUY and opposite_order.order_action == OrderAction.SELL):
-            # SELL → BUY
-            profit_loss = (entry_price - exit_price) * quantity
-
-        else:
+        if order != trade.exit_order:
             raise OrderInvalidActionError(
-                message=f"(#{order.trade.id}) (@{order.id}) INVALID ORDER PAIR other={opposite_order.id}",
+                message=f"(#{trade.id}) (@{order.id}) INVALID ORDER",
                 code="INVALID_ORDER_ACTION",
             )
 
-        return profit_loss
+        entry_order = trade.entry_order
+
+        if entry_order is None or entry_order.result is None:
+            raise AssetOrderResultNotFoundError(
+                message=f"(#{trade.id}) ENTRY ORDER RESULT NOT FOUND",
+                code="ASSET_ORDER_RESULT_NOT_FOUND",
+            )
+
+        entry_price = entry_order.result.price
+        exit_price = order.result.price
+        quantity = order.result.quantity
+
+        if (
+            entry_order.order_action == OrderAction.BUY
+            and order.order_action == OrderAction.SELL
+        ):
+            return (exit_price - entry_price) * quantity
+
+        if (
+            entry_order.order_action == OrderAction.SELL
+            and order.order_action == OrderAction.BUY
+        ):
+            return (entry_price - exit_price) * quantity
+
+        raise OrderInvalidActionError(
+            message=f"(#{trade.id}) (@{order.id}) INVALID ORDER PAIR",
+            code="INVALID_ORDER_ACTION",
+        )
 
 
     # ==========================================
     # Tradeから未反映Order検索
     # ==========================================
-    def find_order(self, trade):
+    def _find_order(self, trade):
 
-        for order in self.context.cache.orders.values():
+        for order in (trade.entry_order, trade.exit_order):
 
-            if order.trade.id != trade.id:
+            if order is None:
                 continue
 
             if order.state != OrderState.FILLED:

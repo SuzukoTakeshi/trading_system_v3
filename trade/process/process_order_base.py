@@ -21,7 +21,6 @@ from market.rakuten.macro.macro_base import MacroResultCode
 
 from core.exception import (
     OrderNotFoundError,
-    OrderDuplicateError,
     OrderMarketCancelError,
     OrderMarketNotFilledError,
 )
@@ -54,28 +53,6 @@ class ProcessOrderBase(ProcessBase):
         Log.create("ProcessOrderBase")
 
 
-    # ==========================================
-    # Tradeに紐づく未完了Order取得
-    # ==========================================
-    def find_order(self, trade):
-
-        order = None
-
-        for o in self.context.cache.orders.values():
-            if o.trade.id != trade.id:
-                continue
-
-            # 処理対象Order
-            if o.state in (OrderState.CREATED, OrderState.SUBMITTED):
-                if order:
-                    raise OrderDuplicateError(
-                        message=f"(#{trade.id}) MULTIPLE ACTIVE ORDER",
-                        code="MULTIPLE_ACTIVE_ORDER",
-                    )
-                order = o
-
-        return order
-
     #
     # Order生成
     #
@@ -90,8 +67,6 @@ class ProcessOrderBase(ProcessBase):
             order_type=order_type,
             order_role=order_role,
         )
-
-        self.context.cache.orders[order.id] = order
 
         message=(
             f"(@{order.id}) CREATE ORDER "
@@ -253,9 +228,7 @@ class ProcessOrderBase(ProcessBase):
     # ==========================================
     # Order結果処理
     # ==========================================
-    def order_result(self, trade):
-
-        order = self._get_order(trade)
+    def order_result(self, trade, order):
 
         if order is None:
             raise OrderNotFoundError(
@@ -415,31 +388,3 @@ class ProcessOrderBase(ProcessBase):
         全量約定時処理
         """
         return True
-
-
-    def _get_order(self, trade):
-        """
-        注文(Order)検索
-        """
-
-        order = None
-
-        for o in self.context.cache.orders.values():
-
-            if o.trade.id != trade.id:
-                continue
-
-            # CLOSED済みOrderは除外
-            if o.state == OrderState.CLOSED:
-                continue
-
-            # 2件以上存在したら異常
-            if order is not None:
-                raise OrderDuplicateError(
-                    message=f"(#{trade.id}) MULTIPLE ORDER",
-                    code="MULTIPLE_ORDER",
-                )
-
-            order = o
-
-        return order

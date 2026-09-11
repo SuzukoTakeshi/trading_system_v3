@@ -154,9 +154,9 @@ class ProcessTrailingBase(ProcessBase):
         ENTRY約定から設定された時間が経過したかを判定し、経過している場合はEXIT処理へ移行する。
         
         対象:
-            trade.param.time_enabled       : 時間決済機能の有効/無効
-            trade.param.time_limit_minutes : ENTRY約定からEXITするまでの制限時間（分）
-            trade.runtime.entry_time       : ENTRY注文の実際の約定時刻
+            trade.param.time_enabled                 : 時間決済機能の有効/無効
+            trade.param.time_limit_minutes           : ENTRY約定からEXITするまでの制限時間（分）
+            trade.entry_order.result.result_datetime : ENTRY注文の実際の約定時刻
         
         判定:
             entry_time + time_limit_minutes : 時間決済の判定時刻
@@ -178,12 +178,19 @@ class ProcessTrailingBase(ProcessBase):
         if not trade.param.time_enabled:
             return False
 
+        entry_order = trade.entry_order
+
+        if entry_order is None or entry_order.result is None:
+            return False
+
+        entry_time = entry_order.result.result_datetime
+
         # ENTRY約定時刻を基準に、時間決済を実行する時刻を計算する。
         # 例:
         #   ENTRY時刻       = 10:00
         #   制限時間         = 300分
         #   決済判定時刻     = 15:00
-        limit_time = trade.runtime.entry_time + timedelta(minutes=trade.param.time_limit_minutes)
+        limit_time = entry_time + timedelta(minutes=trade.param.time_limit_minutes)
 
         # 現在時刻が時間制限時刻以降になった場合、時間決済条件成立とする。
         #   >= とすることで、判定時刻を過ぎた後の次回チェックでも確実にEXIT条件が成立する。

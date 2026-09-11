@@ -252,21 +252,6 @@ class OrderError(SystemError):
         super().__init__(message=message, level=level, scope=scope, code=code, data=data)
 
 
-class OrderDuplicateError(OrderError):
-    """
-    二重注文エラー
-
-    原因:
-        ・同一Tradeに既存Orderが存在
-        ・TradeState遷移不整合
-        ・StrategyProc二重実行
-
-    発生箇所:
-        ProcessOrderRequest.process()
-        ProcessOrderWait.get_order()
-    """
-    pass
-
 class OrderNotFoundError(OrderError):
     """
     注文なしエラー

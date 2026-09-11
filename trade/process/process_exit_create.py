@@ -37,7 +37,7 @@ class ProcessExitCreate(ProcessOrderBase):
 
         Log.flow(f"(#{trade.id}) ProcessExitCreate:process")
 
-        order = self.find_order(trade)
+        order = trade.exit_order
 
         if order is None:
             order = self.create_exit_order(trade)

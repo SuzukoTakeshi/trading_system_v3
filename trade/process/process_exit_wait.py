@@ -24,7 +24,7 @@ class ProcessExitWait(ProcessOrderBase):
 
         Log.flow(f"(#{trade.id}) ProcessExitWait:process")
 
-        return self.order_result(trade)
+        return self.order_result(trade, trade.exit_order)
 
 
     def on_order_filled(self, trade, order, order_result):

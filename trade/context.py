@@ -24,12 +24,6 @@ class EngineCache:
         #
         self.market_des = {}
 
-        # Order cache
-        #   key:   trade_id
-        #   value: Order
-        #
-        self.orders = {}
-
         # Trade chart data cache
         #   key:   trade_id
         #   value: list[TradeChartModel]
