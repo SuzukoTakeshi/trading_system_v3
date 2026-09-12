@@ -40,10 +40,10 @@ dist/
 # OS
 .DS_Store
 
-# runtime storage
-storage/json/*.json
-storage/json/trade/*.json
-storage/json/trade_chart/*.json
-storage/logs/*.log
+# Runtime storage
+storage/json/trade/
+storage/json/trade_chart_data/
+storage/logs/
+storage/json/trade_params.json
 
 ui/console/auditor/images/

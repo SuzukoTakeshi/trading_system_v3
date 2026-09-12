@@ -1,0 +1,101 @@
+{
+    "276": {
+        "trade_id": 991,
+        "symbol": "7203",
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "synced_at": "2026-09-12T19:06:39.064332"
+    },
+    "277": {
+        "trade_id": 991,
+        "symbol": "7203",
+        "action": "sell",
+        "price": 2996.8,
+        "quantity": 100,
+        "amount": 299680.0,
+        "synced_at": "2026-09-12T19:07:23.005776"
+    },
+    "281": {
+        "trade_id": 995,
+        "symbol": "7203",
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "synced_at": "2026-09-12T22:53:45.135869"
+    },
+    "282": {
+        "trade_id": 996,
+        "symbol": "7203",
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "synced_at": "2026-09-12T23:07:48.936778"
+    },
+    "283": {
+        "trade_id": 996,
+        "symbol": "7203",
+        "action": "sell",
+        "price": 2996.8,
+        "quantity": 100,
+        "amount": 299680.0,
+        "synced_at": "2026-09-12T23:08:33.308755"
+    },
+    "284": {
+        "trade_id": 997,
+        "symbol": "7203",
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "synced_at": "2026-09-12T23:12:49.630661"
+    },
+    "285": {
+        "trade_id": 997,
+        "symbol": "7203",
+        "action": "sell",
+        "price": 2996.8,
+        "quantity": 100,
+        "amount": 299680.0,
+        "synced_at": "2026-09-12T23:13:33.003936"
+    },
+    "286": {
+        "trade_id": 998,
+        "symbol": "7203",
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "synced_at": "2026-09-12T23:22:04.594259"
+    },
+    "287": {
+        "trade_id": 998,
+        "symbol": "7203",
+        "action": "sell",
+        "price": 2996.8,
+        "quantity": 100,
+        "amount": 299680.0,
+        "synced_at": "2026-09-12T23:22:49.019484"
+    },
+    "288": {
+        "trade_id": 999,
+        "symbol": "7203",
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "synced_at": "2026-09-12T23:24:04.899430"
+    },
+    "289": {
+        "trade_id": 999,
+        "symbol": "7203",
+        "action": "sell",
+        "price": 3002.0,
+        "quantity": 100,
+        "amount": 300200.0,
+        "synced_at": "2026-09-12T23:24:48.834319"
+    }
+}

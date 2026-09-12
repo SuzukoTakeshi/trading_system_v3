@@ -1,0 +1,121 @@
+{
+    "trade": {
+        "symbol": "3436",
+        "trade_price": 0,
+        "quantity": 100,
+        "atr": 3.0,
+        "trade_type": "margin",
+        "margin_type": "day",
+        "side": "long",
+        "strategy": "scalping"
+    },
+    "market": {
+        "mode": "scenario",
+        "interval": 2.0,
+        "scenario": [
+            {
+                "price": 3293.0,
+                "comment": "STATE created -> entry_wait"
+            },
+            {
+                "price": 3293.0,
+                "comment": "STATE entry_wait -> entry_pullback"
+            },
+            {
+                "price": 3291.0,
+                "comment": "PULLBACK ENTRY LONG symbol=3436 current_price=3291.0 entry_lowest_price=3291.0"
+            },
+            {
+                "price": 3294.0,
+                "comment": "PULLBACK END LONG symbol=3436 current_price=3294.0"
+            },
+            {
+                "price": 3294.0,
+                "comment": "STATE entry_pullback -> entry_reversal"
+            },
+            {
+                "price": 3294.0,
+                "comment": "REVERSAL ENTRY LONG count=1"
+            },
+            {
+                "price": 3295.0,
+                "comment": "REVERSAL ENTRY LONG count=2"
+            },
+            {
+                "price": 3295.0,
+                "comment": "REVERSAL COMPLETE LONG symbol=3436 count=2 current_price=3295.0"
+            },
+            {
+                "price": 3295.0,
+                "comment": "STATE entry_reversal -> entry_request"
+            },
+            {
+                "price": 3295.0,
+                "comment": "STATE entry_request -> entry_result"
+            },
+            {
+                "price": 3295.0,
+                "comment": "STATE entry_result -> trailing"
+            },
+            {
+                "price": 3295.0,
+                "comment": "INITIAL TRAILING entry=3295.0 stop=3293.5"
+            },
+            {
+                "price": 3296.0,
+                "comment": "TRAILING HIGH UPDATE LONG current_price=3296.0"
+            },
+            {
+                "price": 3298.0,
+                "comment": "TRAILING HIGH UPDATE LONG current_price=3298.0"
+            },
+            {
+                "price": 3298.0,
+                "comment": "TRAILING UPDATE LONG current_price=3298.0 stop=3295.0"
+            },
+            {
+                "price": 3300.0,
+                "comment": "TRAILING HIGH UPDATE LONG current_price=3300.0"
+            },
+            {
+                "price": 3300.0,
+                "comment": "TRAILING UPDATE LONG current_price=3300.0 stop=3297.0"
+            },
+            {
+                "price": 3303.0,
+                "comment": "TRAILING HIGH UPDATE LONG current_price=3303.0"
+            },
+            {
+                "price": 3303.0,
+                "comment": "TRAILING UPDATE LONG current_price=3303.0 stop=3300.0"
+            },
+            {
+                "price": 3304.0,
+                "comment": "TRAILING HIGH UPDATE LONG current_price=3304.0"
+            },
+            {
+                "price": 3304.0,
+                "comment": "TRAILING UPDATE LONG current_price=3304.0 stop=3301.0"
+            },
+            {
+                "price": 3306.0,
+                "comment": "TRAILING HIGH UPDATE LONG current_price=3306.0"
+            },
+            {
+                "price": 3306.0,
+                "comment": "TRAILING UPDATE LONG current_price=3306.0 stop=3303.0"
+            },
+            {
+                "price": 3303.0,
+                "comment": "STOP HIT LONG current_price=3303.0 <= stop_price=3303.0"
+            },
+            {
+                "price": 3303.0,
+                "comment": "STATE trailing -> exit_request"
+            },
+            {
+                "end": true
+            }
+        ]
+    }
+}

@@ -1,0 +1,112 @@
+[
+    {
+        "trade_id": 991,
+        "symbol": "7203",
+        "order_id": 276,
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "datetime": "2026-09-12T19:06:39.064762"
+    },
+    {
+        "trade_id": 991,
+        "symbol": "7203",
+        "order_id": 277,
+        "action": "sell",
+        "price": 2996.8,
+        "quantity": 100,
+        "amount": 299680.0,
+        "datetime": "2026-09-12T19:07:23.006282"
+    },
+    {
+        "trade_id": 995,
+        "symbol": "7203",
+        "order_id": 281,
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "datetime": "2026-09-12T22:53:45.136843"
+    },
+    {
+        "trade_id": 996,
+        "symbol": "7203",
+        "order_id": 282,
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "datetime": "2026-09-12T23:07:48.937254"
+    },
+    {
+        "trade_id": 996,
+        "symbol": "7203",
+        "order_id": 283,
+        "action": "sell",
+        "price": 2996.8,
+        "quantity": 100,
+        "amount": 299680.0,
+        "datetime": "2026-09-12T23:08:33.311214"
+    },
+    {
+        "trade_id": 997,
+        "symbol": "7203",
+        "order_id": 284,
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "datetime": "2026-09-12T23:12:49.631405"
+    },
+    {
+        "trade_id": 997,
+        "symbol": "7203",
+        "order_id": 285,
+        "action": "sell",
+        "price": 2996.8,
+        "quantity": 100,
+        "amount": 299680.0,
+        "datetime": "2026-09-12T23:13:33.004420"
+    },
+    {
+        "trade_id": 998,
+        "symbol": "7203",
+        "order_id": 286,
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "datetime": "2026-09-12T23:22:04.594829"
+    },
+    {
+        "trade_id": 998,
+        "symbol": "7203",
+        "order_id": 287,
+        "action": "sell",
+        "price": 2996.8,
+        "quantity": 100,
+        "amount": 299680.0,
+        "datetime": "2026-09-12T23:22:49.020021"
+    },
+    {
+        "trade_id": 999,
+        "symbol": "7203",
+        "order_id": 288,
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "datetime": "2026-09-12T23:24:04.900039"
+    },
+    {
+        "trade_id": 999,
+        "symbol": "7203",
+        "order_id": 289,
+        "action": "sell",
+        "price": 3002.0,
+        "quantity": 100,
+        "amount": 300200.0,
+        "datetime": "2026-09-12T23:24:48.834917"
+    }
+]

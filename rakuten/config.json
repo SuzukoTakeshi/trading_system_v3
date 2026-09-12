@@ -1,0 +1,46 @@
+{
+  "excel": {
+    "path": {
+      "real": "C:\\StockProjects\\trading_system_v3_dev\\rakuten\\excel\\楽天RSS_v3.xlsm",
+      "simulator": "C:\\StockProjects\\trading_system_v3_dev\\rakuten\\excel\\楽天RSS_v3_Debug.xlsm",
+      "emulator": "C:\\StockProjects\\trading_system_v3_dev\\rakuten\\excel\\楽天RSS_v3_Debug.xlsm",
+      "debug": "C:\\StockProjects\\trading_system_v3_dev\\rakuten\\excel\\楽天RSS_v3_Debug.xlsm"
+    },
+
+    "sheets": {
+      "market_des": "MarketDes",
+      "quote": "Quotes",
+      "order": "Order",
+      "order_id_list": "OrderIDList",
+      "order_list": "OrderList",
+      "execution_list": "ExecutionList",
+      "margin_position_list": "MarginPositionList"
+    }
+  },
+
+  "market_session": {
+    "morning": {
+      "open": "09:00",
+      "close": "11:30"
+    },
+    "afternoon": {
+      "open": "12:30",
+      "close": "15:30"
+    }
+  },
+
+  "description": {
+    "excel": "楽天RSS Excel設定",
+    "path": "modeごとに使用する楽天RSS Excelブックのパス",
+    "sheets": "楽天RSSで使用するシート設定",
+    "market_des": "国内株式銘柄シート名",
+    "quote": "現在値取得用シート名",
+    "order": "注文書込用シート名",
+    "order_id_list": "注文番号一覧取得シート",
+    "order_list": "注文一覧取得シート",
+    "execution_list": "約定一覧取得シート",
+    "market_session": "国内株式市場の取引時間",
+    "morning": "前場の開始・終了時間",
+    "afternoon": "後場の開始・終了時間"
+  }
+}

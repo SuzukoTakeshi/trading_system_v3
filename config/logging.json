@@ -22,7 +22,7 @@
     "EXECUTION": true,
     "BREAKEVEN": true,
 
-    "ORDER_WAIT": false,
+    "ENTRY_RESULT": false,
 
     "description": {
         "EVENT": "重要イベント（起動・停止・状態遷移など）",
@@ -42,6 +42,6 @@
         "EXECUTION": "約定処理",
         "BREAKEVEN": "建値ストップ",
 
-        "ORDER_WAIT": "注文待機中の定周期監視"
+        "ENTRY_RESULT": "注文待機中の定周期監視"
     }
 }

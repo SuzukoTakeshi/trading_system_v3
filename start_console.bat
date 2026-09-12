@@ -1,11 +1,17 @@
 @echo off
 
 rem ==========================================================
-rem Trading System V3
+rem Trading System
 rem CONSOLE UI 起動バッチ
 rem ==========================================================
 
 title CONSOLE UI
+
+rem ==========================================================
+rem プロジェクト設定
+rem ==========================================================
+
+set ROOT=C:\StockProjects\trading_system_v3_dev
 
 rem ==========================================================
 rem 起動コマンド設定
@@ -16,20 +22,19 @@ rem TradingSystem_Start.bat側でブラウザ配置を制御
 rem
 rem   --server.headless true
 
-set CONSOLE_CMD=streamlit run ui\console\console.py --server.port 8501 --server.headless true
+set CONSOLE_CMD=python -m streamlit run %ROOT%\program\ui\console\console.py --server.port 8501 --server.headless true
 
 rem ==========================================================
-rem プロジェクト移動
+rem venv起動
 rem ==========================================================
 
-cd /d C:\StockProjects\trading_system_v3
+call "%ROOT%\venv\Scripts\activate.bat"
 
 rem ==========================================================
-rem venv有効化
+rem Python Path設定
 rem ==========================================================
 
-call venv\Scripts\activate
-
+set PYTHONPATH=%ROOT%\program;%ROOT%
 
 echo.
 echo ==========================
@@ -37,7 +42,7 @@ echo CONSOLE UI START
 echo ==========================
 echo.
 
-echo ブラウザでCONSOLE画面を表示する場合:
+echo ブラウザからCONSOLE画面を表示する場合:
 echo.
 echo   http://localhost:8501
 echo.
@@ -46,7 +51,7 @@ echo [Ctrl-C]で終了した場合:
 echo.
 echo   s
 echo.
-echo を入力すると再起動します。
+echo sを入力すると再起動します。
 echo.
 
 %CONSOLE_CMD%

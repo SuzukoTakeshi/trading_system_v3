@@ -1,59 +1,59 @@
 @echo off
 
 rem ==========================================================
-rem Trading System V3 Start
+rem Trading System Start
 rem
-rem –Ú“I:
-rem   Trading System ‚ÌŠeƒT[ƒrƒX‚ğ‹N“®‚µA
-rem   w’èƒ‚ƒjƒ^[‚Ö”z’u‚·‚éB
+rem ï¿½Ú“I:
+rem   Trading System ï¿½ÌŠeï¿½Tï¿½[ï¿½rï¿½Xï¿½ï¿½ï¿½Nï¿½ï¿½ï¿½ï¿½ï¿½A
+rem   ï¿½wï¿½èƒ‚ï¿½jï¿½^ï¿½[ï¿½Ö”zï¿½uï¿½ï¿½ï¿½ï¿½B
 rem
 rem ==========================================================
 rem
-rem ˆø”:
+rem ï¿½ï¿½ï¿½ï¿½:
 rem
-rem   ‘æ1ˆø”
-rem       ƒT[ƒrƒX‰æ–Ê”z’uƒ‚ƒjƒ^[
+rem   ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½
+rem       ï¿½Tï¿½[ï¿½rï¿½Xï¿½ï¿½Ê”zï¿½uï¿½ï¿½ï¿½jï¿½^ï¿½[
 rem
 rem       APP API (FastAPI)
 rem       CONSOLE UI (Streamlit)
 rem       MONITOR UI (Streamlit)
 rem
-rem   ‘æ2ˆø”
-rem       CONSOLEƒuƒ‰ƒEƒU”z’uƒ‚ƒjƒ^[
+rem   ï¿½ï¿½2ï¿½ï¿½ï¿½ï¿½
+rem       CONSOLEï¿½uï¿½ï¿½ï¿½Eï¿½Uï¿½zï¿½uï¿½ï¿½ï¿½jï¿½^ï¿½[
 rem
-rem       0 : ƒuƒ‰ƒEƒU‹N“®‚È‚µ
-rem       1`4 : w’èƒ‚ƒjƒ^[‚ÖÅ‘å•\¦
+rem       0 : ï¿½uï¿½ï¿½ï¿½Eï¿½Uï¿½Nï¿½ï¿½ï¿½È‚ï¿½
+rem       1ï¿½`4 : ï¿½wï¿½èƒ‚ï¿½jï¿½^ï¿½[ï¿½ÖÅ‘ï¿½\ï¿½ï¿½
 rem
-rem g—p—á:
+rem ï¿½gï¿½pï¿½ï¿½:
 rem
 rem   TradingSystem_Start.bat
-rem       ƒT[ƒrƒX : ƒ‚ƒjƒ^[1
-rem       ƒuƒ‰ƒEƒU : ƒ‚ƒjƒ^[2
+rem       ï¿½Tï¿½[ï¿½rï¿½X : ï¿½ï¿½ï¿½jï¿½^ï¿½[1
+rem       ï¿½uï¿½ï¿½ï¿½Eï¿½U : ï¿½ï¿½ï¿½jï¿½^ï¿½[2
 rem
 rem   TradingSystem_Start.bat 1 0
-rem       ƒT[ƒrƒX : ƒ‚ƒjƒ^[1
-rem       ƒuƒ‰ƒEƒU : ‹N“®‚È‚µ
+rem       ï¿½Tï¿½[ï¿½rï¿½X : ï¿½ï¿½ï¿½jï¿½^ï¿½[1
+rem       ï¿½uï¿½ï¿½ï¿½Eï¿½U : ï¿½Nï¿½ï¿½ï¿½È‚ï¿½
 rem
 rem   TradingSystem_Start.bat 1 3
-rem       ƒT[ƒrƒX : ƒ‚ƒjƒ^[1
-rem       ƒuƒ‰ƒEƒU : ƒ‚ƒjƒ^[3
+rem       ï¿½Tï¿½[ï¿½rï¿½X : ï¿½ï¿½ï¿½jï¿½^ï¿½[1
+rem       ï¿½uï¿½ï¿½ï¿½Eï¿½U : ï¿½ï¿½ï¿½jï¿½^ï¿½[3
 rem
 rem ==========================================================
 rem
-rem g—pƒc[ƒ‹:
+rem ï¿½gï¿½pï¿½cï¿½[ï¿½ï¿½:
 rem
 rem   tools\CheckWindow.ps1
-rem       ‹N“®Ï‚İƒEƒBƒ“ƒhƒEŠm”F
+rem       ï¿½Nï¿½ï¿½ï¿½Ï‚İƒEï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½mï¿½F
 rem
 rem   tools\ArrangeWindow.ps1
-rem       ƒEƒBƒ“ƒhƒE”z’u
+rem       ï¿½Eï¿½Bï¿½ï¿½ï¿½hï¿½Eï¿½zï¿½u
 rem
 rem ==========================================================
 
 
 
 rem ==========================================================
-rem ƒwƒ‹ƒv
+rem ï¿½wï¿½ï¿½ï¿½v
 rem ==========================================================
 
 if /i "%1"=="help" goto HELP
@@ -62,12 +62,12 @@ if /i "%1"=="/?" goto HELP
 
 
 
-set ROOT=C:\StockProjects\trading_system_v3
+set ROOT=C:\StockProjects\trading_system_v3_dev
 
 
 
 rem ==========================================================
-rem ƒ‚ƒjƒ^[İ’è
+rem ï¿½ï¿½ï¿½jï¿½^ï¿½[ï¿½İ’ï¿½
 rem ==========================================================
 
 set SERVICE_MONITOR=1
@@ -81,7 +81,7 @@ if not "%2"=="" set BROWSER_MONITOR=%2
 
 
 echo ==========================
-echo Trading System ‹N“®
+echo Trading System ï¿½Nï¿½ï¿½
 echo ==========================
 echo Service Monitor=%SERVICE_MONITOR%
 echo Browser Monitor=%BROWSER_MONITOR%
@@ -100,12 +100,12 @@ echo ==========================
 
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\tools\CheckWindow.ps1" "APP API"
+-File "%ROOT%\program\tools\CheckWindow.ps1" "APP API"
 
 
 if errorlevel 1 (
 
-    echo APP API ‹N“®
+    echo APP API ï¿½Nï¿½ï¿½
 
     start "" "%ROOT%\start_app.bat"
 
@@ -113,14 +113,14 @@ if errorlevel 1 (
 
 ) else (
 
-    echo APP API ‹N“®Ï‚İ
+    echo APP API ï¿½Nï¿½ï¿½ï¿½Ï‚ï¿½
 
 )
 
 
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\tools\ArrangeWindow.ps1" ^
+-File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
 -Title "APP API" ^
 -Monitor %SERVICE_MONITOR% ^
 -Layout V3 ^
@@ -140,12 +140,12 @@ echo ==========================
 
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\tools\CheckWindow.ps1" "CONSOLE UI"
+-File "%ROOT%\program\tools\CheckWindow.ps1" "CONSOLE UI"
 
 
 if errorlevel 1 (
 
-    echo CONSOLE UI ‹N“®
+    echo CONSOLE UI ï¿½Nï¿½ï¿½
 
     start "" "%ROOT%\start_console.bat"
 
@@ -153,14 +153,14 @@ if errorlevel 1 (
 
 ) else (
 
-    echo CONSOLE UI ‹N“®Ï‚İ
+    echo CONSOLE UI ï¿½Nï¿½ï¿½ï¿½Ï‚ï¿½
 
 )
 
 
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\tools\ArrangeWindow.ps1" ^
+-File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
 -Title "CONSOLE UI" ^
 -Monitor %SERVICE_MONITOR% ^
 -Layout V3 ^
@@ -180,12 +180,12 @@ echo ==========================
 
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\tools\CheckWindow.ps1" "MONITOR UI"
+-File "%ROOT%\program\tools\CheckWindow.ps1" "MONITOR UI"
 
 
 if errorlevel 1 (
 
-    echo MONITOR UI ‹N“®
+    echo MONITOR UI ï¿½Nï¿½ï¿½
 
     start "" "%ROOT%\start_monitor.bat"
 
@@ -193,14 +193,14 @@ if errorlevel 1 (
 
 ) else (
 
-    echo MONITOR UI ‹N“®Ï‚İ
+    echo MONITOR UI ï¿½Nï¿½ï¿½ï¿½Ï‚ï¿½
 
 )
 
 
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\tools\ArrangeWindow.ps1" ^
+-File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
 -Title "MONITOR UI" ^
 -Monitor %SERVICE_MONITOR% ^
 -Layout V3 ^
@@ -216,7 +216,7 @@ rem ==========================================================
 if "%BROWSER_MONITOR%"=="0" (
 
     echo.
-    echo CONSOLE Browser ‹N“®‚È‚µ
+    echo CONSOLE Browser ï¿½Nï¿½ï¿½ï¿½È‚ï¿½
 
 
 ) else (
@@ -230,13 +230,13 @@ if "%BROWSER_MONITOR%"=="0" (
 
 
     powershell -ExecutionPolicy Bypass ^
-    -File "%ROOT%\tools\CheckWindow.ps1" "Trading System V3 Console"
+    -File "%ROOT%\program\tools\CheckWindow.ps1" "Trading System Console"
 
 
 
     if errorlevel 1 (
 
-        echo CONSOLE Browser ‹N“®
+        echo CONSOLE Browser ï¿½Nï¿½ï¿½
 
         start "" http://localhost:8501
 
@@ -245,15 +245,15 @@ if "%BROWSER_MONITOR%"=="0" (
 
     ) else (
 
-        echo CONSOLE Browser ‹N“®Ï‚İ
+        echo CONSOLE Browser ï¿½Nï¿½ï¿½ï¿½Ï‚ï¿½
 
     )
 
 
 
     powershell -ExecutionPolicy Bypass ^
-    -File "%ROOT%\tools\ArrangeWindow.ps1" ^
-    -Title "Trading System V3 Console" ^
+    -File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
+    -Title "Trading System Console" ^
     -Monitor %BROWSER_MONITOR% ^
     -Layout MAX
 
@@ -264,7 +264,7 @@ if "%BROWSER_MONITOR%"=="0" (
 
 echo.
 echo ==========================
-echo ‹N“®Š®—¹
+echo ï¿½Nï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 echo ==========================
 
 
@@ -278,29 +278,29 @@ exit /b
 
 echo.
 echo ==========================================================
-echo Trading System V3 Start
+echo Trading System Start
 echo ==========================================================
 echo.
 
-echo g—p•û–@:
+echo ï¿½gï¿½pï¿½ï¿½ï¿½@:
 echo.
 
 echo   TradingSystem_Start.bat
-echo       ƒT[ƒrƒX:
-echo           ƒ‚ƒjƒ^[1
-echo       CONSOLEƒuƒ‰ƒEƒU:
-echo           ƒ‚ƒjƒ^[2
+echo       ï¿½Tï¿½[ï¿½rï¿½X:
+echo           ï¿½ï¿½ï¿½jï¿½^ï¿½[1
+echo       CONSOLEï¿½uï¿½ï¿½ï¿½Eï¿½U:
+echo           ï¿½ï¿½ï¿½jï¿½^ï¿½[2
 
 echo.
 
 echo   TradingSystem_Start.bat 1 0
-echo       CONSOLEƒuƒ‰ƒEƒU‹N“®‚È‚µ
+echo       CONSOLEï¿½uï¿½ï¿½ï¿½Eï¿½Uï¿½Nï¿½ï¿½ï¿½È‚ï¿½
 
 echo.
 
 echo   TradingSystem_Start.bat 1 3
-echo       CONSOLEƒuƒ‰ƒEƒU:
-echo           ƒ‚ƒjƒ^[3
+echo       CONSOLEï¿½uï¿½ï¿½ï¿½Eï¿½U:
+echo           ï¿½ï¿½ï¿½jï¿½^ï¿½[3
 
 echo.
 
