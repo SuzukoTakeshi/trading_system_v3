@@ -3,10 +3,31 @@ chcp 65001 >nul
 
 rem ==========================================================
 rem Trading System
-rem MONITOR UI 起動バッチ
+rem Auditor 起動バッチ
+rem
+rem 使用:
+rem   Python venv
+rem
+rem 起動:
+rem   AUDITOR_CMD
+rem
+rem 停止:
+rem   Ctrl + C
+rem
+rem 再起動:
+rem   s
+rem
+rem 終了:
+rem   exit
 rem ==========================================================
 
-title MONITOR UI
+title AUDITOR
+
+rem ==========================================================
+rem 起動コマンド設定
+rem ==========================================================
+
+set AUDITOR_CMD=python -m program.auditor.main
 
 rem ==========================================================
 rem プロジェクトルート設定
@@ -27,61 +48,35 @@ rem ==========================================================
 set PYTHONPATH=%ROOT%\program;%ROOT%
 
 rem ==========================================================
-rem ポート設定
+rem 再起動用コマンド登録
 rem ==========================================================
 
-for /f %%P in ('python -c "from core.config_loader import Config; print(Config.instance().data.get('server', {}).get('monitor_port', 8502))"') do set MONITOR_PORT=%%P
+doskey s=%AUDITOR_CMD%
 
 rem ==========================================================
-rem 起動コマンド設定
+rem Auditor起動
 rem ==========================================================
 
-rem ブラウザ自動起動を無効化
-rem TradingSystem_Start.bat側でブラウザ配置を制御
-rem
-rem   --server.headless true
-
-set MONITOR_CMD=python -m streamlit run %ROOT%\program\ui\monitor\monitor.py --server.port %MONITOR_PORT% --server.headless true
-
 echo.
 echo ==========================
-echo MONITOR UI START
+echo AUDITOR START
 echo ==========================
 echo.
 
-echo Port:
-echo   %MONITOR_PORT%
-echo.
+%AUDITOR_CMD%
 
-echo MONITOR UIを起動しました。
-echo.
-echo   [http://localhost:%MONITOR_PORT%/?symbols=8306](http://localhost:%MONITOR_PORT%/?symbols=8306)
-echo   [http://localhost:%MONITOR_PORT%/?symbols=8306,7203](http://localhost:%MONITOR_PORT%/?symbols=8306,7203)
-echo.
-
-echo [Ctrl-C]で終了します。
-echo.
-echo 終了後に再起動する場合:
-echo.
-echo   s
-echo.
-echo sコマンドは同じコンソールで再起動できます。
-echo.
-
-%MONITOR_CMD%
+rem ==========================================================
+rem 終了後
+rem ==========================================================
 
 echo.
 echo ==========================
-echo MONITOR UI STOPPED
+echo AUDITOR STOPPED
 echo ==========================
 echo.
-echo 再起動:
-echo   s
-echo.
-echo コンソール終了:
-echo   exit
+echo 再起動する場合: s + [ENTER]
 echo.
 
-doskey s=%MONITOR_CMD%
+doskey s=%AUDITOR_CMD%
 
 cmd

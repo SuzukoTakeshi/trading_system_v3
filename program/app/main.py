@@ -49,10 +49,15 @@ def main():
     if not confirm_mode():
         return
 
+    config = Config.instance().data
+    server = config.get("server", {})
+
+    api_port = server.get("api_port", 8000)
+
     uvicorn.run(
         "app.api:app",
         host="0.0.0.0",
-        port=8000,
+        port=api_port,
         access_log=False,
     )
 

@@ -19,18 +19,27 @@
 #
 # ==========================================
 
-
 # =========================
 # 接続先
 # =========================
 
+from core.config_loader import Config
+
+config = Config.instance().data
+server = config.get("server", {})
+
+API_PORT = server.get("api_port", 8000)
+MONITOR_PORT = server.get("monitor_port", 8502)
+AUDITOR_PORT = server.get("auditor_port", 8508)
+
 # FastAPI
 # localhostではなく127.0.0.1を使用すること。
 # localhostでは環境によって接続に約2秒かかる場合がある。
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = f"http://127.0.0.1:{API_PORT}"
 
-# Trail Monitor
-MONITOR_URL = "http://127.0.0.1:8502/"
+MONITOR_URL = f"http://127.0.0.1:{MONITOR_PORT}/"
+
+AUDITOR_URL = f"http://127.0.0.1:{AUDITOR_PORT}"
 
 # =========================
 # API

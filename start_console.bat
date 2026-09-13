@@ -1,40 +1,47 @@
 @echo off
+chcp 65001 >nul
 
 rem ==========================================================
 rem Trading System
-rem CONSOLE UI ‹N“®ƒoƒbƒ`
+rem CONSOLE UI èµ·å‹•ãƒãƒƒãƒ
 rem ==========================================================
 
 title CONSOLE UI
 
 rem ==========================================================
-rem ƒvƒƒWƒFƒNƒgİ’è
+rem ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆè¨­å®š
 rem ==========================================================
 
 set ROOT=C:\StockProjects\trading_system_v3_dev
 
 rem ==========================================================
-rem ‹N“®ƒRƒ}ƒ“ƒhİ’è
-rem ==========================================================
-
-rem ƒuƒ‰ƒEƒU©“®‹N“®‚ğ–³Œø‰»
-rem TradingSystem_Start.bat‘¤‚Åƒuƒ‰ƒEƒU”z’u‚ğ§Œä
-rem
-rem   --server.headless true
-
-set CONSOLE_CMD=python -m streamlit run %ROOT%\program\ui\console\console.py --server.port 8501 --server.headless true
-
-rem ==========================================================
-rem venv‹N“®
+rem venvèµ·å‹•
 rem ==========================================================
 
 call "%ROOT%\venv\Scripts\activate.bat"
 
 rem ==========================================================
-rem Python Pathİ’è
+rem Python Pathè¨­å®š
 rem ==========================================================
 
 set PYTHONPATH=%ROOT%\program;%ROOT%
+
+rem ==========================================================
+rem ãƒãƒ¼ãƒˆè¨­å®š
+rem ==========================================================
+
+for /f %%P in ('python -c "from core.config_loader import Config; print(Config.instance().data.get('server', {}).get('console_port', 8501))"') do set CONSOLE_PORT=%%P
+
+rem ==========================================================
+rem èµ·å‹•ã‚³ãƒãƒ³ãƒ‰è¨­å®š
+rem ==========================================================
+
+rem ãƒ–ãƒ©ã‚¦ã‚¶è‡ªå‹•èµ·å‹•ã‚’ç„¡åŠ¹åŒ–
+rem TradingSystem_Start.batå´ã§ãƒ–ãƒ©ã‚¦ã‚¶é…ç½®ã‚’åˆ¶å¾¡
+rem
+rem --server.headless true
+
+set CONSOLE_CMD=python -m streamlit run %ROOT%\program\ui\console\console.py --server.port %CONSOLE_PORT% --server.headless true
 
 echo.
 echo ==========================
@@ -42,16 +49,20 @@ echo CONSOLE UI START
 echo ==========================
 echo.
 
-echo ƒuƒ‰ƒEƒU‚©‚çCONSOLE‰æ–Ê‚ğ•\¦‚·‚éê‡:
-echo.
-echo   http://localhost:8501
+echo Port:
+echo %CONSOLE_PORT%
 echo.
 
-echo [Ctrl-C]‚ÅI—¹‚µ‚½ê‡:
+echo ãƒ–ãƒ©ã‚¦ã‚¶ã‹ã‚‰CONSOLEç”»é¢ã‚’è¡¨ç¤ºã™ã‚‹å ´åˆ:
+echo.
+echo http://localhost:%CONSOLE_PORT%
+echo.
+
+echo [Ctrl-C]ã§çµ‚äº†ã—ãŸå ´åˆ:
 echo.
 echo   s
 echo.
-echo s‚ğ“ü—Í‚·‚é‚ÆÄ‹N“®‚µ‚Ü‚·B
+echo sã‚’å…¥åŠ›ã™ã‚‹ã¨å†èµ·å‹•ã—ã¾ã™ã€‚
 echo.
 
 %CONSOLE_CMD%
@@ -61,10 +72,10 @@ echo ==========================
 echo CONSOLE UI STOPPED
 echo ==========================
 echo.
-echo Ä‹N“®‚·‚éê‡:
+echo å†èµ·å‹•ã™ã‚‹å ´åˆ:
 echo   s
 echo.
-echo I—¹‚·‚éê‡:
+echo çµ‚äº†ã™ã‚‹å ´åˆ:
 echo   exit
 echo.
 

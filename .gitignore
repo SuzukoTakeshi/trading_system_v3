@@ -46,4 +46,4 @@ storage/json/trade_chart_data/
 storage/logs/
 storage/json/trade_params.json
 
-ui/console/auditor/images/
+program/auditor/images/

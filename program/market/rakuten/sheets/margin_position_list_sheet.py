@@ -1,4 +1,6 @@
 #
+# ★★★★　未使用 (Execution Listのデータのみ足りる為)
+#
 # market/rakuten/sheets/margin_position_list_sheet.py
 #
 # Rakuten RSS Margin Position List Sheet

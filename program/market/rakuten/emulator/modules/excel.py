@@ -19,7 +19,7 @@ import win32com.client
 
 from core.logger import Log
 
-from market.rakuten.config.config_loader import MarketConfig
+from rakuten.config_loader import MarketConfig
 
 class EmulatorExcel:
 
@@ -61,7 +61,7 @@ class EmulatorExcel:
 
         if self.book is None:
             Log.error(f"EXCEL BOOK NOT FOUND : {book_name}")
-            raise FileNotFoundException(f"Excel Book not found : {book_name}")
+            raise
 
     # ==================================================
     # 切断

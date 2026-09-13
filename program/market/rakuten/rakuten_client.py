@@ -14,7 +14,7 @@ import win32com.client
 
 from market.rakuten.rakuten_log import RakutenLog
 
-from market.rakuten.config.config_loader import MarketConfig
+from rakuten.config_loader import MarketConfig
 
 from market.rakuten.order_executor import OrderExecutor
 

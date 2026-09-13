@@ -103,10 +103,17 @@ def main():
     if "auto_refresh" not in st.session_state:
         st.session_state.auto_refresh = False
 
+    # Backend OFFLINE
+    if status.get("trade_engine", {}).get("state") == "OFFLINE":
+        st.warning("Trading System 本体が起動していません。")
+        return
+
     # UI Context生成
     ctx = UIContext(status=status)
 
     header(ctx)
+
+    body(ctx)
 
     # Voice通知取得
     voice_data = get_voices()
@@ -121,15 +128,14 @@ def main():
         st.rerun()
 
     # Auto Refresh
+    #
+    # st_autorefresh() は画面上に描画領域を持つため、
+    # UI途中に配置すると、その位置に縦方向の余白が発生する。
+    #
+    # UIへの影響を避けるため、画面の最後に配置する。
+    #
     if st.session_state.auto_refresh:
         st_autorefresh(interval=CONSOLE_REFRESH_INTERVAL_MS, key="console_refresh")
-
-    # Backend OFFLINE
-    if status.get("trade_engine", {}).get("state") == "OFFLINE":
-        st.warning("Trading System 本体が起動していません。")
-        return
-
-    body(ctx)
 
 
 def system_header(status):

@@ -1,5 +1,5 @@
 #
-# market/rakuten/config/config_loader.py
+# rakuten/config_loader.py
 #
 # Rakuten Config Loader
 #
@@ -10,7 +10,10 @@
 
 import json
 
-from core.path import RAKUTEN_CONFIG_FILE
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parent
+RAKUTEN_CONFIG_FILE = ROOT_DIR / "config.json"
 
 
 class MarketConfig:

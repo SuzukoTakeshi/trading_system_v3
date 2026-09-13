@@ -22,12 +22,20 @@ from core.logger import Log
 from market.rakuten.emulator.modules.excel import EmulatorExcel
 from market.rakuten.emulator.modules.scenario import Scenario
 
+from core.config_loader import Config
+
 
 class EmulatorEngine:
 
-    BACKEND_URL = "http://127.0.0.1:8000"
-
     def __init__(self, scenario_file, create_trade=False):
+
+        config = Config.instance().data
+        server = config.get("server", {})
+
+        api_port = server.get("api_port", 8000)
+
+        self.backend_url = f"http://127.0.0.1:{api_port}"
+
         self.scenario_file = scenario_file
         self.create_trade = create_trade
 
@@ -135,7 +143,7 @@ class EmulatorEngine:
 
             try:
                 response = requests.get(
-                    f"{self.BACKEND_URL}/status",
+                    f"{self.backend_url}/status",
                     timeout=2
                 )
 
@@ -225,7 +233,7 @@ class EmulatorEngine:
 
         # APP API
         try:
-            response = requests.post(f"{self.BACKEND_URL}/trade", json=req, timeout=5)
+            response = requests.post(f"{self.backend_url}/trade", json=req, timeout=5)
 
         except requests.exceptions.RequestException as e:
             Log.emulator(f"TRADE CREATE REQUEST ERROR : {e}")

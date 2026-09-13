@@ -108,5 +108,85 @@
         "quantity": 100,
         "amount": 300200.0,
         "datetime": "2026-09-12T23:24:48.834917"
+    },
+    {
+        "trade_id": 1001,
+        "symbol": "7203",
+        "order_id": 290,
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "datetime": "2026-09-13T10:58:14.377864"
+    },
+    {
+        "trade_id": 1001,
+        "symbol": "7203",
+        "order_id": 291,
+        "action": "sell",
+        "price": 2996.8,
+        "quantity": 100,
+        "amount": 299680.0,
+        "datetime": "2026-09-13T10:58:58.172468"
+    },
+    {
+        "trade_id": 1002,
+        "symbol": "7203",
+        "order_id": 292,
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "datetime": "2026-09-13T15:35:16.420022"
+    },
+    {
+        "trade_id": 1002,
+        "symbol": "7203",
+        "order_id": 293,
+        "action": "sell",
+        "price": 3002.0,
+        "quantity": 100,
+        "amount": 300200.0,
+        "datetime": "2026-09-13T15:36:00.385938"
+    },
+    {
+        "trade_id": 1003,
+        "symbol": "7203",
+        "order_id": 294,
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "datetime": "2026-09-13T17:00:49.757683"
+    },
+    {
+        "trade_id": 1003,
+        "symbol": "7203",
+        "order_id": 295,
+        "action": "sell",
+        "price": 3002.0,
+        "quantity": 100,
+        "amount": 300200.0,
+        "datetime": "2026-09-13T17:01:33.730774"
+    },
+    {
+        "trade_id": 1004,
+        "symbol": "7203",
+        "order_id": 296,
+        "action": "buy",
+        "price": 2997.0,
+        "quantity": 100,
+        "amount": 299700.0,
+        "datetime": "2026-09-14T00:32:12.706118"
+    },
+    {
+        "trade_id": 1004,
+        "symbol": "7203",
+        "order_id": 297,
+        "action": "sell",
+        "price": 3002.0,
+        "quantity": 100,
+        "amount": 300200.0,
+        "datetime": "2026-09-14T00:32:56.566621"
     }
 ]
