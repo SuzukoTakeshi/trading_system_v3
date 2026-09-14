@@ -40,6 +40,10 @@ dist/
 # OS
 .DS_Store
 
+# Environment settings
+config/config.json
+rakuten/config.json
+
 # Runtime storage
 storage/json/trade/
 storage/json/trade_chart/
