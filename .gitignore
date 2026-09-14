@@ -42,8 +42,13 @@ dist/
 
 # Runtime storage
 storage/json/trade/
-storage/json/trade_chart_data/
+storage/json/trade_chart/
 storage/logs/
-storage/json/trade_params.json
-
 program/auditor/images/
+
+storage/json/asset.json
+storage/json/asset_history.json
+storage/json/asset_sync.json
+storage/json/order_id.json
+storage/json/trade_id.json
+storage/json/trade_params.json

@@ -10,7 +10,7 @@ rem Rakuten RSS Excel 起動
 rem
 rem ==========================================================
 
-set ROOT=C:\StockProjects\trading_system_v3_dev
+for %%I in ("%~dp0..") do set ROOT=%%~fI
 
 rem ==========================================================
 rem

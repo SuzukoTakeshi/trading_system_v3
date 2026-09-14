@@ -8,7 +8,8 @@ rem Python Virtual Environment
 rem
 rem ==========================================================
 
-set ROOT=C:\StockProjects\trading_system_v3_dev
+set ROOT=%~dp0
+set ROOT=%ROOT:~0,-1%
 
 rem ==========================================================
 rem

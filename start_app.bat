@@ -3,7 +3,7 @@ chcp 65001 >nul
 
 rem ==========================================================
 rem Trading System
-rem APP API 起動バッチ（Debugモード）
+rem APP API 起動バッチ
 rem
 rem 使用:
 rem   Python venv
@@ -34,7 +34,8 @@ rem ==========================================================
 rem プロジェクトルート設定
 rem ==========================================================
 
-set ROOT=C:\StockProjects\trading_system_v3_dev
+set ROOT=%~dp0
+set ROOT=%ROOT:~0,-1%
 
 rem ==========================================================
 rem venv起動

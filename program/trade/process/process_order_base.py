@@ -261,6 +261,9 @@ class ProcessOrderBase(ProcessBase):
         if order_result_data is None:
             return False
 
+        if order_result_data["status"] is None:
+            return False
+
         order_result_status = OrderResultStatus(order_result_data["status"])
 
         # ------------------------------------------
