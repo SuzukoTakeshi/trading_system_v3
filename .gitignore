@@ -44,6 +44,9 @@ dist/
 config/config.json
 rakuten/config.json
 
+# Rakuten RSS Excel
+rakuten/excel/
+
 # Runtime storage
 storage/json/trade/
 storage/json/trade_chart/
