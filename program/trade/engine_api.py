@@ -80,8 +80,8 @@ class TradeEngineAPI:
             strategy=strategy,
 
             initial_stop_delay_seconds=(strategy_cfg["exit"]["initial_stop_delay_seconds"] ),
-            stop_atr_multiplier=(strategy_cfg["exit"]["stop"]["atr_multiplier"]),
-            trail_atr_multiplier=(strategy_cfg["exit"]["trail"]["atr_multiplier"]),
+            stop_atr_multiplier=(strategy_cfg["exit"]["stop_initial"]["atr_multiplier"]),
+            trail_atr_multiplier=(strategy_cfg["exit"]["stop_trail"]["atr_multiplier"]),
             time_enabled=(strategy_cfg["exit"]["time"]["enabled"]),
             time_limit_minutes=(strategy_cfg["exit"]["time"]["limit_minutes"]),
             close_enabled=(strategy_cfg["exit"]["close"]["enabled"]),
@@ -106,8 +106,8 @@ class TradeEngineAPI:
             f"strategy={trade.param.strategy.value} "
 
             f"initial_stop_delay={trade.param.initial_stop_delay_seconds}s "
-            f"stop_atr={trade.param.stop_atr_multiplier} "
-            f"trail_atr={trade.param.trail_atr_multiplier} "
+            f"stop_atr_multiplier={trade.param.stop_atr_multiplier} "
+            f"trail_atr_multiplier={trade.param.trail_atr_multiplier} "
             f"time_enabled={trade.param.time_enabled} "
             f"time_limit={trade.param.time_limit_minutes}min "
             f"close_enabled={trade.param.close_enabled} "
@@ -126,8 +126,8 @@ class TradeEngineAPI:
             f"atr_max={strategy_cfg['entry']['atr']['max']} "
 
             f"initial_stop_delay={strategy_cfg['exit']['initial_stop_delay_seconds']}s "
-            f"stop_atr={strategy_cfg['exit']['stop']['atr_multiplier']} "
-            f"trail_atr={strategy_cfg['exit']['trail']['atr_multiplier']} "
+            f"stop_initial_atr={strategy_cfg['exit']['stop_initial']['atr_multiplier']} "
+            f"stop_trail_atr={strategy_cfg['exit']['stop_trail']['atr_multiplier']} "
             f"time_enabled={strategy_cfg['exit']['time']['enabled']} "
             f"time_limit={strategy_cfg['exit']['time']['limit_minutes']}min "
             f"close_enabled={strategy_cfg['exit']['close']['enabled']} "

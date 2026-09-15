@@ -56,7 +56,7 @@ class ProcessTrailingBase(ProcessBase):
         if trade.runtime.stop_price is None:
             self.init_trailing(trade)
 
-            message = f"INITIAL TRAILING entry={trade.entry_order.result.price} stop={trade.runtime.stop_price}"
+            message = f"INITIAL STOP entry={trade.entry_order.result.price} stop={trade.runtime.stop_price}"
             Log.event(f"(#{trade.id}) {message}")
             trade.add_timeline(event="TRAILING", message=message, current_price=self.quote.current_price)
 
