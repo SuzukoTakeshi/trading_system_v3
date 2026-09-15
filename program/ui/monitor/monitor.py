@@ -184,7 +184,8 @@ else:
 
                 render_trail_chart(
                     target.get("chart_datas", []),
-                    target.get("symbol", "")
+                    target.get("symbol", ""),
+                    target.get("name", "")
                 )
 
                 render_timeline_card(

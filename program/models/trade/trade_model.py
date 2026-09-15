@@ -265,6 +265,22 @@ class TradeModel(BaseEntity):
        
         data = super().to_dict()
 
+        quote = self.get_quote()
+
+        current_tick = ""
+        if quote is not None:
+            if (
+                quote.previous_price is not None
+                and quote.current_price is not None
+            ):
+                if quote.current_price > quote.previous_price:
+                    current_tick = "▲"
+                elif quote.current_price < quote.previous_price:
+                    current_tick = "▼"
+                else:
+                    current_tick = "→"
+
+
         data.update({
             "trade_id": self.id,
             "symbol": self.param.symbol,
@@ -296,6 +312,26 @@ class TradeModel(BaseEntity):
                     else None
                 )
             ),
+
+            "current_time": (
+                self.exit_order.result.result_datetime.strftime("%H:%M:%S")
+                if (
+                    self.state == TradeState.CLOSED
+                    and self.exit_order is not None
+                    and self.exit_order.result is not None
+                    and self.exit_order.result.result_datetime is not None
+                )
+                else (
+                    self.get_quote().current_datetime.strftime("%H:%M:%S")
+                    if (
+                        self.get_quote() is not None
+                        and self.get_quote().current_datetime is not None
+                    )
+                    else None
+                )
+            ),
+
+            "current_tick": current_tick,
 
             "previous_price": (
                 self.get_quote().previous_price

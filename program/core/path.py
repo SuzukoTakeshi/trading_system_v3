@@ -30,6 +30,9 @@ SYMBOLS_FILE = STORAGE_DIR / "json" / "symbols.json"
 TRADE_ID_FILE = STORAGE_DIR / "json" / "trade_id.json"
 TRADE_SYMBOLS_FILE = STORAGE_DIR / "json" / "trade_symbols.json"
 TRADE_PARAMS_FILE = STORAGE_DIR / "json" / "trade_params.json"
-ASSET_SYNC_FILE = STORAGE_DIR / "json" / "asset_sync.json"
 
 ORDER_ID_FILE = STORAGE_DIR / "json" / "order_id.json"
+
+ASSET_SYNC_FILE = STORAGE_DIR / "json" / "asset_sync.json"
+ASSET_FILE = STORAGE_DIR / "json" / "asset.json"
+ASSET_HISTORY_FILE = STORAGE_DIR / "json" / "asset_history.json"

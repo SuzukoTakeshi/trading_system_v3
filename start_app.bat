@@ -5,11 +5,15 @@ rem ==========================================================
 rem Trading System
 rem APP API 起動バッチ
 rem
-rem 使用:
-rem   Python venv
-rem
 rem 起動:
-rem   APP_CMD
+rem   start_app.bat
+rem       DEV環境
+rem
+rem   start_app.bat DEV
+rem       DEV環境
+rem
+rem   start_app.bat PROD
+rem       PROD環境
 rem
 rem 停止:
 rem   Ctrl + C
@@ -19,10 +23,33 @@ rem   s
 rem
 rem 終了:
 rem   exit
+rem
 rem ==========================================================
 
+rem ==========================================================
+rem 環境設定
+rem ==========================================================
 
-title APP API
+set ENV=%~1
+
+if "%ENV%"=="" set ENV=DEV
+
+if /i not "%ENV%"=="PROD" if /i not "%ENV%"=="DEV" (
+    echo.
+    echo ERROR: PROD または DEV を指定してください。
+    echo.
+    echo   start_app.bat
+    echo   start_app.bat DEV
+    echo   start_app.bat PROD
+    echo.
+    exit /b 1
+)
+
+rem ==========================================================
+rem ウィンドウタイトル
+rem ==========================================================
+
+title APP API %ENV%
 
 rem ==========================================================
 rem 起動コマンド設定
@@ -61,7 +88,7 @@ rem ==========================================================
 
 echo.
 echo ==========================
-echo APP API START
+echo APP API %ENV% START
 echo ==========================
 echo.
 
@@ -74,11 +101,12 @@ rem ==========================================================
 
 echo.
 echo ==========================
-echo APP API STOPPED
+echo APP API %ENV% STOPPED
 echo ==========================
 echo.
 
 echo 再起動する場合: s + [ENTER]
+
 echo.
 
 doskey s=%APP_CMD%

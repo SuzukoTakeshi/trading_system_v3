@@ -4,9 +4,52 @@ chcp 65001 >nul
 rem ==========================================================
 rem Trading System
 rem CONSOLE UI 起動バッチ
+rem
+rem 起動:
+rem   start_console.bat
+rem       DEV環境
+rem
+rem   start_console.bat DEV
+rem       DEV環境
+rem
+rem   start_console.bat PROD
+rem       PROD環境
+rem
+rem 停止:
+rem   Ctrl + C
+rem
+rem 再起動:
+rem   s
+rem
+rem 終了:
+rem   exit
+rem
 rem ==========================================================
 
-title CONSOLE UI
+rem ==========================================================
+rem 環境設定
+rem ==========================================================
+
+set ENV=%~1
+
+if "%ENV%"=="" set ENV=DEV
+
+if /i not "%ENV%"=="PROD" if /i not "%ENV%"=="DEV" (
+    echo.
+    echo ERROR: PROD または DEV を指定してください。
+    echo.
+    echo   start_console.bat
+    echo   start_console.bat DEV
+    echo   start_console.bat PROD
+    echo.
+    exit /b 1
+)
+
+rem ==========================================================
+rem ウィンドウタイトル
+rem ==========================================================
+
+title CONSOLE UI %ENV%
 
 rem ==========================================================
 rem プロジェクト設定
@@ -46,7 +89,7 @@ set CONSOLE_CMD=python -m streamlit run %ROOT%\program\ui\console\console.py --s
 
 echo.
 echo ==========================
-echo CONSOLE UI START
+echo CONSOLE UI %ENV% START
 echo ==========================
 echo.
 
@@ -70,7 +113,7 @@ echo.
 
 echo.
 echo ==========================
-echo CONSOLE UI STOPPED
+echo CONSOLE UI %ENV% STOPPED
 echo ==========================
 echo.
 echo 再起動する場合:

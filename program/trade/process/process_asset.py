@@ -20,8 +20,8 @@ from market.order_enums import (
     OrderAction,
 )
 
-from models.asset.asset_store import AssetStore
-from models.asset.asset_sync_store import AssetSyncStore
+from program.core.asset_store import AssetStore
+from program.core.asset_sync_store import AssetSyncStore
 
 from core.exception import (
     OrderNotFoundError,

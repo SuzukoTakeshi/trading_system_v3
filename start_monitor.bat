@@ -4,9 +4,52 @@ chcp 65001 >nul
 rem ==========================================================
 rem Trading System
 rem MONITOR UI 起動バッチ
+rem
+rem 起動:
+rem   start_monitor.bat
+rem       DEV環境
+rem
+rem   start_monitor.bat DEV
+rem       DEV環境
+rem
+rem   start_monitor.bat PROD
+rem       PROD環境
+rem
+rem 停止:
+rem   Ctrl + C
+rem
+rem 再起動:
+rem   s
+rem
+rem 終了:
+rem   exit
+rem
 rem ==========================================================
 
-title MONITOR UI
+rem ==========================================================
+rem 環境設定
+rem ==========================================================
+
+set ENV=%~1
+
+if "%ENV%"=="" set ENV=DEV
+
+if /i not "%ENV%"=="PROD" if /i not "%ENV%"=="DEV" (
+    echo.
+    echo ERROR: PROD または DEV を指定してください。
+    echo.
+    echo   start_monitor.bat
+    echo   start_monitor.bat DEV
+    echo   start_monitor.bat PROD
+    echo.
+    exit /b 1
+)
+
+rem ==========================================================
+rem ウィンドウタイトル
+rem ==========================================================
+
+title MONITOR UI %ENV%
 
 rem ==========================================================
 rem プロジェクトルート設定
@@ -46,7 +89,7 @@ set MONITOR_CMD=python -m streamlit run %ROOT%\program\ui\monitor\monitor.py --s
 
 echo.
 echo ==========================
-echo MONITOR UI START
+echo MONITOR UI %ENV% START
 echo ==========================
 echo.
 
@@ -54,10 +97,10 @@ echo Port:
 echo   %MONITOR_PORT%
 echo.
 
-echo MONITOR UIを起動しました。
+echo MONITOR UI %ENV%を起動しました。
 echo.
-echo   [http://localhost:%MONITOR_PORT%/?symbols=8306](http://localhost:%MONITOR_PORT%/?symbols=8306)
-echo   [http://localhost:%MONITOR_PORT%/?symbols=8306,7203](http://localhost:%MONITOR_PORT%/?symbols=8306,7203)
+echo   http://localhost:%MONITOR_PORT%/?symbols=8306
+echo   http://localhost:%MONITOR_PORT%/?symbols=8306,7203
 echo.
 
 echo [Ctrl-C]で終了します。
@@ -73,7 +116,7 @@ echo.
 
 echo.
 echo ==========================
-echo MONITOR UI STOPPED
+echo MONITOR UI %ENV% STOPPED
 echo ==========================
 echo.
 echo 再起動:

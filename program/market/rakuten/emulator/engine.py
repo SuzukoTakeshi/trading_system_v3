@@ -326,30 +326,60 @@ class EmulatorEngine:
         # 既存symbolを検索
         for row in range(2, last_row + 1):
             value = sheet.Cells(row, 1).Value
+
             if isinstance(value, float):
                 code = str(int(value))
             else:
                 code = str(value)
+
             if code != str(symbol):
                 continue
 
-            # 既存銘柄
+            # ------------------------------------------
+            # 前回価格から現在値ティックを判定
+            # ------------------------------------------
+            previous_price = sheet.Cells(row, 2).Value
+
+            if previous_price is None or previous_price == "":
+                current_tick = ""
+            elif price is None:
+                current_tick = ""
+            elif price > previous_price:
+                current_tick = "↑"
+            elif price < previous_price:
+                current_tick = "↓"
+            else:
+                current_tick = ""
+
+            # ------------------------------------------
+            # 現在値
+            # ------------------------------------------
             sheet.Cells(row, 2).Value = (
                 "" if price is None else price
             )
 
+            # ------------------------------------------
+            # 現在日付
+            # ------------------------------------------
             sheet.Cells(row, 3).Value = (
                 "" if current_datetime is None
                 else current_datetime.strftime("%Y/%m/%d")
             )
 
+            # ------------------------------------------
+            # 現在値詳細時刻
+            # ------------------------------------------
             sheet.Cells(row, 4).Value = (
                 "" if current_datetime is None
-                else current_datetime.strftime("%H:%M")
+                else current_datetime.strftime("%H:%M:%S")
             )
 
-            return True
+            # ------------------------------------------
+            # 現在値ティック
+            # ------------------------------------------
+            sheet.Cells(row, 5).Value = current_tick
 
+            return True
 
         # ------------------------------------------
         # symbolが存在しない場合
@@ -372,6 +402,11 @@ class EmulatorEngine:
             else current_datetime.strftime("%H:%M:%S")
         )
 
-        Log.emulator(f"SCENARIO SYMBOL ADD symbol={symbol} price={price}")
+        # 初回は前回価格がないため空
+        sheet.Cells(row, 5).Value = ""
+
+        Log.emulator(
+            f"SCENARIO SYMBOL ADD symbol={symbol} price={price}"
+        )
 
         return True

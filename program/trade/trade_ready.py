@@ -222,6 +222,8 @@ class TradeReady:
                 symbol=symbol,
                 current_price=market_quote["current_price"],
                 current_datetime=current_datetime,
+
+                current_time=market_quote["current_time"],
                 current_tick=market_quote["current_tick"],
                 change=market_quote["change"],
                 change_rate=market_quote["change_rate"],
@@ -237,6 +239,7 @@ class TradeReady:
             quote.update(
                 current_price=market_quote["current_price"],
                 current_datetime=current_datetime,
+                current_time=market_quote["current_time"],
                 current_tick=market_quote["current_tick"],
                 change=market_quote["change"],
                 change_rate=market_quote["change_rate"],

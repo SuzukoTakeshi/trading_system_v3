@@ -64,7 +64,7 @@ def header(ctx):
 
     with st.container(border=True):
 
-        col_refresh, col_market, col_engine, _, col_wav, col_voice_switch, col_engine_action = st.columns(
+        col_refresh, col_market, col_engine, col_asset, col_wav, col_voice_switch, col_engine_action = st.columns(
             [1, 1, 1, 5, 1, 1, 1]
         )
 
@@ -133,6 +133,24 @@ def header(ctx):
                     <b>ENGINE</b><br>
                     {engine_state_display}<br>
                     <small>Cycle: {last_cycle_text}</small>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        with col_asset:
+
+            asset = status.get("asset", {})
+
+            cash = asset.get("cash", 0)
+            profit_loss = asset.get("profit_loss", 0)
+
+            st.markdown(
+                f"""
+                <div style="line-height:1.5;">
+                    <b>ASSET</b><br>
+                    ¥{cash:,.0f}<br>
+                    <small>P/L: {profit_loss:+,.0f}</small>
                 </div>
                 """,
                 unsafe_allow_html=True

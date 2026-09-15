@@ -19,8 +19,9 @@ class QuoteModel(BaseEntity):
     def __init__(
         self,
         symbol: str,
-        current_price=None,
         current_datetime=None,
+        current_price=None,
+        current_time=None,
         current_tick=None,
         change=None,
         change_rate=None,
@@ -39,11 +40,14 @@ class QuoteModel(BaseEntity):
         # 銘柄コード
         self.symbol = symbol
 
+        # 現在日時
+        self.current_datetime = current_datetime
+
         # 現在値
         self.current_price = current_price
 
-        # 現在日時
-        self.current_datetime = current_datetime
+        # 現在値詳細時刻
+        self.current_time = current_time
 
         # 現在値ティック
         self.current_tick = current_tick
@@ -82,8 +86,9 @@ class QuoteModel(BaseEntity):
 
     def update(
         self,
-        current_price=None,
         current_datetime=None,
+        current_price=None,
+        current_time=None,
         current_tick=None,
         change=None,
         change_rate=None,
@@ -99,11 +104,12 @@ class QuoteModel(BaseEntity):
         市場情報更新
         """
         # 前回値を保存
-        self.previous_price = self.current_price
         self.previous_datetime = self.current_datetime
+        self.previous_price = self.current_price
 
-        self.current_price = current_price
         self.current_datetime = current_datetime
+        self.current_price = current_price
+        self.current_time = current_time
         self.current_tick = current_tick
         self.change = change
         self.change_rate = change_rate

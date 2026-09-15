@@ -5,11 +5,15 @@ rem ==========================================================
 rem Trading System
 rem Auditor 起動バッチ
 rem
-rem 使用:
-rem   Python venv
-rem
 rem 起動:
-rem   AUDITOR_CMD
+rem   start_auditor.bat
+rem       DEV環境
+rem
+rem   start_auditor.bat DEV
+rem       DEV環境
+rem
+rem   start_auditor.bat PROD
+rem       PROD環境
 rem
 rem 停止:
 rem   Ctrl + C
@@ -19,9 +23,33 @@ rem   s
 rem
 rem 終了:
 rem   exit
+rem
 rem ==========================================================
 
-title AUDITOR
+rem ==========================================================
+rem 環境設定
+rem ==========================================================
+
+set ENV=%~1
+
+if "%ENV%"=="" set ENV=DEV
+
+if /i not "%ENV%"=="PROD" if /i not "%ENV%"=="DEV" (
+    echo.
+    echo ERROR: PROD または DEV を指定してください。
+    echo.
+    echo   start_auditor.bat
+    echo   start_auditor.bat DEV
+    echo   start_auditor.bat PROD
+    echo.
+    exit /b 1
+)
+
+rem ==========================================================
+rem ウィンドウタイトル
+rem ==========================================================
+
+title AUDITOR %ENV%
 
 rem ==========================================================
 rem 起動コマンド設定
@@ -60,11 +88,12 @@ rem ==========================================================
 
 echo.
 echo ==========================
-echo AUDITOR START
+echo AUDITOR %ENV% START
 echo ==========================
 echo.
 
 %AUDITOR_CMD%
+
 
 rem ==========================================================
 rem 終了後
@@ -72,10 +101,12 @@ rem ==========================================================
 
 echo.
 echo ==========================
-echo AUDITOR STOPPED
+echo AUDITOR %ENV% STOPPED
 echo ==========================
 echo.
+
 echo 再起動する場合: s + [ENTER]
+
 echo.
 
 doskey s=%AUDITOR_CMD%

@@ -126,17 +126,18 @@ def render_trail_card(trade: dict):
         # Header
         # ---------------------
 
-        trade_id_col, current_price_col, size_col, strategy_col = st.columns([2, 2, 2, 2])
+        trade_id_col, current_time_col, side_col, strategy_col = st.columns([2, 2, 2, 2])
 
         with trade_id_col:
             trade_id = trade.get("trade_id", "-")
             st.markdown(f"Trade {trade_id}")
 
-        with current_price_col:
-            current_price = fmt_price(trade.get("current_price"))
-            st.markdown(f"{current_price}")
+        with current_time_col:
+            current_time = trade.get("current_time")
+            if current_time:
+                st.markdown(f"{current_time}")
 
-        with size_col:
+        with side_col:
             side = trade.get("side", "-")
             side_text = SIDE_LABEL.get(side, "")
 
@@ -172,7 +173,6 @@ def render_trail_card(trade: dict):
                 unsafe_allow_html=True
             )
 
-
         # ---------------------
         # Symbol / State
         # ---------------------
@@ -201,6 +201,75 @@ def render_trail_card(trade: dict):
                 """,
                 unsafe_allow_html=True
             )
+
+        # ---------------------
+        # current_price / expected_profit_loss
+        # ---------------------
+
+        current_price_col, expected_profit_loss_col = st.columns([3, 2])
+
+        with current_price_col:
+            current_price = fmt_price(trade.get("current_price"))
+            current_tick = trade.get("current_tick")
+
+            st.markdown(
+                f'<div style="font-size:2.0rem; padding: 0px 0px;">'
+                f'{current_price} {current_tick}'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+
+        with expected_profit_loss_col:
+
+            entry_price = trade.get("entry_price")
+            stop_price = trade.get("stop_price")
+            quantity = trade.get("quantity")
+            side = trade.get("side")
+
+            expected_profit_loss = None
+
+            if (entry_price is not None and stop_price is not None and quantity is not None):
+                if side == "LONG":
+                    expected_profit_loss = (stop_price - entry_price) * quantity
+
+                elif side == "SHORT":
+                    expected_profit_loss = (entry_price - stop_price) * quantity
+
+            if expected_profit_loss is None:
+                render_item("", "")
+
+            else:
+                if expected_profit_loss > 0:
+                    expected_profit_loss_text = (f"+¥{expected_profit_loss:,.0f}")
+                    expected_profit_loss_color = "#00C853"
+
+                elif expected_profit_loss < 0:
+                    expected_profit_loss_text = (f"-¥{abs(expected_profit_loss):,.0f}")
+                    expected_profit_loss_color = "#FF5252"
+
+                else:
+                    expected_profit_loss_text = "¥0"
+                    expected_profit_loss_color = "#999999"
+
+                st.markdown(
+                    f"""
+                    <div class="trail-item">
+                        <div class="trail-label">予想損益</div>
+                        <div
+                            class="trail-value"
+                            style="
+                                color: {expected_profit_loss_color};
+                                font-size: 1.2rem;
+                                text-align: right;
+                            "
+                        >
+                            {expected_profit_loss_text}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
 
         # ---------------------
         # Message

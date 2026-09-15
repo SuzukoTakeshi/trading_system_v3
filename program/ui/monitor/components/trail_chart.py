@@ -16,7 +16,11 @@ from matplotlib import rcParams
 rcParams["font.family"] = "Meiryo"
 
 
-def render_trail_chart(trail_history: list, symbol: str = ""):
+def render_trail_chart(
+    trail_history: list,
+    symbol: str = "",
+    name: str = ""
+):
 
     if not trail_history:
         st.info("トレール履歴はありません")
@@ -227,7 +231,7 @@ def render_trail_chart(trail_history: list, symbol: str = ""):
     # Decorate
     # ==================================================
 
-    ax.set_title(f"{symbol} Trail", fontsize=9)
+    ax.set_title(f"{symbol} {name}", fontsize=9)
 
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
 

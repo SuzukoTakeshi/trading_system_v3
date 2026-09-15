@@ -10,10 +10,9 @@
 
 from fastapi import HTTPException
 
+from core.strategy_config_loader import StrategyConfig
 from core.logger import Log
 from core.response import Response
-
-from market.market_service import MarketService
 
 from program.core.symbol_store import SymbolStore
 
@@ -22,7 +21,7 @@ from trade.trade_params_store import TradeParamsStore
 
 from trade.engine import TradeEngine
 
-from core.strategy_config_loader import StrategyConfig
+from program.core.asset_store import AssetStore
 
 
 class AppService:
@@ -40,6 +39,7 @@ class AppService:
 
         self.market_service = self.trade_engine.market
 
+        self.asset_store = AssetStore()
 
     def start(self):
         try:
@@ -82,10 +82,13 @@ class AppService:
     # ---------------------
     def status(self):
 
+        asset = self.asset_store.load()
+
         return {
             "mode": self.trade_engine.mode,
             "trade_engine": self.trade_engine.api.status(),
             "market": self.market_service.get_status(),
+            "asset": asset.to_dict(),
             "message": Log.get_last_message(),
         }
 
@@ -238,6 +241,8 @@ class AppService:
 
                 # Position
                 "current_price": trade["current_price"],
+                "current_time": trade["current_time"],
+                "current_tick": trade["current_tick"],
                 "previous_price": trade["previous_price"],
                 "stop_price": trade["stop_price"],
 
@@ -377,22 +382,22 @@ class AppService:
         for chart_data in chart_datas[1:]:
 
             changed = (
-                chart_data.get("state")
-                != previous.get("state")
-                or chart_data.get("stop_loss")
-                != previous.get("stop_loss")
-                or chart_data.get("high_watermark")
-                != previous.get("high_watermark")
-                or chart_data.get("low_watermark")
-                != previous.get("low_watermark")
-                or chart_data.get("entry_time")
-                != previous.get("entry_time")
-                or chart_data.get("entry_price")
-                != previous.get("entry_price")
-                or chart_data.get("exit_time")
-                != previous.get("exit_time")
-                or chart_data.get("exit_price")
-                != previous.get("exit_price")
+                # 状態
+                chart_data.get("state") != previous.get("state")
+                # PRICEライン
+                or chart_data.get("price_close") != previous.get("price_close")
+                # STOPライン
+                or chart_data.get("stop_loss") != previous.get("stop_loss")
+                # LONGのHIGHライン
+                or chart_data.get("high_watermark") != previous.get("high_watermark")
+                # SHORTのLOWライン
+                or chart_data.get("low_watermark") != previous.get("low_watermark")
+                # ENTRYマーカー位置
+                or chart_data.get("entry_time") != previous.get("entry_time")
+                or chart_data.get("entry_price") != previous.get("entry_price")
+                # EXITマーカー位置
+                or chart_data.get("exit_time") != previous.get("exit_time")
+                or chart_data.get("exit_price") != previous.get("exit_price")
             )
 
             if changed:

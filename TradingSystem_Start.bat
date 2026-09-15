@@ -10,44 +10,25 @@ rem   指定モニターへ配置する。
 rem
 rem ==========================================================
 rem
-rem 構成:
+rem 使用方法:
+rem
+rem   TradingSystem_Start.bat PROD
+rem   TradingSystem_Start.bat DEV
+rem
+rem   TradingSystem_Start.bat PROD 1 2
+rem   TradingSystem_Start.bat DEV 1 2
 rem
 rem   第1引数
-rem       サービス用モニター
-rem
-rem       APP API (FastAPI)
-rem       CONSOLE UI (Streamlit)
-rem       MONITOR UI (Streamlit)
+rem       PROD / DEV
 rem
 rem   第2引数
+rem       サービス用モニター
+rem
+rem   第3引数
 rem       CONSOLEブラウザ配置用モニター
 rem
 rem       0   : ブラウザを起動しない
 rem       1～4 : 指定モニターへ最大化表示
-rem
-rem 使用例:
-rem
-rem   TradingSystem_Start.bat
-rem       サービス : モニター1
-rem       ブラウザ : モニター2
-rem
-rem   TradingSystem_Start.bat 1 0
-rem       サービス : モニター1
-rem       ブラウザ : 起動しない
-rem
-rem   TradingSystem_Start.bat 1 3
-rem       サービス : モニター1
-rem       ブラウザ : モニター3
-rem
-rem ==========================================================
-rem
-rem 使用ツール:
-rem
-rem   tools\CheckWindow.ps1
-rem       起動済みウィンドウ確認
-rem
-rem   tools\ArrangeWindow.ps1
-rem       ウィンドウ配置
 rem
 rem ==========================================================
 
@@ -59,16 +40,46 @@ if /i "%1"=="help" goto HELP
 if /i "%1"=="?" goto HELP
 if /i "%1"=="/?" goto HELP
 
+rem ==========================================================
+rem 環境設定
+rem ==========================================================
+
+set ENV=%~1
+
+if /i "%ENV%"=="PROD" goto ENV_OK
+if /i "%ENV%"=="DEV" goto ENV_OK
+
+echo.
+echo ==========================================================
+echo ERROR: 環境を指定してください。
+echo.
+echo   TradingSystem_Start.bat PROD
+echo   TradingSystem_Start.bat DEV
+echo ==========================================================
+echo.
+
+exit /b 1
+
+:ENV_OK
+
+rem ==========================================================
+rem プロジェクト設定
+rem ==========================================================
+
 set ROOT=%~dp0
 set ROOT=%ROOT:~0,-1%
 
 rem ==========================================================
-rem ポート設定
+rem venv / Python Path
 rem ==========================================================
 
 call "%ROOT%\venv\Scripts\activate.bat"
 
 set PYTHONPATH=%ROOT%\program;%ROOT%
+
+rem ==========================================================
+rem ポート設定
+rem ==========================================================
 
 for /f %%P in ('python -c "from core.config_loader import Config; print(Config.instance().data.get('server', {}).get('console_port', 8501))"') do set CONSOLE_PORT=%%P
 
@@ -79,12 +90,12 @@ rem ==========================================================
 set SERVICE_MONITOR=1
 set BROWSER_MONITOR=2
 
-if not "%1"=="" set SERVICE_MONITOR=%1
+if not "%2"=="" set SERVICE_MONITOR=%2
+if not "%3"=="" set BROWSER_MONITOR=%3
 
-if not "%2"=="" set BROWSER_MONITOR=%2
-
+echo.
 echo ==========================
-echo Trading System 起動
+echo Trading System %ENV% 起動
 echo ==========================
 echo Service Monitor=%SERVICE_MONITOR%
 echo Browser Monitor=%BROWSER_MONITOR%
@@ -114,36 +125,33 @@ rem ==========================================================
 
 echo.
 echo ==========================
-echo APP API
+echo APP API %ENV%
 echo ==========================
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\program\tools\CheckWindow.ps1" "APP API"
+-File "%ROOT%\program\tools\CheckWindow.ps1" "APP API %ENV%"
 
 if errorlevel 1 (
 
-```
-echo APP API 起動
+    echo APP API %ENV% 起動
 
-start "" "%ROOT%\start_app.bat"
+    start "" "%ROOT%\start_app.bat" %ENV%
 
-timeout /t 1 >nul
-```
+    timeout /t 1 >nul
 
 ) else (
 
-```
-echo APP API 起動済み
-```
+    echo APP API %ENV% 起動済み
 
 )
 
 powershell -ExecutionPolicy Bypass ^
 -File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
--Title "APP API" ^
+-Title "APP API %ENV%" ^
 -Monitor %SERVICE_MONITOR% ^
 -Layout V3 ^
 -Position 1
+
 
 rem ==========================================================
 rem CONSOLE UI
@@ -151,36 +159,33 @@ rem ==========================================================
 
 echo.
 echo ==========================
-echo CONSOLE UI
+echo CONSOLE UI %ENV%
 echo ==========================
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\program\tools\CheckWindow.ps1" "CONSOLE UI"
+-File "%ROOT%\program\tools\CheckWindow.ps1" "CONSOLE UI %ENV%"
 
 if errorlevel 1 (
 
-```
-echo CONSOLE UI 起動
+    echo CONSOLE UI %ENV% 起動
 
-start "" "%ROOT%\start_console.bat"
+    start "" "%ROOT%\start_console.bat" %ENV%
 
-timeout /t 1 >nul
-```
+    timeout /t 1 >nul
 
 ) else (
 
-```
-echo CONSOLE UI 起動済み
-```
+    echo CONSOLE UI %ENV% 起動済み
 
 )
 
 powershell -ExecutionPolicy Bypass ^
 -File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
--Title "CONSOLE UI" ^
+-Title "CONSOLE UI %ENV%" ^
 -Monitor %SERVICE_MONITOR% ^
 -Layout V3 ^
 -Position 2
+
 
 rem ==========================================================
 rem MONITOR UI
@@ -188,33 +193,29 @@ rem ==========================================================
 
 echo.
 echo ==========================
-echo MONITOR UI
+echo MONITOR UI %ENV%
 echo ==========================
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\program\tools\CheckWindow.ps1" "MONITOR UI"
+-File "%ROOT%\program\tools\CheckWindow.ps1" "MONITOR UI %ENV%"
 
 if errorlevel 1 (
 
-```
-echo MONITOR UI 起動
+    echo MONITOR UI %ENV% 起動
 
-start "" "%ROOT%\start_monitor.bat"
+    start "" "%ROOT%\start_monitor.bat" %ENV%
 
-timeout /t 1 >nul
-```
+    timeout /t 1 >nul
 
 ) else (
 
-```
-echo MONITOR UI 起動済み
-```
+    echo MONITOR UI %ENV% 起動済み
 
 )
 
 powershell -ExecutionPolicy Bypass ^
 -File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
--Title "MONITOR UI" ^
+-Title "MONITOR UI %ENV%" ^
 -Monitor %SERVICE_MONITOR% ^
 -Layout V3 ^
 -Position 3
@@ -226,29 +227,29 @@ rem ==========================================================
 
 echo.
 echo ==========================
-echo AUDITOR
+echo AUDITOR %ENV%
 echo ==========================
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\program\tools\CheckWindow.ps1" "AUDITOR"
+-File "%ROOT%\program\tools\CheckWindow.ps1" "AUDITOR %ENV%"
 
 if errorlevel 1 (
 
-    echo AUDITOR 起動
+    echo AUDITOR %ENV% 起動
 
-    start "" "%ROOT%\start_auditor.bat"
+    start "" "%ROOT%\start_auditor.bat" %ENV%
 
     timeout /t 1 >nul
 
 ) else (
 
-    echo AUDITOR 起動済み
+    echo AUDITOR %ENV% 起動済み
 
 )
 
 powershell -ExecutionPolicy Bypass ^
 -File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
--Title "AUDITOR" ^
+-Title "AUDITOR %ENV%" ^
 -Monitor %SERVICE_MONITOR% ^
 -Layout V3 ^
 -Position 4
@@ -260,52 +261,50 @@ rem ==========================================================
 
 if "%BROWSER_MONITOR%"=="0" (
 
-```
-echo.
-echo CONSOLE Browser 起動しない
-```
+    echo.
+    echo CONSOLE Browser 起動しない
 
 ) else (
 
-```
-echo.
-echo ==========================
-echo CONSOLE Browser
-echo ==========================
+    echo.
+    echo ==========================
+    echo CONSOLE Browser %ENV%
+    echo ==========================
 
-powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\program\tools\CheckWindow.ps1" "Trading System Console"
+    powershell -ExecutionPolicy Bypass ^
+    -File "%ROOT%\program\tools\CheckWindow.ps1" "Trading System Console"
 
-if errorlevel 1 (
+    if errorlevel 1 (
 
-    echo CONSOLE Browser 起動
+        echo CONSOLE Browser %ENV% 起動
 
-    start "" http://localhost:%CONSOLE_PORT%
+        start "" http://localhost:%CONSOLE_PORT%
 
-    timeout /t 2 >nul
+        timeout /t 2 >nul
 
-) else (
+    ) else (
 
-    echo CONSOLE Browser 起動済み
+        echo CONSOLE Browser %ENV% 起動済み
+
+    )
+
+    powershell -ExecutionPolicy Bypass ^
+    -File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
+    -Title "Trading System Console" ^
+    -Monitor %BROWSER_MONITOR% ^
+    -Layout MAX
 
 )
 
 
-powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
--Title "Trading System Console" ^
--Monitor %BROWSER_MONITOR% ^
--Layout MAX
-```
-
-)
-
 echo.
 echo ==========================
+echo Trading System %ENV%
 echo 起動処理完了
 echo ==========================
 
 exit /b
+
 
 :HELP
 
@@ -318,26 +317,33 @@ echo.
 echo 使用方法:
 echo.
 
-echo   TradingSystem_Start.bat
-echo       サービス:
-echo           モニター1
-echo       CONSOLEブラウザ:
-echo           モニター2
+echo   TradingSystem_Start.bat PROD
+echo       PROD環境
+echo       サービス : モニター1
+echo       CONSOLEブラウザ : モニター2
 
 echo.
 
-echo   TradingSystem_Start.bat 1 0
+echo   TradingSystem_Start.bat DEV
+echo       DEV環境
+echo       サービス : モニター1
+echo       CONSOLEブラウザ : モニター2
+
+echo.
+
+echo   TradingSystem_Start.bat PROD 1 0
+echo       PROD環境
 echo       CONSOLEブラウザを起動しない
 
 echo.
 
-echo   TradingSystem_Start.bat 1 3
-echo       CONSOLEブラウザ:
-echo           モニター3
+echo   TradingSystem_Start.bat DEV 1 3
+echo       DEV環境
+echo       CONSOLEブラウザ : モニター3
 
 echo.
 
 echo ==========================================================
 echo.
 
-exit
+exit /b
