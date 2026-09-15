@@ -51,6 +51,7 @@ rakuten/excel/
 # Runtime storage
 storage/json/trade/
 storage/json/trade_chart/
+storage/json/trade_symbols.json
 storage/logs/
 program/auditor/images/
 
