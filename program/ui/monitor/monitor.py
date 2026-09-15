@@ -169,13 +169,25 @@ else:
                 # Tradeなし
                 # -------------------------
                 if target is None:
-                    target = {
-                        "trade_id": trade_id,
-                        "symbol": "",
-                        "name": "",
-                        "state": "NOT FOUND",
-                        "chart_datas": [],
-                    }
+                    st.markdown(
+                        f"""
+                        <div
+                            style="
+                                border: 1px solid #FF5252;
+                                border-radius: 0.5rem;
+                                padding: 1.5rem;
+                                text-align: center;
+                                color: #FF5252;
+                                font-size: 1.1rem;
+                                margin-top: 1rem;
+                            "
+                        >
+                            Trade {trade_id} が見つかりません
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+                    continue
 
                 # -------------------------
                 # Card

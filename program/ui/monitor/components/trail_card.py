@@ -20,6 +20,7 @@ from ui.utils.formatters import (
     fmt_price,
     fmt_dt,
     fmt_duration,
+    fmt_r,
 )
 
 
@@ -44,7 +45,9 @@ def render_item(label, value):
 # ==========================================
 # Trade Card
 # ==========================================
+
 def render_trail_card(trade: dict):
+    # st.write("DEBUG trade:", trade)
 
     # ---------------------
     # Strategy
@@ -206,7 +209,7 @@ def render_trail_card(trade: dict):
         # current_price / expected_profit_loss
         # ---------------------
 
-        current_price_col, expected_profit_loss_col = st.columns([3, 2])
+        current_price_col, expected_profit_loss_col = st.columns([5, 1])
 
         with current_price_col:
             current_price = fmt_price(trade.get("current_price"))
@@ -229,16 +232,22 @@ def render_trail_card(trade: dict):
             expected_profit_loss = None
 
             if (entry_price is not None and stop_price is not None and quantity is not None):
-                if side == "LONG":
+                if side == "long":
                     expected_profit_loss = (stop_price - entry_price) * quantity
 
-                elif side == "SHORT":
+                elif side == "short":
                     expected_profit_loss = (entry_price - stop_price) * quantity
 
-            if expected_profit_loss is None:
-                render_item("", "")
+                else:
+                    st.error(f"予想損益計算エラー: 不正なside={side}")
 
             else:
+                st.error(
+                    f"予想損益計算エラー: entry={entry_price} stop={stop_price} quantity={quantity}"
+                )
+
+            if expected_profit_loss is not None:
+
                 if expected_profit_loss > 0:
                     expected_profit_loss_text = (f"+¥{expected_profit_loss:,.0f}")
                     expected_profit_loss_color = "#00C853"
@@ -303,7 +312,7 @@ def render_trail_card(trade: dict):
             render_item("開始価格", fmt_price(trade.get("trade_price")))
 
         with atr_col:
-            render_item("ATR", fmt_price(trade.get("atr")))
+            render_item("ATR", f"{trade.get('atr'):,.1f}%")
 
 
         with trade_type_col:
