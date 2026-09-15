@@ -43,6 +43,7 @@ dist/
 # Environment settings
 config/config.json
 rakuten/config.json
+config/strategy_config.json
 
 # Rakuten RSS Excel
 rakuten/excel/
