@@ -1,5 +1,5 @@
 #
-# ui/trade_panel.py
+# program/ui/console/components/trade_panel.py
 #
 # Trade Entry Panel
 #
@@ -71,20 +71,49 @@ def trade_panel():
                 for s in st.session_state.trade_symbols
             ]
 
+
         with data_col:
+
+            # --------------------------------------------------
+            # Returnで入力された銘柄コードを銘柄名付きに正規化
+            # --------------------------------------------------
+
+            current_symbol = st.session_state.get("trade_symbol")
+
+            if current_symbol and " " not in current_symbol:
+
+                params = get_trade_params(current_symbol)
+
+                if params:
+                    display_symbol = (
+                        f"{current_symbol} {params['name']}"
+                    )
+
+                    if display_symbol not in symbol_options:
+                        symbol_options.append(display_symbol)
+
+                    # selectbox生成前なので変更可能
+                    st.session_state.trade_symbol = display_symbol
+
+
             selected_symbol = st.selectbox(
                 "銘柄",
                 symbol_options,
                 index=0 if symbol_options else None,
                 accept_new_options=True,
+                key="trade_symbol",
                 label_visibility="collapsed",
             )
 
+
             if selected_symbol is None:
                 symbol = ""
+                params = None
 
             else:
                 symbol = selected_symbol.split(" ", 1)[0]
+                params = get_trade_params(symbol)
+
 
         #
         # 銘柄変更時
@@ -92,28 +121,18 @@ def trade_panel():
         if symbol and symbol != st.session_state.trade_params_symbol:
 
             params = get_trade_params(symbol)
-            if params:
-                st.session_state.trade_quantity = params.get("quantity", 100)
-                st.session_state.trade_price = params.get("trade_price", 0)
-                st.session_state.trade_atr = params.get("atr", 0.0)
-                st.session_state.trade_type = params.get("trade_type", "margin")
-                st.session_state.trade_margin_type = params.get("margin_type", "day")
-                st.session_state.trade_strategy = params.get("strategy", strategy_cfg["default"])
-                st.session_state.trade_side = params.get("side", "long")
 
-            else:
-                # 保存値がない銘柄
-                st.session_state.trade_quantity = 100
-                st.session_state.trade_price = 0
-                st.session_state.trade_atr = 0.0
-                st.session_state.trade_type = "margin"
-                st.session_state.trade_margin_type = "day"
-                st.session_state.trade_strategy = strategy_cfg["default"]
-                st.session_state.trade_side = "long"
+            if params:
+                st.session_state.trade_quantity = params["quantity"]
+                st.session_state.trade_price = params["trade_price"]
+                st.session_state.trade_atr = params["atr"]
+                st.session_state.trade_type = params["trade_type"]
+                st.session_state.trade_margin_type = params["margin_type"]
+                st.session_state.trade_strategy = params["strategy"]
+                st.session_state.trade_side = params["side"]
 
             st.session_state.trade_params_symbol = symbol
 
-            # session_stateへ反映した値を次のrerunでウィジェットへ反映
             st.rerun()
 
 

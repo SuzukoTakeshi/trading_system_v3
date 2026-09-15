@@ -300,6 +300,7 @@ def trade_list():
         # Trade一覧
         edited = st.data_editor(
             trades,
+            key="trade_list_editor",
             width="stretch",
             height=280,
             hide_index=True,

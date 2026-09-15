@@ -83,6 +83,7 @@ def header(ctx):
             auto_refresh = st.toggle(
                 "AUTO REFRESH",
                 value=st.session_state.auto_refresh,
+                key="console_auto_refresh",
             )
             st.session_state.auto_refresh = auto_refresh
 

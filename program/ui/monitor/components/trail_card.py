@@ -231,7 +231,11 @@ def render_trail_card(trade: dict):
 
             expected_profit_loss = None
 
-            if (entry_price is not None and stop_price is not None and quantity is not None):
+            if (
+                entry_price is not None
+                and stop_price is not None
+                and quantity is not None
+            ):
                 if side == "long":
                     expected_profit_loss = (stop_price - entry_price) * quantity
 
@@ -241,19 +245,16 @@ def render_trail_card(trade: dict):
                 else:
                     st.error(f"予想損益計算エラー: 不正なside={side}")
 
-            else:
-                st.error(
-                    f"予想損益計算エラー: entry={entry_price} stop={stop_price} quantity={quantity}"
-                )
+            # ENTRY未約定など、計算に必要な値がまだない場合は何もしない
 
             if expected_profit_loss is not None:
 
                 if expected_profit_loss > 0:
-                    expected_profit_loss_text = (f"+¥{expected_profit_loss:,.0f}")
+                    expected_profit_loss_text = f"+¥{expected_profit_loss:,.0f}"
                     expected_profit_loss_color = "#00C853"
 
                 elif expected_profit_loss < 0:
-                    expected_profit_loss_text = (f"-¥{abs(expected_profit_loss):,.0f}")
+                    expected_profit_loss_text = f"-¥{abs(expected_profit_loss):,.0f}"
                     expected_profit_loss_color = "#FF5252"
 
                 else:

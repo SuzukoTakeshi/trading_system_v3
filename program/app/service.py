@@ -161,7 +161,29 @@ class AppService:
     # ---------------------
     def get_trade_params(self, symbol):
 
-        return self.trade_params_store.get(symbol)
+        symbol_info = self.symbol_store.get(symbol)
+        saved_params = self.trade_params_store.get(symbol)
+
+        if symbol_info is None:
+            return None
+
+        cfg = StrategyConfig.instance().data["strategy"]
+
+        params = {
+            "name": symbol_info["name"],
+            "quantity": 100,
+            "trade_price": 0,
+            "atr": 0.0,
+            "trade_type": "margin",
+            "margin_type": "day",
+            "side": "long",
+            "strategy": cfg["default"],
+        }
+
+        if saved_params:
+            params.update(saved_params)
+
+        return params
 
 
     # ---------------------
