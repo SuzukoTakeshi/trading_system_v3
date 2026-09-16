@@ -1,5 +1,5 @@
 #
-# ui/console/console.py
+# program/ui/console/console.py
 #
 # Trading System Console
 #
@@ -49,6 +49,7 @@ from ui.config import (
 from ui.api.client import (
     get_status,
     get_voices,
+    get_daily_result,
 )
 
 from ui.console.components.context import UIContext
@@ -98,6 +99,9 @@ def main():
     # API Status取得
     status = get_status()
 
+    # 本日の日次実績取得
+    daily_result = get_daily_result()
+
     system_header(status)
 
     if "auto_refresh" not in st.session_state:
@@ -109,7 +113,7 @@ def main():
         return
 
     # UI Context生成
-    ctx = UIContext(status=status)
+    ctx = UIContext(status=status, daily_result=daily_result)
 
     header(ctx)
 

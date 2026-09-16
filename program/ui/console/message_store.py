@@ -1,5 +1,5 @@
 #
-# ui/console/message_store.py
+# program/ui/console/message_store.py
 #
 # Console Message Manager
 #

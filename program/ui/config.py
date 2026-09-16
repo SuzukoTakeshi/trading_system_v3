@@ -1,5 +1,5 @@
 #
-# ui/config/ui.py
+# program/ui/config/ui.py
 #
 # ==========================================
 # Trading System UI設定

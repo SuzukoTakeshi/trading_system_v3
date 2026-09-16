@@ -7,6 +7,7 @@
 #   ・Trading System の統括
 #   ・API層から呼ばれる業務サービス
 #
+from datetime import datetime
 
 from fastapi import HTTPException
 
@@ -100,6 +101,16 @@ class AppService:
 
         return {
             "voices": self.trade_engine.context.voice_manager.get(),
+        }
+
+
+    # ---------------------
+    # 日次実績取得
+    # ---------------------
+    def daily_result(self):
+
+        return {
+            "daily_result": self.asset_store.get_daily_result(datetime.now()),
         }
 
 

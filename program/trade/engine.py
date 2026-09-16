@@ -48,6 +48,7 @@ from models.trade.trade_chart_store import TradeChartStore
 from trade.context import EngineContext
 
 from trade.trade_ready import TradeReady
+from trade.trade_close import TradeClose
 from trade.engine_api import TradeEngineAPI
 
 from trade.process.process_market import ProcessMarket
@@ -124,6 +125,7 @@ class TradeEngine:
         self._restore()
 
         self.trade_ready = TradeReady(self.context, self.market)
+        self.trade_close = TradeClose(self.context, self.market)
 
         # Cycle Process
         self.process_market = ProcessMarket(self.context, self.market)
@@ -357,6 +359,10 @@ class TradeEngine:
                 trade_ready = self.trade_ready.is_trade_ready(trade)
                 # print(f"trade_ready={trade_ready}")
                 if not trade_ready:
+                    continue
+
+                if self.trade_close.is_trade_close_required(trade):
+                    trade.change_state(TradeState.CLOSED)
                     continue
 
                 # Trade状態ログ

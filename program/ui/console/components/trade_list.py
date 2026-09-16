@@ -1,5 +1,5 @@
 #
-# ui/components/trade_list.py
+# program/ui/components/trade_list.py
 #
 # TRADE LIST UI
 #
@@ -46,36 +46,21 @@ def list_button_action(action, trade_id, success_message, cancel_confirm=False):
         response_message = response.get("message", "")
 
         if result == "OK":
-
-            message_store.set(
-                level="INFO",
-                message=response_message or success_message
-            )
+            message_store.set(level="INFO", message=response_message or success_message)
 
         elif result == "REJECTED":
-
             if cancel_confirm:
                 st.session_state["cancel_confirm_trade_id"] = trade_id
                 st.session_state["cancel_confirm_message"] = response_message
             else:
-                message_store.set(
-                    level="WARNING",
-                    message=response_message or "操作が拒否されました。"
-                )
+                message_store.set(level="WARNING", message=response_message or "操作が拒否されました。")
 
         else:
-
-            message_store.set(
-                level="ERROR",
-                message=response_message or "処理に失敗しました。"
-            )
+            message_store.set(level="ERROR", message=response_message or "処理に失敗しました。")
 
     except Exception as e:
 
-        message_store.set(
-            level="ERROR",
-            message=get_error_message(e),
-        )
+        message_store.set(level="ERROR", message=get_error_message(e))
 
     st.rerun()
 
@@ -85,9 +70,7 @@ def cancel_confirm_dialog(trade_id, message):
 
     st.warning(message)
 
-    st.write(
-        f"Trade #{trade_id} をそれでもCANCELしますか？"
-    )
+    st.write(f"Trade #{trade_id} をそれでもCANCELしますか？")
 
     col1, col2 = st.columns(2)
 
@@ -115,18 +98,13 @@ def cancel_confirm_dialog(trade_id, message):
 
 def trade_list():
 
-    confirm_trade_id = st.session_state.get(
-        "cancel_confirm_trade_id"
-    )
+    confirm_trade_id = st.session_state.get("cancel_confirm_trade_id")
 
     if confirm_trade_id is not None:
 
         cancel_confirm_dialog(
             confirm_trade_id,
-            st.session_state.get(
-                "cancel_confirm_message",
-                "このTradeは現在CANCELできません。"
-            ),
+            st.session_state.get("cancel_confirm_message", "このTradeは現在CANCELできません。")
         )
 
 
@@ -145,14 +123,14 @@ def trade_list():
             unsafe_allow_html=True
         )
 
-        title_col, select_col, monitor_col, pause_col, resume_col, cancel_col, delete_col = st.columns(
-            [2, 1, 1, 1, 1, 1, 1]
+        title_col, select_count_col, all_select_col, monitor_col, pause_col, resume_col, cancel_col, delete_col = st.columns(
+            [2, 1, 1, 1, 1, 1, 1, 1]
         )
 
         with title_col:
             st.subheader("TRADE LIST")
 
-        with select_col:
+        with select_count_col:
             selected_placeholder = st.empty()
 
         trades = get_trades()
@@ -384,20 +362,32 @@ def trade_list():
 
         selected_placeholder.markdown(f"選択 : {len(selected_ids)} 件")
 
+
+        #
+        # 全選択
+        #
+        with all_select_col:
+            if st.button("☑ All Select", width="stretch", key="trade_list_select_all"):
+                for trade in trades:
+                    trade["select"] = True
+
+                st.session_state["trade_list_selected_ids"] = {
+                    trade["trade_id"]
+                    for trade in trades
+                    if trade["trade_id"] is not None
+                }
+
+                st.rerun()
+
         #
         # Monitor
         #
         with monitor_col:
-            if st.button(
-                "👁 Monitor",
-                width="stretch",
-                disabled=len(selected_ids) == 0,
-            ):
+            if st.button("👁 Monitor", width="stretch", disabled=len(selected_ids) == 0):
                 trade_ids = ",".join(
                     str(trade_id)
                     for trade_id in selected_ids
                 )
-
                 url = f"{MONITOR_URL}?trade_ids={trade_ids}"
                 webbrowser.open_new_tab(url)
 
@@ -405,11 +395,7 @@ def trade_list():
         # Pause
         #
         with pause_col:
-            if st.button(
-                "⏸ Pause",
-                width="stretch",
-                disabled=len(selected_ids) != 1,
-            ):
+            if st.button("⏸ Pause", width="stretch", disabled=len(selected_ids) != 1):
                 trade_id = selected_ids[0]
                 list_button_action(pause_trade, trade_id, f"(#{trade_id}) PAUSE 完了")
 
@@ -417,11 +403,7 @@ def trade_list():
         # Resume
         #
         with resume_col:
-            if st.button(
-                "▶ Resume",
-                width="stretch",
-                disabled=len(selected_ids) != 1,
-            ):
+            if st.button("▶ Resume", width="stretch", disabled=len(selected_ids) != 1):
                 trade_id = selected_ids[0]
                 list_button_action(resume_trade, trade_id, f"(#{trade_id}) RESUME 完了")
 
@@ -429,11 +411,7 @@ def trade_list():
         # Cancel
         #
         with cancel_col:
-            if st.button(
-                "❌ Cancel",
-                width="stretch",
-                disabled=len(selected_ids) != 1,
-            ):
+            if st.button("❌ Cancel", width="stretch", disabled=len(selected_ids) != 1):
                 trade_id = selected_ids[0]
                 list_button_action(cancel_trade, trade_id, f"(#{trade_id}) CANCEL 完了", cancel_confirm=True)
 
@@ -441,10 +419,6 @@ def trade_list():
         # Delete
         #
         with delete_col:
-            if st.button(
-                "🗑 Delete",
-                width="stretch",
-                disabled=len(selected_ids) != 1,
-            ):
+            if st.button("🗑 Delete", width="stretch", disabled=len(selected_ids) != 1):
                 trade_id = selected_ids[0]
                 list_button_action(delete_trade, trade_id, f"(#{trade_id}) DELETE 完了")

@@ -1,5 +1,5 @@
 #
-# ui/monitor/monitor.py
+# program/ui/monitor/monitor.py
 #
 # Trade Monitor UI
 #

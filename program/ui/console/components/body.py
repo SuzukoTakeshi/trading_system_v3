@@ -1,5 +1,5 @@
 #
-# ui/body.py
+# program/ui/console/components/body.py
 #
 
 import streamlit as st

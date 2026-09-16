@@ -151,6 +151,8 @@ class ProcessTrailingBase(ProcessBase):
         Log.event(f"(#{trade.id}) {message}")
         trade.add_timeline(event="EXIT", message=message)
 
+        self.notify(trade, "MARGIN DAY CLOSE")
+
         # 強制手仕舞い条件成立。呼び出し元のProcessTrailingはEXIT_REQUESTへ遷移する。
         return True
 
@@ -205,9 +207,11 @@ class ProcessTrailingBase(ProcessBase):
             # EXIT実績を設定する。ExitReason.TIME_EXIT
             trade.runtime.set_exit(self.quote.current_price, ExitReason.TIME_EXIT)
 
-            message = f"TIME EXIT time_limit_minutes={trade.param.time_limit_minutes}min"
+            message = f"TIME LIMIT EXIT time_limit_minutes={trade.param.time_limit_minutes}min"
             Log.event(f"(#{trade.id}) {message}")
             trade.add_timeline(event="EXIT", message=message)
+
+            self.notify(trade, "TIME LIMIT EXIT")
 
             # 時間決済条件成立。呼び出し元のProcessTrailingはEXIT_REQUESTへ遷移する。
             return True
@@ -246,13 +250,16 @@ class ProcessTrailingBase(ProcessBase):
         # 現在時刻が指定時刻以降になった場合、指定時刻決済条件成立とする。
         #   >= とすることで、指定時刻を過ぎた後の次回チェックでも確実にEXIT条件が成立する。
         close_time = datetime.strptime(trade.param.close_time, "%H:%M").time()
+
         now = datetime.now()
         if now.time() >= close_time:
             trade.runtime.set_exit(self.quote.current_price, ExitReason.CLOSE_EXIT)
 
-            message = f"CLOSE TIME EXIT close_time={trade.param.close_time}"
+            message = f"TRADE CLOSE TIME EXIT close_time={trade.param.close_time}"
             Log.event(f"(#{trade.id}) {message}")
             trade.add_timeline(event="EXIT", message=message)
+
+            self.notify(trade, "TRADE CLOSE TIME EXIT")
 
             # 指定時刻決済条件成立。呼び出し元のProcessTrailingはEXIT_REQUESTへ遷移する。
             return True

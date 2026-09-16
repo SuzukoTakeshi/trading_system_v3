@@ -5,7 +5,7 @@
 #
 # 役割:
 #   ・約定済みOrderの資産反映
-#   ・二重反映防止
+#   ・損益計算
 #   ・Asset保存
 #
 
@@ -21,7 +21,6 @@ from market.order_enums import (
 )
 
 from program.core.asset_store import AssetStore
-from program.core.asset_sync_store import AssetSyncStore
 
 from core.exception import (
     OrderNotFoundError,
@@ -38,7 +37,6 @@ class ProcessAsset(ProcessBase):
         Log.create("ProcessAsset")
 
         self.store = AssetStore()
-        self.sync_store = AssetSyncStore()
 
 
     # ==========================================
@@ -74,31 +72,56 @@ class ProcessAsset(ProcessBase):
 
         result = order.result
 
-        self.sync_store.add(
-            order.id,
-            {
-                "trade_id": order.trade.id,
-                "symbol": order.symbol,
-                "action": order.order_action.value,
-                "price": result.price,
-                "quantity": result.quantity,
-                "amount": (result.price * result.quantity),
-                "synced_at": datetime.now().isoformat(),
-            }
-        )
+        history = {
+            "trade_id": order.trade.id,
+            "symbol": order.symbol,
+            "order_id": order.id,
+            "order_role": order.order_role.value,
+            "action": order.order_action.value,
+            "side": order.trade.param.side.value,
+            "trade_type": order.trade.param.trade_type.value,
+            "margin_type": order.trade.param.margin_type.value,
+            "strategy": order.trade.param.strategy.value,
+            "market_name": result.market_name,
+            "price": result.price,
+            "quantity": result.quantity,
+            "amount": result.price * result.quantity,
+        }
 
-        self.store.append_history(
-            {
-                "trade_id": order.trade.id,
-                "symbol": order.symbol,
-                "order_id": order.id,
-                "action": order.order_action.value,
-                "price": result.price,
-                "quantity": result.quantity,
-                "amount": (result.price * result.quantity),
-                "datetime": datetime.now().isoformat(),
-            }
-        )
+        if order == order.trade.entry_order:
+
+            history["entry_result_datetime"] = (
+                result.result_datetime.isoformat()
+                if result.result_datetime
+                else None
+            )
+
+        elif order == order.trade.exit_order:
+
+            history["exit_result_datetime"] = (
+                result.result_datetime.isoformat()
+                if result.result_datetime
+                else None
+            )
+
+            entry_order = order.trade.entry_order
+
+            history["entry_result_datetime"] = (
+                entry_order.result.result_datetime.isoformat()
+                if entry_order
+                and entry_order.result
+                and entry_order.result.result_datetime
+                else None
+            )
+
+            history["profit_loss"] = profit_loss
+            history["reason"] = (
+                order.trade.runtime.exit_reason.value
+                if order.trade.runtime.exit_reason
+                else None
+            )
+
+        self.store.append_history(history, result.result_datetime)
 
         order.change_state(OrderState.CLOSED)
 
@@ -186,7 +209,7 @@ class ProcessAsset(ProcessBase):
 
 
     # ==========================================
-    # Tradeから未反映Order検索
+    # TradeからFILLED Order検索
     # ==========================================
     def _find_order(self, trade):
 
@@ -196,9 +219,6 @@ class ProcessAsset(ProcessBase):
                 continue
 
             if order.state != OrderState.FILLED:
-                continue
-
-            if self.sync_store.is_synced(order.id):
                 continue
 
             return order

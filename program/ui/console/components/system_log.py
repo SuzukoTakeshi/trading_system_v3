@@ -1,5 +1,5 @@
 #
-# ui/console/components/system_log.py
+# program/ui/console/components/system_log.py
 #
 # SYSTEM LOG UI
 #

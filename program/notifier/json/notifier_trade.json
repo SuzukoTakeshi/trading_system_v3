@@ -93,5 +93,25 @@
         "message": "戦闘を中止しました。",
         "voice_type": "VOICE_FILE",
         "voice_file": "trade_cancel.wav"
+    },
+    "MARGIN DAY CLOSE BEFORE ENTRY": {
+        "message": "1日信用を終了しました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "margin_day_close_before_entry.wav"
+    },
+    "MARGIN DAY CLOSE": {
+        "message": "1日信用の強制手仕舞いです。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "margin_day_close.wav"
+    },
+    "TIME LIMIT EXIT": {
+        "message": "時間制限により決済します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "time_limit_exit.wav"
+    },
+    "TRADE CLOSE TIME EXIT": {
+        "message": "指定時刻になったので決済します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "trade_close_time_exit.wav"
     }
 }

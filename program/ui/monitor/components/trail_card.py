@@ -1,5 +1,5 @@
 #
-# ui/monitor/components/trail_card.py
+# program/ui/monitor/components/trail_card.py
 #
 from datetime import datetime
 

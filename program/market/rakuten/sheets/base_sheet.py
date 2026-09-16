@@ -200,7 +200,6 @@ class BaseSheet:
 
         return None
 
-
     # ==========================================
     # 行追加
     #   stopperあり:
@@ -214,19 +213,26 @@ class BaseSheet:
     #     {
     #         "列名": 値
     #     }
+    #
+    #   ※ 1行分を一括でExcelへ書き込む
     # ==========================================
     def add_row(self, values):
 
         row = None
 
+        # ------------------------------------------
         # stopperあり
+        # ------------------------------------------
         if self.stopper is not None:
+
             max_row = self.ws.UsedRange.Rows.Count
 
             for r in range(self.header_row + 1, max_row + 1):
+
                 value = self.ws.Cells(r, 1).Value
 
                 if str(value) == self.stopper:
+
                     # stopperを1行下へコピー
                     self.ws.Rows(r).Copy(self.ws.Rows(r + 1))
 
@@ -236,24 +242,41 @@ class BaseSheet:
                     row = r
                     break
 
-
             if row is None:
                 raise ExcelArgumentError(
                     code="EXCEL_STOPPER_NOT_FOUND",
                     message=f"STOPPER NOT FOUND {self.sheet_name}",
                 )
 
+        # ------------------------------------------
         # stopperなし
+        # ------------------------------------------
         else:
-            row = (self.ws.UsedRange.Rows.Count + 1)
+            row = self.ws.UsedRange.Rows.Count + 1
 
-        # データ書込み
+
+        # ------------------------------------------
+        # 1行分のデータを作成
+        # ------------------------------------------
+        max_column = self.ws.UsedRange.Columns.Count
+
+        row_values = [None] * max_column
+
         for name, value in values.items():
             column = self.column_map.get(name)
+
             if column is None:
                 continue
 
-            self.ws.Cells(row, column).Value = value
+            row_values[column - 1] = value
+
+        # ------------------------------------------
+        # 1行分を一括書込み
+        # ------------------------------------------
+        start_cell = f"A{row}"
+        end_cell = f"{self.get_column_letter(max_column)}{row}"
+
+        self.ws.Range(start_cell, end_cell).Value = (tuple(row_values),)
 
         return row
 

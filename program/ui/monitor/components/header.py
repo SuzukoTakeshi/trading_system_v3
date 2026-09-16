@@ -1,5 +1,5 @@
 #
-# ui/monitor/components/header.py
+# program/ui/monitor/components/header.py
 #
 # Monitor Header
 #

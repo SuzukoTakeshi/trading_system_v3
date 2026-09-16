@@ -38,6 +38,12 @@ def voice():
     return app_service.voice()
 
 
+@app.get("/daily_result")
+def daily_result():
+
+    return app_service.daily_result()
+
+
 @app.get("/logs")
 def logs(limit: int = 20):
     """

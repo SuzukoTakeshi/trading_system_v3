@@ -1,5 +1,5 @@
 #
-# ui/header.py
+# program/ui/console/components/header.py
 #
 # Trading System Console Header
 #
@@ -64,8 +64,8 @@ def header(ctx):
 
     with st.container(border=True):
 
-        col_refresh, col_market, col_engine, col_asset, col_wav, col_voice_switch, col_engine_action = st.columns(
-            [1, 1, 1, 5, 1, 1, 1]
+        col_refresh, col_market, col_engine, col_asset, col_daily, _, col_wav, col_voice_switch, col_engine_action = st.columns(
+            [2, 2, 2, 2, 3, 5, 2, 2, 2]
         )
 
         with col_refresh:
@@ -89,10 +89,7 @@ def header(ctx):
 
         with col_market:
 
-            market_display = MARKET_STATE_LABEL.get(
-                market_state,
-                MARKET_STATE_UNKNOWN
-            )
+            market_display = MARKET_STATE_LABEL.get(market_state, MARKET_STATE_UNKNOWN)
 
             market_updated = market.get("updated", "")
             if market_updated:
@@ -113,10 +110,7 @@ def header(ctx):
 
         with col_engine:
 
-            engine_state_display = ENGINE_STATE_LABEL.get(
-                engine,
-                ENGINE_STATE_UNKNOWN
-            )
+            engine_state_display = ENGINE_STATE_LABEL.get(engine, ENGINE_STATE_UNKNOWN)
 
             if engine == "stopped":
                 last_cycle_text = "-"
@@ -157,11 +151,32 @@ def header(ctx):
                 unsafe_allow_html=True
             )
 
+        with col_daily:
+
+            daily_result = ctx.daily_result.get("daily_result", {})
+            settled_count = daily_result.get("settled_count", 0)
+            wins = daily_result.get("wins", 0)
+            losses = daily_result.get("losses", 0)
+            win_rate = daily_result.get("win_rate", 0.0)
+            profit_loss = daily_result.get("profit_loss", 0.0)
+
+            st.markdown(
+                f"""
+                <div style="line-height:1.5;">
+                    <b>DAILY RESULT</b><br>
+                    {settled_count} trades / {wins}Win {losses}Loss<br>
+                    <small>
+                        Win Rate: {win_rate:.1f}%　
+                        P/L: {profit_loss:+,.0f}
+                    </small>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
         with col_wav:
 
             if st.button("🔊 音声テスト"):
-
                 play_voices([
                     {
                         "sequence": 0,
@@ -174,11 +189,7 @@ def header(ctx):
 
             voice_enabled = st.session_state.voice_enabled
 
-            if st.button(
-                "🔊 VOICE ON" if voice_enabled else "🔇 VOICE OFF",
-                use_container_width=True,
-            ):
-
+            if st.button("🔊 VOICE ON" if voice_enabled else "🔇 VOICE OFF", use_container_width=True):
                 # VOICE状態を反転
                 st.session_state.voice_enabled = not voice_enabled
 
@@ -195,98 +206,56 @@ def header(ctx):
             btn_start, btn_stop = st.columns(2)
 
             with btn_start:
-                if st.button(
-                    "▶",
-                    use_container_width=True,
-                    disabled=(
-                        engine in [
-                            "starting",
-                            "running",
-                            "stopping",
-                        ]
-                    ),
+                if st.button("▶", use_container_width=True,
+                    disabled=(engine in ["starting", "running", "stopping"])
                 ):
                     try:
                         result = start_system()
 
                         if result.get("result") == "OK":
-
                             message_store.set(
                                 level="INFO",
-                                message=result.get(
-                                    "message",
-                                    "TRADE ENGINE STARTED"
-                                ),
+                                message=result.get("message", "TRADE ENGINE STARTED"),
                             )
 
                         else:
-
                             message_store.set(
                                 level="WARNING",
-                                message=result.get(
-                                    "message",
-                                    "Trade Engineを開始できません。"
-                                ),
+                                message=result.get("message", "Trade Engineを開始できません。")
                             )
 
                     except Exception as e:
-
                         message_store.set(
                             level="ERROR",
-                            message=(
-                                f"START ERROR : "
-                                f"{get_error_message(e)}"
-                            ),
+                            message=(f"START ERROR : {get_error_message(e)}")
                         )
 
                     st.rerun()
 
 
             with btn_stop:
-
-                if st.button(
-                    "■",
-                    use_container_width=True,
-                    disabled=(
-                        engine in [
-                            "stopped",
-                            "starting",
-                            "stopping",
-                            "error",
-                        ]
-                    ),
+                if st.button("■", use_container_width=True,
+                    disabled=(engine in ["stopped", "starting", "stopping", "error"])
                 ):
                     try:
                         result = stop_system()
 
                         if result.get("result") == "OK":
-
                             message_store.set(
                                 level="INFO",
-                                message=result.get(
-                                    "message",
-                                    "TRADE ENGINE STOPPED"
-                                ),
+                                message=result.get("message", "TRADE ENGINE STOPPED")
                             )
 
                         else:
-
                             message_store.set(
                                 level="WARNING",
-                                message=result.get(
-                                    "message",
-                                    "Trade Engineを停止できません。"
-                                ),
+                                message=result.get("message", "Trade Engineを停止できません。")
                             )
 
                     except Exception as e:
-
                         message_store.set(
                             level="ERROR",
-                            message=(
-                                f"STOP ERROR : "
-                                f"{get_error_message(e)}"
-                            ),
+                            message=f"STOP ERROR : {get_error_message(e)}"
                         )
 
                     st.rerun()

@@ -1,5 +1,5 @@
 #
-# ui/monitor_components/trail_chart.py
+# program/ui/monitor_components/trail_chart.py
 #
 # Trail Monitor グラフ表示
 #
@@ -231,7 +231,12 @@ def render_trail_chart(
     # Decorate
     # ==================================================
 
-    ax.set_title(f"{symbol} {name}", fontsize=9)
+    current_price = plot_df["price_close"].dropna().iloc[-1]
+
+    ax.set_title(
+        f"{symbol} {name} {current_price:,.1f}",
+        fontsize=9
+    )
 
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
 

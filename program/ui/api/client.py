@@ -1,5 +1,5 @@
 #
-# ui/api/client.py
+# program/ui/api/client.py
 #
 # API Client
 #
@@ -109,6 +109,15 @@ def get_voices():
         return {
             "voices": []
         }
+
+
+# ==================================================
+# Daily Result
+# ==================================================
+
+def get_daily_result():
+
+    return get("/daily_result")
 
 
 # ==================================================

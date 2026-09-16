@@ -14,7 +14,7 @@ from models.asset.asset_model import AssetModel
 
 from core.path import (
     ASSET_FILE,
-    ASSET_HISTORY_FILE,
+    ASSET_HISTORY_DIR,
 )
 
 class AssetStore:
@@ -43,20 +43,80 @@ class AssetStore:
     #
     # 資産更新履歴追加
     #
-    def append_history(self, history: dict):
+    def append_history(self, history: dict, history_datetime):
 
-        ASSET_HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+        date = history_datetime.strftime("%Y-%m-%d")
+
+        history_file = ASSET_HISTORY_DIR / f"{date}.json"
+
+        history_file.parent.mkdir(parents=True, exist_ok=True)
 
         records = []
 
-        # 既存履歴読込
-        if ASSET_HISTORY_FILE.exists():
-            with open(ASSET_HISTORY_FILE, "r", encoding="utf-8") as f:
+        if history_file.exists():
+            with open(history_file, "r", encoding="utf-8") as f:
                 records = json.load(f)
 
-        # 追加
         records.append(history)
 
-        # 保存
-        with open(ASSET_HISTORY_FILE, "w", encoding="utf-8") as f:
+        with open(history_file, "w", encoding="utf-8") as f:
             json.dump(records, f, ensure_ascii=False, indent=4)
+
+
+    #
+    # 日次実績取得
+    #
+    def get_daily_result(self, date):
+
+        history_file = ASSET_HISTORY_DIR / f"{date.strftime('%Y-%m-%d')}.json"
+
+        if not history_file.exists():
+            return {
+                "settled_count": 0,
+                "wins": 0,
+                "losses": 0,
+                "win_rate": 0.0,
+                "profit_loss": 0.0,
+            }
+
+        with open(history_file, "r", encoding="utf-8") as f:
+            records = json.load(f)
+
+        exits = [
+            record
+            for record in records
+            if record.get("order_role") == "exit"
+        ]
+
+        settled_count = len(exits)
+
+        wins = sum(
+            1
+            for record in exits
+            if record.get("profit_loss", 0) > 0
+        )
+
+        losses = sum(
+            1
+            for record in exits
+            if record.get("profit_loss", 0) < 0
+        )
+
+        profit_loss = sum(
+            record.get("profit_loss", 0)
+            for record in exits
+        )
+
+        win_rate = (
+            wins / settled_count * 100
+            if settled_count > 0
+            else 0.0
+        )
+
+        return {
+            "settled_count": settled_count,
+            "wins": wins,
+            "losses": losses,
+            "win_rate": win_rate,
+            "profit_loss": profit_loss,
+        }

@@ -1,5 +1,5 @@
 #
-# ui/monitor/components/timeline_card.py
+# program/ui/monitor/components/timeline_card.py
 #
 # Trade Timeline Card
 #
