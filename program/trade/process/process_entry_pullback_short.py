@@ -104,6 +104,15 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
             Log.event(f"(#{trade.id}) {message}")
             trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
 
+            # ---------------------------------------
+            # Reversal開始情報
+            # ---------------------------------------
+            # Pullbackで確認した最高値を
+            # Reversal開始時点の基準高値として引き継ぐ。
+            trade.runtime.entry_reversal_highest_price = (
+                trade.runtime.entry_highest_price
+            )
+
             # 通知
             self.notify(trade, "PULLBACK END LONG")
 

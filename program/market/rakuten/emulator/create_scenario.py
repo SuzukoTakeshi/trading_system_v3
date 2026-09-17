@@ -36,7 +36,7 @@ from models.trade.trade_store import TradeStore
 from models.trade.trade_chart_store import TradeChartStore
 
 
-SCENARIO_DIR = Path("market/rakuten/emulator/scenarios")
+SCENARIO_DIR = Path("program/market/rakuten/emulator/scenarios")
 SCENARIO_INTERVAL = 2.0
 
 

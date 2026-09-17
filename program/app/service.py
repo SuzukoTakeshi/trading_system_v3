@@ -292,6 +292,8 @@ class AppService:
 
                 "current_profit_loss": trade["current_profit_loss"],
 
+                "expected_profit_loss": trade["expected_profit_loss"],
+
                 # System
                 "created_at": trade["created_at"],
 

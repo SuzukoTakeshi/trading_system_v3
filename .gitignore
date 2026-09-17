@@ -55,11 +55,15 @@ storage/json/trade_symbols.json
 storage/logs/
 program/auditor/images/
 
+storage/json/asset_history/
 storage/json/asset.json
-storage/json/asset_history.json
 storage/json/asset_sync.json
 storage/json/order_id.json
 storage/json/trade_id.json
 storage/json/trade_params.json
 
 work/
+
+# Console test
+program/ui/console/console_test.py
+start_console_test.bat

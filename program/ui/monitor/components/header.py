@@ -19,42 +19,21 @@ from ui.utils.formatters import format_datetime_jp
 TITLE = "株式売買システム V3"
 
 
-def render_header(state: dict):
-    """
-    Monitor Header
+def render_header(
+    state: dict,
+    trail_chart_default: bool = True,
+    timeline_default: bool = True,
+):
 
-    Parameters
-    ----------
-    state : dict
-        Engine Status
-    """
-
-    running = state.get(
-        "running",
-        False
-    )
-
+    running = state.get("running", False)
 
     if running:
-
-        engine_class = "running"
         engine_text = "稼働中"
-
     else:
-
-        engine_class = "stop"
         engine_text = "停止"
 
-
-    trades = state.get(
-        "trades",
-        0
-    )
-
-    cash = state.get(
-        "cash",
-        0
-    )
+    trades = state.get("trades", 0)
+    cash = state.get("cash", 0)
 
     update = state.get(
         "server_time",
@@ -64,84 +43,85 @@ def render_header(state: dict):
     if update != "--:--:--":
         update = format_datetime_jp(update)
 
+    # --------------------------------------
+    # Header
+    # --------------------------------------
 
-    st.markdown(
-        f"""
-        <style>
+    with st.container(border=True):
 
-        .monitor-header {{
-            display:flex;
-            align-items:center;
-            gap:24px;
-            padding:8px 18px;
-            margin-top:-0.5rem;
-            margin-bottom:5px;
-            border:1px solid #444;
-            border-radius:10px;
-            background:#1f1f1f;
-            box-shadow:0 2px 6px rgba(0,0,0,.25);
-            font-size:15px;
-        }}
+        cols = st.columns(
+            [8, 1.5, 1.5, 1.5, 1, 1, 2]
+        )
+
+        with cols[0]:
+            st.markdown(
+                f"""
+                <div style="line-height:1.5;">
+                    <b>📈 {TITLE}</b>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        with cols[1]:
+            trail_chart_display = st.toggle(
+                "Trail Chart",
+                value=trail_chart_default,
+                key="monitor_trail_chart",
+            )
+
+        with cols[2]:
+            timeline_display = st.toggle(
+                "Timeline",
+                value=timeline_default,
+                key="monitor_timeline",
+            )
+
+        with cols[3]:
+
+            if running:
+                engine_display = "🟢 稼働中"
+            else:
+                engine_display = "🔴 停止"
+
+            st.markdown(
+                f"""
+                <div style="line-height:1.5;">
+                    {engine_display}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        with cols[4]:
+            st.markdown(
+                f"""
+                <div style="line-height:1.5;">
+                    <b>TRADE:</b>{trades}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        with cols[5]:
+            st.markdown(
+                f"""
+                <div style="line-height:1.5;">
+                    <b>CASH:</b>{cash}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        with cols[6]:
+            st.markdown(
+                f"""
+                <div style="line-height:1.5;">
+                    {update}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
 
-        .monitor-title{{
-            font-size:20px;
-            font-weight:bold;
-            margin-right:auto;
-        }}
-
-
-        .monitor-item{{
-            white-space:nowrap;
-        }}
-
-
-        .monitor-engine{{
-            font-weight:bold;
-        }}
-
-
-        .monitor-engine.running{{
-            color:#27ae60;
-        }}
-
-
-        .monitor-engine.stop{{
-            color:#e74c3c;
-        }}
-
-        </style>
-
-
-        <div class="monitor-header">
-
-
-        <div class="monitor-title">
-        📈 {TITLE}
-        </div>
-
-
-        <div class="monitor-item monitor-engine {engine_class}">
-        ● {engine_text}
-        </div>
-
-
-        <div class="monitor-item">
-        <b>Trade</b> {trades}
-        </div>
-
-        
-        <div class="monitor-item">
-        <b>Cash</b> {cash}
-        </div>
-
-        
-        <div class="monitor-item">
-        🕒 {update}
-        </div>
-
-
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    return trail_chart_display, timeline_display

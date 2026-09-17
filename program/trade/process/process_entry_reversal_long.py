@@ -31,15 +31,12 @@ class ProcessEntryReversalLong(ProcessEntryBase):
     # ==========================================
     def process(self, trade, quote):
 
-        # Log.flow(f"(#{trade.id}) ProcessEntryReversalLong:process")
+       # Log.flow(f"(#{trade.id}) ProcessEntryReversalShort:process")
 
-        # 共通初期処理
         self.process_base(trade, quote)
 
-        # 現在価格
         current_price = self.quote.current_price
 
-        # Entry設定
         cfg = self.get_entry_config()
 
         previous_count = trade.runtime.entry_reversal_count
@@ -50,37 +47,113 @@ class ProcessEntryReversalLong(ProcessEntryBase):
                 code="ENTRY_PREVIOUS_PRICE_NOT_FOUND",
             )
 
+        # ---------------------------------------
+        # Reversal最安値更新
+        # ---------------------------------------
+        if (
+            trade.runtime.entry_reversal_lowest_price is None
+            or
+            current_price < trade.runtime.entry_reversal_lowest_price
+        ):
+            trade.runtime.entry_reversal_lowest_price = current_price
 
-        # 上昇確認
+        # ---------------------------------------
+        # 上昇回数カウント
+        # ---------------------------------------
         if current_price > trade.runtime.entry_previous_price:
-            # 反転カウント加算
             trade.runtime.entry_reversal_count += 1
+
         elif current_price < trade.runtime.entry_previous_price:
             trade.runtime.entry_reversal_count = 0
 
+        # ---------------------------------------
+        # カウント変化を記録
+        # ---------------------------------------
         if previous_count != trade.runtime.entry_reversal_count:
-            message = f"REVERSAL ENTRY LONG count={trade.runtime.entry_reversal_count}"
-            Log.event(f"(#{trade.id}) {message}")
-            trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
+            message = (
+                f"REVERSAL ENTRY LONG "
+                f"count={trade.runtime.entry_reversal_count} "
+                f"current_price={current_price} "
+                f"reversal_lowest_price="
+                f"{trade.runtime.entry_reversal_lowest_price}"
+            )
 
+            Log.event(f"(#{trade.id}) {message}")
+            trade.add_timeline(
+                event="ENTRY",
+                message=message,
+                current_price=current_price
+            )
+
+        # ---------------------------------------
         # 前回価格更新
+        # ---------------------------------------
         trade.runtime.entry_previous_price = current_price
 
-        # 反転確定確認
+        # ---------------------------------------
+        # 反転確認回数
+        # ---------------------------------------
         if (
             trade.runtime.entry_reversal_count
             >=
             cfg["reversal_confirm_count"]
         ):
-            message = (
-                f"REVERSAL COMPLETE LONG symbol={trade.param.symbol} "
-                f"count={trade.runtime.entry_reversal_count} "
-                f"current_price={current_price}"
+
+            reversal_lowest_price = (
+                trade.runtime.entry_reversal_lowest_price
             )
+
+            reversal_atr_multiplier = (
+                cfg["reversal_atr_multiplier"]
+            )
+
+            required_rise_width = (
+                trade.param.atr
+                * reversal_atr_multiplier
+            )
+
+            rise_width = (
+                current_price
+                - reversal_lowest_price
+            )
+
+            # ---------------------------------------
+            # 上昇幅が不足している場合
+            # ---------------------------------------
+            if rise_width < required_rise_width:
+
+                message = (
+                    f"REVERSAL WAIT LONG "
+                    f"count={trade.runtime.entry_reversal_count} "
+                    f"current_price={current_price} "
+                    f"reversal_lowest_price={reversal_lowest_price} "
+                    f"rise_width={rise_width} "
+                    f"required_rise_width={required_rise_width}"
+                )
+
+                Log.trace(f"(#{trade.id}) {message}")
+
+                trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
+
+                return False
+
+            # ---------------------------------------
+            # 反転確定
+            # ---------------------------------------
+            message = (
+                f"REVERSAL COMPLETE LONG "
+                f"symbol={trade.param.symbol} "
+                f"count={trade.runtime.entry_reversal_count} "
+                f"current_price={current_price} "
+                f"reversal_lowest_price={reversal_lowest_price} "
+                f"rise_width={rise_width} "
+                f"required_rise_width={required_rise_width}"
+            )
+
             Log.event(f"(#{trade.id}) {message}")
+
             trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
 
-            # 通知
             self.notify(trade, "REVERSAL COMPLETE LONG")
 
             return True

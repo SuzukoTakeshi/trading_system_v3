@@ -30,6 +30,7 @@ from trade.trade_enums import TradeState
 from models.order.order_model import OrderModel
 from models.trade.trade_param_model import TradeParamModel
 from models.trade.trade_runtime_model import TradeRuntimeModel
+from models.trade.trade_profit_loss import TradeProfitLoss
 
 
 # ==================================================
@@ -377,9 +378,20 @@ class TradeModel(BaseEntity):
                 else None
             ),
 
-            "profit_loss": self.get_profit_loss(),
+            # 最終損益
+            "profit_loss": TradeProfitLoss.get_profit_loss(self),
 
-            "current_profit_loss": self.get_current_profit_loss(),
+            # 現在価格損益
+            "current_profit_loss": TradeProfitLoss.get_current_profit_loss(self),
+
+            # 損益表示
+            #   ・取引中 : STOP価格到達時の予想損益
+            #   ・CLOSED : 最終損益
+            "expected_profit_loss": (
+                TradeProfitLoss.get_profit_loss(self)
+                if self.state == TradeState.CLOSED
+                else TradeProfitLoss.get_expected_profit_loss(self)
+            ),
 
             "message": self.message,
 
@@ -390,84 +402,3 @@ class TradeModel(BaseEntity):
         })
 
         return data
-
-
-    def get_profit_loss(self):
-        """
-        最終損益計算
-            LONG:  (EXIT約定価格 - ENTRY約定価格) * 株数
-            SHORT: (ENTRY約定価格 - EXIT約定価格) * 株数
-            EXIT未約定の場合はNone。
-        """
-
-        entry_result = (
-            self.entry_order.result
-            if self.entry_order is not None
-            else None
-        )
-        exit_result = (
-            self.exit_order.result
-            if self.exit_order is not None
-            else None
-        )
-
-        if (
-            entry_result is None
-            or exit_result is None
-            or entry_result.price is None
-            or exit_result.price is None
-            or self.param.quantity is None
-        ):
-            return None
-
-        entry_price = entry_result.price
-        exit_price = exit_result.price
-        quantity = self.param.quantity
-
-        if self.param.side.value == "long":
-            return (exit_price - entry_price) * quantity
-
-        if self.param.side.value == "short":
-            return (entry_price - exit_price) * quantity
-
-        return None
-
-
-    def get_current_profit_loss(self):
-        """
-        現在価格損益計算
-            LONG:  (現在価格 - ENTRY約定価格) * 株数
-            SHORT: (ENTRY約定価格 - 現在価格) * 株数
-            ENTRY未約定の場合はNone。
-        """
-
-        quote = self.runtime.quote
-        if quote is None:
-            return None
-
-        current_price = quote.current_price
-
-        entry_result = (
-            self.entry_order.result
-            if self.entry_order is not None
-            else None
-        )
-
-        if (
-            entry_result is None
-            or entry_result.price is None
-            or current_price is None
-            or self.param.quantity is None
-        ):
-            return None
-
-        entry_price = entry_result.price
-        quantity = self.param.quantity
-
-        if self.param.side.value == "long":
-            return (current_price - entry_price) * quantity
-
-        if self.param.side.value == "short":
-            return (entry_price - current_price) * quantity
-
-        return None

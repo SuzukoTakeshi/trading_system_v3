@@ -88,6 +88,11 @@ class TradeRuntimeModel:
         #   SHORT: 連続下降回数
         self.entry_reversal_count = 0
 
+        # LONG: Reversal中の最安値
+        self.entry_reversal_lowest_price = None
+
+        # SHORT: Reversal中の最高値
+        self.entry_reversal_highest_price = None
 
         # ---------------------------------------
         # EXIT判定管理
@@ -131,6 +136,8 @@ class TradeRuntimeModel:
             "entry_highest_price": self.entry_highest_price,
             "entry_previous_price": self.entry_previous_price,
             "entry_reversal_count": self.entry_reversal_count,
+            "entry_reversal_lowest_price": self.entry_reversal_lowest_price,
+            "entry_reversal_highest_price": self.entry_reversal_highest_price,
 
             # EXIT判定管理
             "exit_decision_price": self.exit_decision_price,
@@ -179,6 +186,8 @@ class TradeRuntimeModel:
         runtime.entry_highest_price = data.get("entry_highest_price")
         runtime.entry_previous_price = data.get("entry_previous_price")
         runtime.entry_reversal_count = data.get("entry_reversal_count", 0)
+        runtime.entry_reversal_lowest_price = data.get("entry_reversal_lowest_price")
+        runtime.entry_reversal_highest_price = data.get("entry_reversal_highest_price")
 
         # EXIT判定管理
         runtime.exit_decision_price = data.get("exit_decision_price")

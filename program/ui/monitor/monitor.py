@@ -73,17 +73,13 @@ div[data-testid="stHorizontalBlock"] {
     margin-bottom: 0 !important;
 }
 
+div[data-testid="stButton"] {
+    margin-bottom: -0.8rem;
+}
+
 </style>
     """,
     unsafe_allow_html=True
-)
-
-# --------------------------------------
-# Auto Refresh
-# --------------------------------------
-st_autorefresh(
-    interval=MONITOR_REFRESH_INTERVAL_MS,
-    key="trade_monitor_refresh"
 )
 
 
@@ -107,14 +103,18 @@ state = {
     "server_time": status.get("market", {}).get("updated", "--:--:--"),
 }
 
-render_header(state)
-
 
 # --------------------------------------
 # URL Parameters
 # --------------------------------------
 
 params = st.query_params
+
+trail_chart_display = params.get("trail_chart", "1") == "1"
+timeline_display = params.get("timeline", "1") == "1"
+
+trail_chart_display, timeline_display = render_header(state, trail_chart_display, timeline_display)
+
 
 trade_ids_param = params.get("trade_ids", "")
 
@@ -189,18 +189,63 @@ else:
                     )
                     continue
 
+
+                with st.container():
+
+                    # -------------------------
+                    # Delete
+                    # -------------------------
+                    _, delete_col = st.columns([3, 1])
+
+                    with delete_col:
+                        if st.button(
+                            "削除",
+                            key=f"monitor_delete_{trade_id}", width="stretch",
+                        ):
+                            remaining_trade_ids = [
+                                current_id
+                                for current_id in trade_ids
+                                if current_id != trade_id
+                            ]
+
+                            if remaining_trade_ids:
+                                st.query_params["trade_ids"] = ",".join(
+                                    str(current_id)
+                                    for current_id in remaining_trade_ids
+                                )
+                            else:
+                                st.query_params.pop("trade_ids", None)
+
+                            st.rerun()
+
+
                 # -------------------------
                 # Card
                 # -------------------------
                 render_trail_card(target)
 
-                render_trail_chart(
-                    target.get("chart_datas", []),
-                    target.get("symbol", ""),
-                    target.get("name", "")
-                )
+                if trail_chart_display:
+                    render_trail_chart(
+                        target.get("chart_datas", []),
+                        target.get("symbol", ""),
+                        target.get("name", "")
+                    )
 
-                render_timeline_card(
-                    target.get("timeline", [])
-                )
+                if timeline_display:
+                    render_timeline_card(
+                        target.get("timeline", [])
+                    )
 
+# --------------------------------------
+# Auto Refresh
+# --------------------------------------
+#
+# st_autorefresh() は画面上に描画領域を持つため、
+# UI途中に配置すると、その位置に縦方向の余白が発生する。
+#
+# UIへの影響を避けるため、画面の最後に配置する。
+#
+st_autorefresh(
+    interval=MONITOR_REFRESH_INTERVAL_MS,
+    key="trade_monitor_refresh",
+)
