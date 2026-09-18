@@ -234,10 +234,10 @@ class BaseSheet:
                 if str(value) == self.stopper:
 
                     # stopperを1行下へコピー
-                    self.ws.Rows(r).Copy(self.ws.Rows(r + 1))
+                    self.ws.Range(f"{r}:{r}").Copy(self.ws.Range(f"{r + 1}:{r + 1}"))
 
                     # 元のstopper行をクリア
-                    self.ws.Rows(r).ClearContents()
+                    self.ws.Range(f"{r}:{r}").ClearContents()
 
                     row = r
                     break

@@ -11,6 +11,7 @@
 
 from trade.trade_enums import (
     TradeType,
+    MarginType,
     SideType,
     StrategyType,
 )
@@ -135,7 +136,7 @@ class TradeParamModel:
             trade_price=data.get("trade_price"),
             atr=data.get("atr"),
             trade_type=TradeType(data.get("trade_type")),
-            margin_type=data.get("margin_type"),
+            margin_type=MarginType(data.get("margin_type")),
             side=SideType(data.get("side")),
             strategy=StrategyType(data.get("strategy")),
 
