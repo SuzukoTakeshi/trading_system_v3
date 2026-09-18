@@ -502,6 +502,8 @@ class TradeEngine:
                     trade.error_message = e.message
                     trade.change_state(TradeState.ERROR)
 
+                    self._post_process(force_save=True)
+
                     if e.scope == ErrorScope.TRADE:
                         continue
 
@@ -521,6 +523,8 @@ class TradeEngine:
                 trade.error_message = str(e)
                 trade.change_state(TradeState.ERROR)
 
+                self._post_process(force_save=True)
+
                 # 想定外なのでEngine停止
                 raise
 
@@ -528,16 +532,16 @@ class TradeEngine:
         # ----------------------------------------------
         # 全トレードループ完了処理
         #
+        self._post_process()
 
-        # 削除後のcontext.tradesから再取得
+
+    def _post_process(self, force_save=False):
         trades = list(self.context.trades.values())
 
-        # Trade Chart Data
         for trade in trades:
             add_trade_chart_data(self.context, trade)
 
-        # 永続化
-        if self.check_cycle("save", self.SAVE_INTERVAL_SEC):
+        if force_save or self.check_cycle("save", self.SAVE_INTERVAL_SEC):
             self.save()
 
 
@@ -736,4 +740,12 @@ class TradeEngine:
             if chart_data_list:
                 self.context.cache.trade_chart_datas[trade_id] = chart_data_list
 
-            Log.debug(f"(#{trade_id}) TRADE RESTORE")
+            Log.debug(
+                f"(#{trade_id}) TRADE RESTORE "
+                f"symbol={trade.param.symbol} "
+                f"state={trade.state.name} "
+                f"entry_order_state="
+                f"{trade.entry_order.state.name if trade.entry_order else None} "
+                f"exit_order_state="
+                f"{trade.exit_order.state.name if trade.exit_order else None}"
+            )
