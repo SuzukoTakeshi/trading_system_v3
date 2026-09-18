@@ -25,7 +25,7 @@ rem   第2引数
 rem       サービス用モニター
 rem
 rem   第3引数
-rem       CONSOLEブラウザ配置用モニター
+rem       UIブラウザ配置用モニター
 rem
 rem       0   : ブラウザを起動しない
 rem       1～4 : 指定モニターへ最大化表示
@@ -75,13 +75,13 @@ rem ==========================================================
 
 call "%ROOT%\venv\Scripts\activate.bat"
 
-set PYTHONPATH=%ROOT%\program;%ROOT%
+set PYTHONPATH=%ROOT%
 
 rem ==========================================================
 rem ポート設定
 rem ==========================================================
 
-for /f %%P in ('python -c "from core.config_loader import Config; print(Config.instance().data.get('server', {}).get('console_port', 8501))"') do set CONSOLE_PORT=%%P
+for /f %%P in ('python -c "from core.config_loader import Config; print(Config.instance().data.get('server', {}).get('ui_port', 8501))"') do set UI_PORT=%%P
 
 rem ==========================================================
 rem モニター設定
@@ -99,7 +99,7 @@ echo Trading System %ENV% 起動
 echo ==========================
 echo Service Monitor=%SERVICE_MONITOR%
 echo Browser Monitor=%BROWSER_MONITOR%
-echo Console Port=%CONSOLE_PORT%
+echo Console Port=%UI_PORT%
 echo ==========================
 
 
@@ -129,7 +129,7 @@ echo APP API %ENV%
 echo ==========================
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\program\tools\CheckWindow.ps1" "APP API %ENV%"
+-File "%ROOT%\tools\CheckWindow.ps1" "APP API %ENV%"
 
 if errorlevel 1 (
 
@@ -146,80 +146,44 @@ if errorlevel 1 (
 )
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
+-File "%ROOT%\tools\ArrangeWindow.ps1" ^
 -Title "APP API %ENV%" ^
 -Monitor %SERVICE_MONITOR% ^
 -Layout V3 ^
 -Position 1
 
-
 rem ==========================================================
-rem CONSOLE UI
+rem UI
 rem ==========================================================
 
 echo.
 echo ==========================
-echo CONSOLE UI %ENV%
+echo UI %ENV%
 echo ==========================
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\program\tools\CheckWindow.ps1" "CONSOLE UI %ENV%"
+-File "%ROOT%\tools\CheckWindow.ps1" "Trading System UI %ENV%"
 
 if errorlevel 1 (
 
-    echo CONSOLE UI %ENV% 起動
+    echo Trading System UI %ENV% 起動
 
-    start "" "%ROOT%\start_console.bat" %ENV%
+    start "" "%ROOT%\start_ui.bat" %ENV%
 
     timeout /t 1 >nul
 
 ) else (
 
-    echo CONSOLE UI %ENV% 起動済み
+    echo Trading System UI %ENV% 起動済み
 
 )
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
--Title "CONSOLE UI %ENV%" ^
+-File "%ROOT%\tools\ArrangeWindow.ps1" ^
+-Title "Trading System UI %ENV%" ^
 -Monitor %SERVICE_MONITOR% ^
 -Layout V3 ^
 -Position 2
-
-
-rem ==========================================================
-rem MONITOR UI
-rem ==========================================================
-
-echo.
-echo ==========================
-echo MONITOR UI %ENV%
-echo ==========================
-
-powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\program\tools\CheckWindow.ps1" "MONITOR UI %ENV%"
-
-if errorlevel 1 (
-
-    echo MONITOR UI %ENV% 起動
-
-    start "" "%ROOT%\start_monitor.bat" %ENV%
-
-    timeout /t 1 >nul
-
-) else (
-
-    echo MONITOR UI %ENV% 起動済み
-
-)
-
-powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
--Title "MONITOR UI %ENV%" ^
--Monitor %SERVICE_MONITOR% ^
--Layout V3 ^
--Position 3
-
 
 rem ==========================================================
 rem AUDITOR
@@ -231,7 +195,7 @@ echo AUDITOR %ENV%
 echo ==========================
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\program\tools\CheckWindow.ps1" "AUDITOR %ENV%"
+-File "%ROOT%\tools\CheckWindow.ps1" "AUDITOR %ENV%"
 
 if errorlevel 1 (
 
@@ -248,7 +212,7 @@ if errorlevel 1 (
 )
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
+-File "%ROOT%\tools\ArrangeWindow.ps1" ^
 -Title "AUDITOR %ENV%" ^
 -Monitor %SERVICE_MONITOR% ^
 -Layout V3 ^
@@ -272,13 +236,13 @@ if "%BROWSER_MONITOR%"=="0" (
     echo ==========================
 
     powershell -ExecutionPolicy Bypass ^
-    -File "%ROOT%\program\tools\CheckWindow.ps1" "Trading System Console"
+    -File "%ROOT%\tools\CheckWindow.ps1" "Trading System Console"
 
     if errorlevel 1 (
 
         echo CONSOLE Browser %ENV% 起動
 
-        start "" http://localhost:%CONSOLE_PORT%
+        start "" http://localhost:%UI_PORT%
 
         timeout /t 2 >nul
 
@@ -289,7 +253,7 @@ if "%BROWSER_MONITOR%"=="0" (
     )
 
     powershell -ExecutionPolicy Bypass ^
-    -File "%ROOT%\program\tools\ArrangeWindow.ps1" ^
+    -File "%ROOT%\tools\ArrangeWindow.ps1" ^
     -Title "Trading System Console" ^
     -Monitor %BROWSER_MONITOR% ^
     -Layout MAX

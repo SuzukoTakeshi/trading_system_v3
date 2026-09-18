@@ -26,7 +26,7 @@ rem Python Path設定
 rem
 rem ==========================================================
 
-set PYTHONPATH=%ROOT%\program;%ROOT%
+set PYTHONPATH=%ROOT%
 
 rem ==========================================================
 rem

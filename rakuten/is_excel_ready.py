@@ -14,7 +14,7 @@ import os
 import pythoncom
 import win32com.client
 
-from program.core.config_loader import Config
+from core.config_loader import Config
 from rakuten.config_loader import MarketConfig
 
 

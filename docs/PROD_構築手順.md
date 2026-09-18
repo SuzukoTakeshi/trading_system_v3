@@ -177,13 +177,12 @@ colorama==XXXX
 PRODルートでPowerShellから直接Pythonを実行する場合：
 
 ```powershell
-$env:PYTHONPATH="$PWD\program;$PWD"
+$env:PYTHONPATH="$PWD"
 ```
 
 これにより、
 
 ```text
-C:\StockProjects\trading_system_v3_prod\program
 C:\StockProjects\trading_system_v3_prod
 ```
 
@@ -226,7 +225,7 @@ Auditor  : 8608
 確認：
 
 ```powershell
-$env:PYTHONPATH="$PWD\program;$PWD"
+$env:PYTHONPATH="$PWD"
 
 python -c "from core.config_loader import Config; c=Config.instance().data; print('mode:', c.get('mode')); print('market:', c.get('market')); print('server:', c.get('server'))"
 ```
@@ -356,7 +355,7 @@ for %%I in ("%~dp0..") do set ROOT=%%~fI
 その後、
 
 ```bat
-set PYTHONPATH=%ROOT%\program;%ROOT%
+set PYTHONPATH=%ROOT%
 ```
 
 でPython Pathを設定する。

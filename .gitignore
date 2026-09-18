@@ -53,7 +53,7 @@ storage/json/trade/
 storage/json/trade_chart/
 storage/json/trade_symbols.json
 storage/logs/
-program/auditor/images/
+auditor/images/
 
 storage/json/asset_history/
 storage/json/asset.json
@@ -65,5 +65,5 @@ storage/json/trade_params.json
 work/
 
 # Console test
-program/ui/console/console_test.py
+ui/console/console_test.py
 start_console_test.bat

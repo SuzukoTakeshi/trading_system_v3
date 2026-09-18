@@ -25,7 +25,7 @@ rem Python Path設定
 rem
 rem ==========================================================
 
-set PYTHONPATH=%ROOT%\program;%ROOT%
+set PYTHONPATH=%ROOT%
 
 echo.
 echo ========================================
@@ -35,7 +35,7 @@ echo.
 
 echo [Emulator]
 echo.
-echo python -m program.market.rakuten.emulator.main scenario_7203.json 1
+echo python -m market.rakuten.emulator.main scenario_7203.json 1
 echo.
 echo   第1引数 : Scenarioファイル
 echo   第2引数 : Trade作成
