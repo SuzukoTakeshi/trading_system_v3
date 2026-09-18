@@ -66,8 +66,8 @@ class MarginCloseOrder(MacroBase):
         # 2: 銘柄コード
         symbol = request["symbol"]
 
-        # 3: 売買区分 (1：売り(売理) / 3：買い(買理))
-        if request["order_action"] == OrderAction.BUY:
+        # 3: 売買区分 (1：売り返済 / 3：買い返済)
+        if request["order_action"] == OrderAction.SELL:
             action = 1
         else:
             action = 3

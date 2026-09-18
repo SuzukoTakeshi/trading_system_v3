@@ -236,7 +236,7 @@ if "%BROWSER_MONITOR%"=="0" (
     echo ==========================
 
     powershell -ExecutionPolicy Bypass ^
-    -File "%ROOT%\tools\CheckWindow.ps1" "Trading System Console"
+    -File "%ROOT%\tools\CheckWindow.ps1" "Trading System"
 
     if errorlevel 1 (
 
@@ -254,7 +254,7 @@ if "%BROWSER_MONITOR%"=="0" (
 
     powershell -ExecutionPolicy Bypass ^
     -File "%ROOT%\tools\ArrangeWindow.ps1" ^
-    -Title "Trading System Console" ^
+    -Title "Trading System" ^
     -Monitor %BROWSER_MONITOR% ^
     -Layout MAX
 
