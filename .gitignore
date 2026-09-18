@@ -57,7 +57,6 @@ auditor/images/
 
 storage/json/asset_history/
 storage/json/asset.json
-storage/json/asset_sync.json
 storage/json/order_id.json
 storage/json/trade_id.json
 storage/json/trade_params.json

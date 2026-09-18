@@ -33,6 +33,5 @@ TRADE_PARAMS_FILE = STORAGE_DIR / "json" / "trade_params.json"
 
 ORDER_ID_FILE = STORAGE_DIR / "json" / "order_id.json"
 
-ASSET_SYNC_FILE = STORAGE_DIR / "json" / "asset_sync.json"
 ASSET_FILE = STORAGE_DIR / "json" / "asset.json"
 ASSET_HISTORY_DIR = STORAGE_DIR / "json" / "asset_history"

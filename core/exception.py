@@ -341,21 +341,6 @@ class AssetError(SystemError):
     ):
         super().__init__(message=message, level=level, scope=scope, code=code, data=data)
 
-class AssetSyncStoreError(AssetError):
-    """
-    Asset Sync Storeエラー
-
-    原因:
-        ・asset_sync.jsonのJSON形式不正
-        ・asset_sync.jsonのデータ型不正
-        ・Asset Sync保存データ不正
-
-    発生箇所:
-        AssetSyncStore.load()
-        AssetSyncStore.save()
-    """
-    pass
-
 class AssetOrderResultNotFoundError(AssetError):
     """
     約定済みOrderの約定結果未存在エラー
