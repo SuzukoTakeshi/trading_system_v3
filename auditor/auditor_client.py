@@ -8,13 +8,10 @@
 #   ・Auditor状態のキャッシュ
 #
 
-import threading
-import time
 from datetime import datetime
-from pathlib import Path
-import random
-
+import streamlit as st
 import requests
+
 from core.config_loader import Config
 
 
@@ -22,27 +19,29 @@ class AuditorClient:
 
     def __init__(self):
 
-        self.data = {
+        if "auditor_data" not in st.session_state:
 
-            "api": {
-                "status": None,
-                "updated_at": None,
-                "engine": None,
-                "market": None,
-                "rakuten": None,
-            },
+            st.session_state.auditor_data = {
 
-            "ui": {
-                "status": None,
-                "updated_at": None,
-            },
+                "api": {
+                    "status": None,
+                    "updated_at": None,
+                    "engine": None,
+                    "market": None,
+                    "rakuten": None,
+                },
 
-            "image_path": None,
+                "ui": {
+                    "status": None,
+                    "updated_at": None,
+                },
 
-            "notify": {
-                "text": None,
+                "notify_list": [],
+                "last_notify_list": [],
             }
-        }
+
+
+        self.data = st.session_state.auditor_data
 
 
         config = Config.instance().data
@@ -56,32 +55,18 @@ class AuditorClient:
             f"http://127.0.0.1:{server.get('ui_port', 8501)}"
         )
 
-        self.image_path = None
-
-        thread = threading.Thread(
-            target=self._run,
-            daemon=True,
-        )
-
-        thread.start()
 
 
     # ==================================================
-    # Monitor Thread
+    # Update
     # ==================================================
 
-    def _run(self):
+    def update(self):
 
-        while True:
+        self._get_api()
+        self._get_ui()
 
-            self._get_api()
-            self._get_ui()
-
-            self._get_image_path()
-
-            self._get_notify()
-
-            time.sleep(1.0)
+        self._get_notify()
 
 
     # ==================================================
@@ -137,8 +122,15 @@ class AuditorClient:
             self.data["api"]["status"] = "RUNNING"
             self.data["api"]["updated_at"] = datetime.now()
 
-            self.data["api"]["engine"] = trade_engine.get("state", "UNKNOWN")
-            self.data["api"]["market"] = market.get("state", "UNKNOWN")         # 
+            self.data["api"]["engine"] = trade_engine.get(
+                "state",
+                "UNKNOWN",
+            )
+
+            self.data["api"]["market"] = market.get(
+                "state",
+                "UNKNOWN",
+            )
 
         except Exception:
             self.data["api"]["status"] = "OFFLINE"
@@ -170,51 +162,31 @@ class AuditorClient:
             self.data["ui"]["updated_at"] = datetime.now()
 
 
-    def _get_image_path(self):
-
-        now = datetime.now()
-
-        current_path = self.image_path
-
-        # 画像パス生成条件
-        should_create = (
-            not current_path
-            or not Path(current_path).exists()
-            or now.second == 0
-        )
-
-        if not should_create:
-            return
-
-        # 画像一覧取得
-        image_dir = Path(__file__).parent / "images"
-        if not image_dir.exists():
-            return
-
-        images = [
-            p
-            for p in image_dir.iterdir()
-            if p.suffix.lower()
-            in [".png", ".jpg", ".jpeg", ".webp"]
-        ]
-
-        if not images:
-            return
-
-        # 前回画像を除外
-        candidates = [
-            p
-            for p in images
-            if p != current_path
-        ]
-
-        # ランダムに画像パスを生成
-        self.image_path = random.choice(candidates or images)
-
-        # print(self.image_path)
-
-        self.data["image_path"] = self.image_path
-
+    # ==================================================
+    # Notify
+    # ==================================================
 
     def _get_notify(self):
-        self.data["notify"]["text"] = "雨が降ってるよ"
+
+        try:
+            response = requests.get(
+                f"{self.api_url}/notifies",
+                timeout=0.2,
+            )
+
+            response.raise_for_status()
+
+            data = response.json()
+
+            notify_list = data.get("notifies", [])
+
+            # print("AUDITOR notify_list:", notify_list)
+
+            self.data["notify_list"] = notify_list
+
+            if notify_list:
+                # print("NOTIFY:", notify_list)
+                self.data["last_notify_list"] = notify_list
+
+        except Exception:
+            pass

@@ -25,8 +25,6 @@ from trade.trade_enums import (
 from models.trade.trade_model import TradeModel
 from models.quote.quote_model import QuoteModel
 
-from core.voice_enums import VoiceType
-
 
 class TradeEngineAPI:
 
@@ -149,7 +147,7 @@ class TradeEngineAPI:
             )
         )
 
-        self.context.notifier_trade.notify(trade, "TRADE CREATED")
+        self.context.notifier.notify_trade(trade, "TRADE CREATED")
 
         return trade.id
 
@@ -201,14 +199,13 @@ class TradeEngineAPI:
         ]:
             return False
 
-        Log.event(f"(#{trade_id}) PAUSE TRADE")
-
         # 一時停止
         trade.pause_flag = True
 
         self._save_trade(trade)
 
-        self.context.notifier_trade.notify(trade, "TRADE PAUSE")
+        Log.event(f"(#{trade_id}) TRADE PAUSE")
+        self.context.notifier.notify_trade(trade, "TRADE PAUSE")
 
         return True
 
@@ -226,14 +223,13 @@ class TradeEngineAPI:
         if not trade.pause_flag:
             return False
 
-        Log.event(f"RESUME TRADE (#{trade_id})")
-
         # クリア
         trade.pause_flag = False
 
         self._save_trade(trade)
 
-        self.context.notifier_trade.notify(trade, "TRADE RESUME")
+        Log.event(f"(#{trade_id}) TRADE RESUME")
+        self.context.notifier.notify_trade(trade, "TRADE RESUME")
 
         return True
 
@@ -270,13 +266,13 @@ class TradeEngineAPI:
                 return (False, f"Trade #{trade_id} は現在の状態({trade.state.value})ではCANCELできません。")
 
         # CANCEL要求
-        Log.debug(f"(#{trade_id}) CANCEL REQUEST force={force}")
-
         trade.cancel_request = True
 
         self._save_trade(trade)
 
-        self.context.notifier_trade.notify(trade, "TRADE CANCEL")
+        Log.debug(f"(#{trade_id}) CANCEL REQUEST force={force}")
+
+        self.context.notifier.notify_trade(trade, "TRADE CANCEL")
 
         return True, ""
 
@@ -305,12 +301,12 @@ class TradeEngineAPI:
                 state_text = trade.state.value
                 return False, f"状態が{state_text}の為、削除はできません。"
 
-            Log.debug(f"(#{trade_id}) TRADE DELETE REQUEST")
-
             trade.delete_request = True
 
             # 削除要求を永続化
             self.engine.trade_store.save(trade)
+
+            Log.debug(f"(#{trade_id}) TRADE DELETE REQUEST")
 
             return True, ""
 

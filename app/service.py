@@ -93,12 +93,11 @@ class AppService:
 
 
     # ---------------------
-    # Voice取得
+    # notify取得
     # ---------------------
-    def voice(self):
-
+    def notifies(self):
         return {
-            "voices": self.trade_engine.context.voice_manager.get(),
+            "notifies": self.trade_engine.context.notifier.get_queue(),
         }
 
 

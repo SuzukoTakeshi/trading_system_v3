@@ -32,15 +32,13 @@ def status():
     return app_service.status()
 
 
-@app.get("/voice")
-def voice():
-
-    return app_service.voice()
+@app.get("/notifies")
+def notifies():
+    return app_service.notifies()
 
 
 @app.get("/daily_result")
 def daily_result():
-
     return app_service.daily_result()
 
 
@@ -49,7 +47,6 @@ def logs(limit: int = 20):
     """
     System Log取得
     """
-
     return app_service.get_logs(limit)
 
 

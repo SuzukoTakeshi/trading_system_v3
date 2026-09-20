@@ -17,9 +17,6 @@ from trade.trade_enums import (
     MarginType,
 )
 
-from core.voice_manager import VoiceManager
-from core.voice_enums import VoiceType
-
 class TradeClose:
 
     def __init__(self, context, market):
@@ -80,6 +77,6 @@ class TradeClose:
         Log.event(f"(#{trade.id}) {message}")
         trade.add_timeline(event="CLOSE", message=message)
 
-        self.context.notifier_trade.notify(trade, "MARGIN DAY CLOSE BEFORE ENTRY")
+        self.context.notifier.notify_trade(trade, "MARGIN DAY CLOSE BEFORE ENTRY")
 
         return True

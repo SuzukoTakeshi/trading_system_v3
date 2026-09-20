@@ -2,8 +2,9 @@
 chcp 65001 >nul
 
 rem ==========================================================
-rem Trading System
-rem Auditor 起動バッチ
+rem
+rem Trading System V3
+rem AUDITOR 起動バッチ
 rem
 rem 起動:
 rem   start_auditor.bat
@@ -49,16 +50,10 @@ rem ==========================================================
 rem ウィンドウタイトル
 rem ==========================================================
 
-title AUDITOR %ENV%
+title Trading System AUDITOR %ENV%
 
 rem ==========================================================
-rem 起動コマンド設定
-rem ==========================================================
-
-set AUDITOR_CMD=python -m auditor.main
-
-rem ==========================================================
-rem プロジェクトルート設定
+rem プロジェクト設定
 rem ==========================================================
 
 set ROOT=%~dp0
@@ -77,36 +72,54 @@ rem ==========================================================
 set PYTHONPATH=%ROOT%
 
 rem ==========================================================
-rem 再起動用コマンド登録
+rem ポート設定
 rem ==========================================================
 
-doskey s=%AUDITOR_CMD%
+for /f %%P in ('python -c "from core.config_loader import Config; print(Config.instance().data.get('server', {}).get('auditor_port', 8508))"') do set AUDITOR_PORT=%%P
 
 rem ==========================================================
-rem Auditor起動
+rem 起動コマンド設定
 rem ==========================================================
+
+rem ブラウザ自動起動を無効化
+rem TradingSystem_Start.bat側でブラウザ配置を制御
+
+set AUDITOR_CMD=python -m streamlit run %ROOT%\auditor\main.py --server.port %AUDITOR_PORT% --server.headless true
 
 echo.
 echo ==========================
-echo AUDITOR %ENV% START
+echo TRADING SYSTEM AUDITOR %ENV% START
 echo ==========================
+echo.
+
+echo Port:
+echo %AUDITOR_PORT%
+echo.
+
+echo ブラウザからAUDITOR画面を表示する場合:
+echo.
+echo http://localhost:%AUDITOR_PORT%
+echo.
+
+echo [Ctrl-C]で終了した場合:
+echo.
+echo   s
+echo.
+echo sを入力すると再起動します。
 echo.
 
 %AUDITOR_CMD%
 
-
-rem ==========================================================
-rem 終了後
-rem ==========================================================
-
 echo.
 echo ==========================
-echo AUDITOR %ENV% STOPPED
+echo TRADING SYSTEM AUDITOR %ENV% STOPPED
 echo ==========================
 echo.
-
-echo 再起動する場合: s + [ENTER]
-
+echo 再起動する場合:
+echo   s
+echo.
+echo 終了する場合:
+echo   exit
 echo.
 
 doskey s=%AUDITOR_CMD%

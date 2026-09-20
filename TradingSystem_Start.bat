@@ -15,8 +15,8 @@ rem
 rem   TradingSystem_Start.bat PROD
 rem   TradingSystem_Start.bat DEV
 rem
-rem   TradingSystem_Start.bat PROD 1 2
-rem   TradingSystem_Start.bat DEV 1 2
+rem   TradingSystem_Start.bat PROD 1 2 3
+rem   TradingSystem_Start.bat DEV 1 2 3
 rem
 rem   第1引数
 rem       PROD / DEV
@@ -25,7 +25,13 @@ rem   第2引数
 rem       サービス用モニター
 rem
 rem   第3引数
-rem       UIブラウザ配置用モニター
+rem       CONSOLEブラウザ配置用モニター
+rem
+rem       0   : ブラウザを起動しない
+rem       1～4 : 指定モニターへ最大化表示
+rem
+rem   第4引数
+rem       AUDITORブラウザ配置用モニター
 rem
 rem       0   : ブラウザを起動しない
 rem       1～4 : 指定モニターへ最大化表示
@@ -83,23 +89,29 @@ rem ==========================================================
 
 for /f %%P in ('python -c "from core.config_loader import Config; print(Config.instance().data.get('server', {}).get('ui_port', 8501))"') do set UI_PORT=%%P
 
+for /f %%P in ('python -c "from core.config_loader import Config; print(Config.instance().data.get('server', {}).get('auditor_port', 8508))"') do set AUDITOR_PORT=%%P
+
 rem ==========================================================
 rem モニター設定
 rem ==========================================================
 
 set SERVICE_MONITOR=1
-set BROWSER_MONITOR=2
+set CONSOLE_BROWSER_MONITOR=2
+set AUDITOR_BROWSER_MONITOR=3
 
 if not "%2"=="" set SERVICE_MONITOR=%2
-if not "%3"=="" set BROWSER_MONITOR=%3
+if not "%3"=="" set CONSOLE_BROWSER_MONITOR=%3
+if not "%4"=="" set AUDITOR_BROWSER_MONITOR=%4
 
 echo.
 echo ==========================
 echo Trading System %ENV% 起動
 echo ==========================
 echo Service Monitor=%SERVICE_MONITOR%
-echo Browser Monitor=%BROWSER_MONITOR%
+echo Console Browser Monitor=%CONSOLE_BROWSER_MONITOR%
+echo Auditor Browser Monitor=%AUDITOR_BROWSER_MONITOR%
 echo Console Port=%UI_PORT%
+echo Auditor Port=%AUDITOR_PORT%
 echo ==========================
 
 
@@ -152,6 +164,7 @@ powershell -ExecutionPolicy Bypass ^
 -Layout V3 ^
 -Position 1
 
+
 rem ==========================================================
 rem UI
 rem ==========================================================
@@ -185,6 +198,7 @@ powershell -ExecutionPolicy Bypass ^
 -Layout V3 ^
 -Position 2
 
+
 rem ==========================================================
 rem AUDITOR
 rem ==========================================================
@@ -195,7 +209,7 @@ echo AUDITOR %ENV%
 echo ==========================
 
 powershell -ExecutionPolicy Bypass ^
--File "%ROOT%\tools\CheckWindow.ps1" "AUDITOR %ENV%"
+-File "%ROOT%\tools\CheckWindow.ps1" "Trading System AUDITOR %ENV%"
 
 if errorlevel 1 (
 
@@ -213,17 +227,17 @@ if errorlevel 1 (
 
 powershell -ExecutionPolicy Bypass ^
 -File "%ROOT%\tools\ArrangeWindow.ps1" ^
--Title "AUDITOR %ENV%" ^
+-Title "Trading System AUDITOR %ENV%" ^
 -Monitor %SERVICE_MONITOR% ^
 -Layout V3 ^
--Position 4
+-Position 3
 
 
 rem ==========================================================
 rem CONSOLE Browser
 rem ==========================================================
 
-if "%BROWSER_MONITOR%"=="0" (
+if "%CONSOLE_BROWSER_MONITOR%"=="0" (
 
     echo.
     echo CONSOLE Browser 起動しない
@@ -242,7 +256,7 @@ if "%BROWSER_MONITOR%"=="0" (
 
         echo CONSOLE Browser %ENV% 起動
 
-        start "" http://localhost:%UI_PORT%
+        start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --new-window http://localhost:%UI_PORT%
 
         timeout /t 2 >nul
 
@@ -255,7 +269,49 @@ if "%BROWSER_MONITOR%"=="0" (
     powershell -ExecutionPolicy Bypass ^
     -File "%ROOT%\tools\ArrangeWindow.ps1" ^
     -Title "Trading System" ^
-    -Monitor %BROWSER_MONITOR% ^
+    -Monitor %CONSOLE_BROWSER_MONITOR% ^
+    -Layout MAX
+
+)
+
+
+rem ==========================================================
+rem AUDITOR Browser
+rem ==========================================================
+
+if "%AUDITOR_BROWSER_MONITOR%"=="0" (
+
+    echo.
+    echo AUDITOR Browser 起動しない
+
+) else (
+
+    echo.
+    echo ==========================
+    echo AUDITOR Browser %ENV%
+    echo ==========================
+
+    powershell -ExecutionPolicy Bypass ^
+    -File "%ROOT%\tools\CheckWindow.ps1" "Trading System Auditor"
+
+    if errorlevel 1 (
+
+        echo AUDITOR Browser %ENV% 起動
+
+        start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" --new-window http://localhost:%AUDITOR_PORT%
+
+        timeout /t 2 >nul
+
+    ) else (
+
+        echo AUDITOR Browser %ENV% 起動済み
+
+    )
+
+    powershell -ExecutionPolicy Bypass ^
+    -File "%ROOT%\tools\ArrangeWindow.ps1" ^
+    -Title "Trading System Auditor" ^
+    -Monitor %AUDITOR_BROWSER_MONITOR% ^
     -Layout MAX
 
 )
@@ -285,6 +341,7 @@ echo   TradingSystem_Start.bat PROD
 echo       PROD環境
 echo       サービス : モニター1
 echo       CONSOLEブラウザ : モニター2
+echo       AUDITORブラウザ : モニター3
 
 echo.
 
@@ -292,18 +349,20 @@ echo   TradingSystem_Start.bat DEV
 echo       DEV環境
 echo       サービス : モニター1
 echo       CONSOLEブラウザ : モニター2
+echo       AUDITORブラウザ : モニター3
 
 echo.
 
-echo   TradingSystem_Start.bat PROD 1 0
+echo   TradingSystem_Start.bat PROD 1 0 0
 echo       PROD環境
-echo       CONSOLEブラウザを起動しない
+echo       ブラウザを起動しない
 
 echo.
 
-echo   TradingSystem_Start.bat DEV 1 3
+echo   TradingSystem_Start.bat DEV 1 2 3
 echo       DEV環境
-echo       CONSOLEブラウザ : モニター3
+echo       CONSOLEブラウザ : モニター2
+echo       AUDITORブラウザ : モニター3
 
 echo.
 

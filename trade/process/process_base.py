@@ -17,4 +17,4 @@ class ProcessBase:
 
 
     def notify(self, trade, notify_id):
-        self.context.notifier_trade.notify(trade, notify_id)
+        self.context.notifier.notify_trade(trade, notify_id)

@@ -1,0 +1,12 @@
+{
+    "ENGINE_START": {
+        "message": "エンジンを起動しました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "engine_start.wav"
+    },
+    "ENGINE_STOP": {
+        "message": "エンジンを停止しました。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "engine_stop.wav"
+    }
+}

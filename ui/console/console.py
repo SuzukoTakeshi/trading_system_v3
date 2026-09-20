@@ -48,7 +48,6 @@ from ui.config import (
 
 from ui.api.client import (
     get_status,
-    get_voices,
     get_daily_result,
 )
 
@@ -57,9 +56,6 @@ from ui.console.components.header import header
 from ui.console.components.body import body
 
 from ui.console import message_store
-
-from ui.audio.audio_manager import play_voices
-
 
 st.markdown(
     """
@@ -114,13 +110,6 @@ def main():
 
     body(ctx)
 
-    # Voice通知取得
-    voice_data = get_voices()
-    voices = voice_data.get("voices", [])
-
-    # VOICE ONの場合のみ再生
-    if st.session_state.voice_enabled and voices:
-        play_voices(voices)
 
     if st.session_state.get("refresh_once", False):
         st.session_state.refresh_once = False

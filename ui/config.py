@@ -30,16 +30,13 @@ server = config.get("server", {})
 
 API_PORT = server.get("api_port", 8000)
 UI_PORT  = server.get("ui_port", 8501)
-AUDITOR_PORT = server.get("auditor_port", 8508)
 
 # FastAPI
 # localhostではなく127.0.0.1を使用すること。
 # localhostでは環境によって接続に約2秒かかる場合がある。
-BASE_URL = f"http://127.0.0.1:{API_PORT}"
+API_URL = f"http://127.0.0.1:{API_PORT}"
 
 MONITOR_URL = f"http://127.0.0.1:{UI_PORT}/monitor"
-
-AUDITOR_URL = f"http://127.0.0.1:{AUDITOR_PORT}"
 
 # =========================
 # API

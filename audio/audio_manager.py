@@ -1,5 +1,5 @@
 #
-# ui/audio/audio_manager.py
+# audio/audio_manager.py
 #
 # Browser Audio Manager
 #
@@ -127,10 +127,12 @@ _audio_component = st.components.v2.component(
 
 def _load_audio(filename):
 
-    path = Path("storage/voices") / filename
+    path = Path("audio/voices") / filename
 
     if not path.exists():
         return None
+
+    # print(f"play_voices: path={path}")
 
     return base64.b64encode(
         path.read_bytes()
@@ -163,9 +165,7 @@ def play_voices(voices):
 
     items = []
 
-    for voice in voices:
-
-        filename = voice.get("voice_file")
+    for filename in voices:
 
         if not filename:
             continue
@@ -177,15 +177,12 @@ def play_voices(voices):
 
         items.append(
             {
-                "sequence": voice.get("sequence"),
                 "audio": audio,
             }
         )
 
-
     if not items:
         return False
-
 
     _audio_component(
         key="audio_manager",

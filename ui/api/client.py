@@ -11,7 +11,7 @@
 import requests
 
 from ui.config import (
-    BASE_URL,
+    API_URL,
     API_TIMEOUT_SEC,
 )
 
@@ -56,7 +56,7 @@ def get_error_message(e):
 
 def get(path):
 
-    response = requests.get(f"{BASE_URL}{path}", timeout=API_TIMEOUT_SEC)
+    response = requests.get(f"{API_URL}{path}", timeout=API_TIMEOUT_SEC)
 
     response.raise_for_status()
 
@@ -69,7 +69,7 @@ def get(path):
 def post(path, json=None, params=None):
 
     response = requests.post(
-        f"{BASE_URL}{path}",
+        f"{API_URL}{path}",
         json=json,
         params=params,
         timeout=API_TIMEOUT_SEC,
@@ -97,18 +97,14 @@ def get_status():
 
 
 # ==================================================
-# Voice
+# Notify
 # ==================================================
 
-def get_voices():
-
+def get_notifies():
     try:
-        return get("/voice")
-
+        return get("/notifies")
     except requests.ConnectionError:
-        return {
-            "voices": []
-        }
+        return {"notifies": []}
 
 
 # ==================================================
@@ -195,7 +191,7 @@ def cancel_trade(trade_id, force=False):
 # ==========================================
 def delete_trade(trade_id):
 
-    response = requests.delete(f"{BASE_URL}/trade/{trade_id}/delete", timeout=API_TIMEOUT_SEC)
+    response = requests.delete(f"{API_URL}/trade/{trade_id}/delete", timeout=API_TIMEOUT_SEC)
 
     response.raise_for_status()
 

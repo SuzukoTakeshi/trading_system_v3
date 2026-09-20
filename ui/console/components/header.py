@@ -26,8 +26,6 @@ from ui.utils.formatters import (
     format_datetime_jp
 )
 
-from ui.audio.audio_manager import play_voices
-
 
 def header(ctx):
 
@@ -44,28 +42,11 @@ def header(ctx):
 
     mode = status.get("mode", "UNKNOWN")
 
-    if "voice_enabled" not in st.session_state:
-        st.session_state.voice_enabled = True
-
-    voice_switch_sound = st.session_state.pop(
-        "voice_switch_sound",
-        None
-    )
-
-    if voice_switch_sound:
-        play_voices([
-            {
-                "sequence": 0,
-                "type": "voice_file",
-                "voice_file": voice_switch_sound,
-            }
-        ])
-
 
     with st.container(border=True):
 
-        col_refresh, col_market, col_engine, col_asset, col_daily, _, col_wav, col_voice_switch, col_engine_action = st.columns(
-            [2, 2, 2, 2, 3, 5, 2, 2, 2]
+        col_refresh, col_market, col_engine, col_asset, col_daily, _, col_engine_action = st.columns(
+            [2, 2, 2, 2, 3, 9, 2]
         )
 
         with col_refresh:
@@ -173,34 +154,6 @@ def header(ctx):
                 """,
                 unsafe_allow_html=True
             )
-
-        with col_wav:
-
-            if st.button("🔊 音声テスト"):
-                play_voices([
-                    {
-                        "sequence": 0,
-                        "type": "voice_file",
-                        "voice_file": "voice_on.wav",
-                    }
-                ])
-
-        with col_voice_switch:
-
-            voice_enabled = st.session_state.voice_enabled
-
-            if st.button("🔊 VOICE ON" if voice_enabled else "🔇 VOICE OFF", use_container_width=True):
-                # VOICE状態を反転
-                st.session_state.voice_enabled = not voice_enabled
-
-                # 次回描画で再生する音声を予約
-                if st.session_state.voice_enabled:
-                    st.session_state.voice_switch_sound = "voice_on.wav"
-                else:
-                    st.session_state.voice_switch_sound = "voice_off.wav"
-
-                st.rerun()
-
 
         with col_engine_action:
             btn_start, btn_stop = st.columns(2)

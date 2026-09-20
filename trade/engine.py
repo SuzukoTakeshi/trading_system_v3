@@ -30,8 +30,6 @@ from core.exception import (
 	ExcelArgumentError,
     QuoteNotFoundError,
 )
-from core.voice_manager import VoiceManager
-from core.voice_enums import VoiceType
 
 from market.market_service import MarketService
 
@@ -65,9 +63,7 @@ from trade.process.process_asset import ProcessAsset
 
 from trade.trade_chart import add_trade_chart_data
 
-from notifier.notifier_market_session import NotifierMarketSession
-from notifier.notifier_trade import NotifierTrade
-
+from notifier.notifier import Notifier
 
 class TradeEngine:
 
@@ -90,8 +86,6 @@ class TradeEngine:
 
         # 共通管理データ
         self.context = EngineContext(config)
-
-        self.context.voice_manager = VoiceManager()
 
         self.mode = config["mode"]
 
@@ -143,8 +137,7 @@ class TradeEngine:
         # External API
         self.api = TradeEngineAPI(self)
 
-        self.context.notifier_market_session = NotifierMarketSession(self.context)
-        self.context.notifier_trade = NotifierTrade(self.context)
+        self.context.notifier = Notifier()
 
         # Engine Thread
         self.thread = None
@@ -202,10 +195,7 @@ class TradeEngine:
 
 
         if self.state == EngineState.RUNNING:
-            self.context.voice_manager.add(
-                VoiceType.VOICE_FILE,
-                voice_file="engin_start.wav",
-            )
+            self.context.notifier.notify_system("ENGINE_START")
 
 
     # ==========================================
@@ -226,10 +216,7 @@ class TradeEngine:
         # 停止完了
         self.change_state(EngineState.STOPPED, "停止が完了しました。")
 
-        self.context.voice_manager.add(
-            VoiceType.VOICE_FILE,
-            voice_file="engin_stop.wav",
-        )
+        self.context.notifier.notify_system("ENGINE_STOP")
 
 
     # ==========================================
@@ -267,7 +254,7 @@ class TradeEngine:
                 # Market Session Event
                 event = self.market.get_session_event()
                 if event is not None:
-                    self.context.notifier_market_session.notify(event)
+                    self.context.notifier.notify_market_session(event)
 
                 self.last_cycle_at = datetime.now()
 
@@ -675,8 +662,7 @@ class TradeEngine:
 
         Log.event(f"(#{trade_id}) TRADE DELETED")
 
-        self.context.notifier_trade.notify(trade, "TRADE DELETED")
-
+        self.context.notifier.notify_trade(trade, "TRADE DELETED")
 
     def _cancel_trade(self, trade):
 

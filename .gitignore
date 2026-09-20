@@ -66,3 +66,5 @@ work/
 # Console test
 ui/console/console_test.py
 start_console_test.bat
+
+audio/comment.txt
