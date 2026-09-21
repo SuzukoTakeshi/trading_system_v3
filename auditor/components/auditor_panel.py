@@ -17,14 +17,11 @@ from auditor.components.voice import (
 from auditor.components.image import get_image_path
 
 
-def auditor_panel():
+def auditor_panel(ctx):
 
     voices = []
 
-    client = st.session_state.auditor_client
-    data = client.data
-
-    status = _status(data)
+    status = _status(ctx)
 
     with st.container(border=True):
 
@@ -38,14 +35,21 @@ def auditor_panel():
 
             st.write(status_text)
 
-            previous_status = st.session_state.get("auditor_status")
+            previous_status = ctx.auditor_status
 
             if previous_status is not None and status != previous_status:
-                voice_file = get_status_voice(status)
-                if voice_file:
-                    voices.append(voice_file)
 
-            st.session_state.auditor_status = status
+                voice = get_status_voice(status)
+
+                if voice:
+                    ctx.last_notify_list = [{
+                        "voice_file": voice.get("voice_file"),
+                        "voice_text": voice.get("voice_text"),
+                    }]
+
+                    voices.append(voice.get("voice_file"))
+
+            ctx.auditor_status = status
 
 
         with col_voice:
@@ -54,50 +58,51 @@ def auditor_panel():
             if voice_file:
                 voices.append(voice_file)
 
-
         # ==========================================
         # Image
         # ==========================================
-
-        image_path = get_image_path(st.session_state.get("auditor_image_path"))
+        image_path = get_image_path(ctx.auditor_image_path)
 
         if image_path:
-            st.session_state.auditor_image_path = image_path
+            ctx.auditor_image_path = image_path
 
             st.image(image_path, width="stretch")
-
 
         # ==========================================
         # Notify
         # ==========================================
 
-        last_notify_list = data.get("last_notify_list", [])
+        last_notify_list = ctx.last_notify_list
 
-        if last_notify_list:
-            for item in last_notify_list:
-                st.write(item.get("voice_text"))
+        for item in last_notify_list:
+            st.write(item.get("voice_text"))
 
-
-        notify_list = data.get("notify_list", [])
-
-        notify_voices = get_notify_voices(notify_list)
-
-        voices.extend(notify_voices)
 
         # ==========================================
         # Voice
         # ==========================================
 
+        if ctx.voice_enabled:
+            notify_list = ctx.notify_list
+            notify_voices = get_notify_voices(notify_list)
+
+            voices.extend(
+                item.get("voice_file")
+                for item in notify_voices
+                if item.get("voice_file")
+            )
+
         if voices:
             play_voices(voices)
+
 
     return voices
 
 
-def _status(data):
+def _status(ctx):
 
-    api = data.get("api", {})
-    ui = data.get("ui", {})
+    api = ctx.api
+    ui = ctx.ui
 
     has_error = (
         api.get("status") != "RUNNING"

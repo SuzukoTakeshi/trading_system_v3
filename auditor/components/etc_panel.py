@@ -7,7 +7,7 @@
 import streamlit as st
 
 
-def etc_panel():
+def etc_panel(ctx):
 
     with st.container(border=True):
 

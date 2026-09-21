@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import threading
 
+from core.logger import Log
+
 from core.symbol_store import SymbolStore
 
 from audio.voice_manager import VoiceManager
@@ -34,10 +36,7 @@ class Notifier:
         self.queue_lock = threading.Lock()
 
         # 通知処理Thread
-        self.thread = threading.Thread(
-            target=self._notify_loop,
-            daemon=True,
-        )
+        self.thread = threading.Thread(target=self._notify_loop, daemon=True)
 
         self.thread.start()
 
@@ -46,16 +45,9 @@ class Notifier:
     # Notify System
     # ==================================================
 
-    def notify_system(
-        self,
-        notify_id,
-        notify_text=None,
-    ):
+    def notify_system(self, notify_id, notify_text=None):
 
-        data = self.get(
-            "notifier_system.json",
-            notify_id,
-        )
+        data = self.get("notifier_system.json", notify_id)
 
         if data is None:
             return
@@ -66,15 +58,9 @@ class Notifier:
             else data["message"]
         )
 
-        voice_type = VoiceType[
-            data["voice_type"]
-        ]
+        voice_type = VoiceType[data["voice_type"]]
 
-        self.add(
-            voice_type,
-            voice_file=data["voice_file"],
-            voice_text=message
-        )
+        self.add(voice_type, voice_file=data["voice_file"], voice_text=message)
 
 
     # ==================================================
@@ -83,10 +69,7 @@ class Notifier:
 
     def notify_trade(self, trade, notify_id):
 
-        data = self.get(
-            "notifier_trade.json",
-            notify_id,
-        )
+        data = self.get("notifier_trade.json", notify_id)
 
         if data is None:
             return None
@@ -100,7 +83,6 @@ class Notifier:
 
         symbol_name = ""
         symbol_data = self.symbol_store.get(symbol)
-        print(symbol_data)
 
         if symbol_data:
             symbol_name = symbol_data["name"]
@@ -122,27 +104,15 @@ class Notifier:
 
             voice_text = f"{symbol_text}、{symbol_name}"
 
-            print(voice_text)
-
-            self.add(
-                VoiceType.VOICE_TEXT,
-                voice_id=symbol,
-                voice_text=voice_text,
-            )
+            self.add(VoiceType.VOICE_SYMBOL, voice_id=symbol, voice_text=voice_text)
 
         # ------------------------------------------
         # 通知Voice
         # ------------------------------------------
 
-        voice_type = VoiceType[
-            data["voice_type"]
-        ]
+        voice_type = VoiceType[data["voice_type"]]
 
-        self.add(
-            voice_type,
-            voice_file=data["voice_file"],
-            voice_text=message
-        )
+        self.add(voice_type, voice_file=data["voice_file"], voice_text=message)
 
         # ★★★★★ ここでTradeModel を変更したくないけど・・・
         # returnでmessageを返してTradeModelのmessageに保存させる方法に変更予定
@@ -158,36 +128,21 @@ class Notifier:
 
     def notify_market_session(self, event):
 
-        data = self.get(
-            "notifier_market_session.json",
-            event.name,
-        )
+        data = self.get("notifier_market_session.json", event.name)
 
         if data is None:
             return
 
-        voice_type = VoiceType[
-            data["voice_type"]
-        ]
+        voice_type = VoiceType[data["voice_type"]]
 
-        self.add(
-            voice_type,
-            voice_file=data["voice_file"],
-        )
+        self.add(voice_type, voice_file=data["voice_file"])
 
 
     # ==================================================
     # Add
     # ==================================================
 
-    def add(
-        self,
-        voice_type,
-        voice_id=None,
-        voice_text=None,
-        voice_file=None,
-    ):
-
+    def add(self, voice_type, voice_id=None, voice_text=None, voice_file=None):
         item = {
             "type": voice_type.value,
             "voice_id": voice_id,
@@ -204,20 +159,14 @@ class Notifier:
     # ==================================================
 
     def _notify_loop(self):
-
         while True:
-
             item = None
-
             with self.queue_lock:
-
                 if self.prepare_queue:
                     item = self.prepare_queue.pop(0)
 
             if item is None:
-
                 threading.Event().wait(0.1)
-
                 continue
 
             self._prepare(item)
@@ -229,9 +178,7 @@ class Notifier:
 
     def _prepare(self, item):
 
-        voice_type = VoiceType(
-            item["type"]
-        )
+        voice_type = VoiceType(item["type"])
 
         voice_file = self.voice_manager.prepare(
             voice_type=voice_type,
@@ -244,6 +191,12 @@ class Notifier:
             return
 
         item["voice_file"] = voice_file
+
+        # voice_text が無い場合だけ VoiceManager から取得
+        if not item.get("voice_text"):
+            item["voice_text"] = self.voice_manager.get_voice_text(
+                voice_file
+            )
 
         # 通知Queueへ追加
         with self.queue_lock:
@@ -278,23 +231,11 @@ class Notifier:
         )
 
         try:
-
-            with open(
-                path,
-                "r",
-                encoding="utf-8",
-            ) as f:
-
+            with open(path, "r", encoding="utf-8") as f:
                 config = json.load(f)
 
         except Exception as e:
-
-            from core.logger import Log
-
-            Log.error(
-                f"NOTIFIER CONFIG LOAD ERROR : "
-                f"{path} : {e}"
-            )
+            Log.error(f"NOTIFIER CONFIG LOAD ERROR : {path} : {e}")
 
             return None
 

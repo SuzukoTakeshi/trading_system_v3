@@ -51,19 +51,16 @@ div[data-testid="stHorizontalBlock"] {
 
 def main():
 
-    if "auditor_client" not in st.session_state:
-        st.session_state.auditor_client = AuditorClient()
-
     if "auditor_context" not in st.session_state:
         st.session_state.auditor_context = AuditorContext()
 
-    client = st.session_state.auditor_client
+    ctx = st.session_state.auditor_context
 
-    client.update()
+    client = AuditorClient()
+    client.update(ctx)
 
-    header()
-
-    body()
+    header(ctx)
+    body(ctx)
 
     st_autorefresh(
         interval=1000,

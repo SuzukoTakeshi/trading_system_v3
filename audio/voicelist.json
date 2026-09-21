@@ -1,18 +1,1 @@
-[
-  {
-    "text": "よかったね！システムが正常に戻りました",
-    "filename": "system_recover.wav"
-  },
-  {
-    "text": "危険！危険！システムに異常が発生しました",
-    "filename": "system_error.wav"
-  },
-  {
-    "text": "ヨンヨンゴニー、花王",
-    "filename": "4452.wav"
-  },
-  {
-    "text": "ヨンヨンゼロイチ、ＡＤＥＫＡ",
-    "filename": "4401.wav"
-  }
-]
+[]

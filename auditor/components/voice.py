@@ -34,30 +34,27 @@ def voice_toggle():
 
 def get_status_voice(status):
 
-    context = st.session_state.auditor_context
-
-    if not context.voice_enabled:
-        return None
-
     if status:
-        # 「よかったね！システムが正常に戻りました」
         voice_file = "system_recover.wav"
-    else:
-        # "危険！危険！システムに異常が発生しました"
-        voice_file = "system_error.wav"
+        voice_text = "よかったね！システムが正常に戻りました"
 
-    return voice_file
+    else:
+        voice_file = "system_error.wav"
+        voice_text = "危険！危険！システムに異常が発生しました"
+
+    return {
+        "voice_file": voice_file,
+        "voice_text": voice_text,
+    }
 
 
 def get_notify_voices(notify_list):
 
-    context = st.session_state.auditor_context
-
-    if not context.voice_enabled:
-        return []
-
     return [
-        item.get("voice_file")
+        {
+            "voice_file": item.get("voice_file"),
+            "voice_text": item.get("voice_text"),
+        }
         for item in notify_list
         if item.get("voice_file")
     ]

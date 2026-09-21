@@ -16,3 +16,6 @@ class VoiceType(Enum):
 
     # テキストから音声生成
     VOICE_TEXT = "voice_text"
+
+    # シンボル
+    VOICE_SYMBOL = "voice_symbol"

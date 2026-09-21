@@ -48,30 +48,18 @@ class VoiceManager:
         # 設定
         self.config = self._load_config()
 
-        self.voicevox_url = self.config.get(
-            "voicevox_url",
-            "http://localhost:50021",
-        )
+        self.voicevox_url = self.config.get("voicevox_url", "http://localhost:50021")
 
-        self.voice_speaker = self.config.get(
-            "voice_speaker",
-            4,
-        )
+        self.voice_speaker = self.config.get("voice_speaker", 4)
 
         # Voice保存先
-        self.VOICE_DIR.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
+        self.VOICE_DIR.mkdir(parents=True, exist_ok=True)
 
         # voicelist
         self.voices = self._load_voicelist()
 
         # 音声生成Thread
-        self.thread = threading.Thread(
-            target=self._generation_loop,
-            daemon=True,
-        )
+        self.thread = threading.Thread(target=self._generation_loop, daemon=True)
 
         self.thread.start()
 
@@ -80,13 +68,7 @@ class VoiceManager:
     # Prepare
     # ==================================================
 
-    def prepare(
-        self,
-        voice_type: VoiceType,
-        voice_id=None,
-        voice_text=None,
-        voice_file=None,
-    ):
+    def prepare(self, voice_type: VoiceType, voice_id=None, voice_text=None, voice_file=None):
         """
         音声ファイルを準備する。
         準備できた音声ファイル名を返す。
@@ -97,7 +79,6 @@ class VoiceManager:
         # ------------------------------------------
 
         if voice_type == VoiceType.VOICE_FILE:
-
             if not voice_file:
                 return None
 
@@ -110,26 +91,45 @@ class VoiceManager:
 
 
         # ------------------------------------------
-        # VOICE_TEXT
+        # VOICE_SYMBOL
         # ------------------------------------------
 
-        if voice_type == VoiceType.VOICE_TEXT:
+        if voice_type == VoiceType.VOICE_SYMBOL:
+            if not voice_id:
+                return None
+
+            filename = f"{voice_id}.wav"
+            voice_path = self.VOICE_DIR / filename
+
+            if voice_path.exists():
+                return filename
 
             if not voice_text:
                 return None
 
+            if not self._generate_voicevox(voice_text, voice_path):
+                error_voice = "voice_generation_error.wav"
+                if (self.VOICE_DIR / error_voice).exists():
+                    return error_voice
+                return None
+
+            return filename
+
+        # ------------------------------------------
+        # VOICE_TEXT
+        # ------------------------------------------
+
+        if voice_type == VoiceType.VOICE_TEXT:
+            if not voice_text:
+                return None
+
             # voicelist.jsonに登録済み
-            filename = self.voices.get(
-                voice_text
-            )
+            filename = self.voices.get(voice_text)
 
             if filename:
-
                 path = self.VOICE_DIR / filename
-
                 if path.exists():
                     return filename
-
 
             # voice_idが必要
             if not voice_id:
@@ -144,11 +144,10 @@ class VoiceManager:
             # --------------------------------------
 
             if not voice_path.exists():
-
-                if not self._generate_voicevox(
-                    voice_text,
-                    voice_path,
-                ):
+                if not self._generate_voicevox(voice_text, voice_path):
+                    error_voice = "voice_generation_error.wav"
+                    if (self.VOICE_DIR / error_voice).exists():
+                        return error_voice
                     return None
 
             # --------------------------------------
@@ -168,13 +167,7 @@ class VoiceManager:
     # Add
     # ==================================================
 
-    def add(
-        self,
-        voice_type: VoiceType,
-        voice_id=None,
-        voice_text=None,
-        voice_file=None,
-    ):
+    def add(self, voice_type: VoiceType, voice_id=None, voice_text=None, voice_file=None):
         """
         Voice再生要求を追加する。
         """
@@ -184,7 +177,6 @@ class VoiceManager:
         # ------------------------------------------
 
         if voice_type == VoiceType.VOICE_FILE:
-
             if not voice_file:
                 return None
 
@@ -202,11 +194,48 @@ class VoiceManager:
 
 
         # ------------------------------------------
+        # VOICE_SYMBOL
+        # ------------------------------------------
+
+        if voice_type == VoiceType.VOICE_SYMBOL:
+            if not voice_id:
+                return None
+
+            filename = f"{voice_id}.wav"
+            path = self.VOICE_DIR / filename
+
+            if path.exists():
+                return self._add_queue(
+                    voice_type=voice_type,
+                    voice_id=voice_id,
+                    voice_text=voice_text,
+                    voice_file=filename,
+                )
+
+            if not voice_text:
+                return None
+
+            self.sequence += 1
+
+            item = {
+                "sequence": self.sequence,
+                "type": voice_type.value,
+                "voice_id": voice_id,
+                "voice_text": voice_text,
+                "voice_file": None,
+            }
+
+            with self.queue_lock:
+                self.generation_queue.append(item)
+
+            return item
+
+
+        # ------------------------------------------
         # VOICE_TEXT
         # ------------------------------------------
 
         if voice_type == VoiceType.VOICE_TEXT:
-
             if not voice_text:
                 return None
 
@@ -214,11 +243,9 @@ class VoiceManager:
             voice_file = self.voices.get(voice_text)
 
             if voice_file:
-
                 path = self.VOICE_DIR / voice_file
 
                 if path.exists():
-
                     return self._add_queue(
                         voice_type=voice_type,
                         voice_id=voice_id,
@@ -249,14 +276,7 @@ class VoiceManager:
     # Queue追加
     # ==================================================
 
-    def _add_queue(
-        self,
-        voice_type,
-        voice_id,
-        voice_text,
-        voice_file,
-    ):
-
+    def _add_queue(self, voice_type, voice_id, voice_text, voice_file):
         self.sequence += 1
 
         item = {
@@ -280,9 +300,7 @@ class VoiceManager:
     def get(self):
 
         with self.queue_lock:
-
             items = list(self.queue)
-
             self.queue.clear()
 
         return items
@@ -293,21 +311,14 @@ class VoiceManager:
     # ==================================================
 
     def _load_config(self):
-
         try:
-
             if not self.CONFIG_FILE.exists():
                 return {}
 
-            with self.CONFIG_FILE.open(
-                "r",
-                encoding="utf-8",
-            ) as f:
-
+            with self.CONFIG_FILE.open("r", encoding="utf-8") as f:
                 return json.load(f)
 
         except Exception:
-
             return {}
 
 
@@ -316,17 +327,11 @@ class VoiceManager:
     # ==================================================
 
     def _load_voicelist(self):
-
         try:
-
             if not self.VOICELIST_FILE.exists():
                 return {}
 
-            with self.VOICELIST_FILE.open(
-                "r",
-                encoding="utf-8",
-            ) as f:
-
+            with self.VOICELIST_FILE.open("r", encoding="utf-8") as f:
                 data = json.load(f)
 
             return {
@@ -351,17 +356,8 @@ class VoiceManager:
             for text, filename in self.voices.items()
         ]
 
-        with self.VOICELIST_FILE.open(
-            "w",
-            encoding="utf-8",
-        ) as f:
-
-            json.dump(
-                data,
-                f,
-                ensure_ascii=False,
-                indent=2,
-            )
+        with self.VOICELIST_FILE.open("w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
 
 
     # ==================================================
@@ -369,20 +365,15 @@ class VoiceManager:
     # ==================================================
 
     def _generation_loop(self):
-
         while True:
-
             item = None
 
             with self.queue_lock:
-
                 if self.generation_queue:
                     item = self.generation_queue.popleft()
 
             if item is None:
-
                 threading.Event().wait(0.1)
-
                 continue
 
             self._generate_voice(item)
@@ -415,21 +406,23 @@ class VoiceManager:
         # VOICEVOX生成
         # ------------------------------------------
 
-        if not voice_path.exists():
+        if not self._generate_voicevox(message, voice_path):
+            error_voice = "voice_generation_error.wav"
+            error_path = self.VOICE_DIR / error_voice
 
-            if not self._generate_voicevox(
-                message,
-                voice_path,
-            ):
-                return
+            if error_path.exists():
+                item["voice_file"] = error_voice
+                with self.queue_lock:
+                    self.queue.append(item)
+            return
 
         # ------------------------------------------
         # voicelist.json登録
         # ------------------------------------------
 
-        self.voices[message] = filename
-
-        self._save_voicelist()
+        if item.get("type") == VoiceType.VOICE_TEXT.value:
+            self.voices[message] = filename
+            self._save_voicelist()
 
         # ------------------------------------------
         # 再生Queueへ追加
@@ -445,14 +438,8 @@ class VoiceManager:
     # VOICEVOX
     # ==================================================
 
-    def _generate_voicevox(
-        self,
-        message,
-        voice_path,
-    ):
-
+    def _generate_voicevox(self, message, voice_path):
         try:
-
             # audio_query
             query_response = requests.post(
                 f"{self.voicevox_url}/audio_query",
@@ -488,12 +475,7 @@ class VoiceManager:
 
             return True
 
-        except (
-            requests.RequestException,
-            ValueError,
-            OSError,
-        ):
-
+        except (requests.RequestException, ValueError, OSError):
             return False
 
 
@@ -502,10 +484,22 @@ class VoiceManager:
     # ==================================================
 
     def voice_file_exists(self, voice_file):
-
         if not voice_file:
             return False
 
         path = self.VOICE_DIR / voice_file
 
         return path.exists()
+
+
+    def get_voice_text(self, voice_file):
+
+        if not voice_file:
+            return None
+
+        for text, filename in self.voices.items():
+
+            if filename == voice_file:
+                return text
+
+        return None
