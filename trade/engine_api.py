@@ -76,6 +76,7 @@ class TradeEngineAPI:
             margin_type=req.margin_type,
             side=side,
             strategy=strategy,
+            entry_condition=req.entry_condition,
 
             initial_stop_delay_seconds=(strategy_cfg["exit"]["initial_stop_delay_seconds"] ),
             stop_atr_multiplier=(strategy_cfg["exit"]["stop_initial"]["atr_multiplier"]),

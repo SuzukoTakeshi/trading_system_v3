@@ -29,6 +29,7 @@ class TradeRequestDTO(BaseModel):
     margin_type: Optional[MarginType] = None
     side: SideType
     strategy: StrategyType = StrategyType.DAYTRADE
+    entry_condition: str = "normal"
 
 class TradeIdsRequestDTO(BaseModel):
     trade_ids: list[int]

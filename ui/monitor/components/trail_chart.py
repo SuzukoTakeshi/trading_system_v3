@@ -160,7 +160,7 @@ def render_trail_chart(
 
         if pd.notna(latest_stop):
 
-            ax.axhline(latest_stop, linestyle="--", linewidth=0.8, alpha=0.7)
+            ax.axhline(latest_stop, linestyle="--", linewidth=0.8, alpha=0.7, color="red")
 
 
     # ==================================================

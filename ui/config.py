@@ -43,7 +43,7 @@ MONITOR_URL = f"http://127.0.0.1:{UI_PORT}/monitor"
 # =========================
 
 # API通信タイムアウト(秒)
-API_TIMEOUT_SEC = 3
+API_TIMEOUT_SEC = 1
 
 # =========================
 # 自動更新
@@ -53,7 +53,7 @@ API_TIMEOUT_SEC = 3
 # 1000 = 1秒
 
 # Console
-CONSOLE_REFRESH_INTERVAL_MS = 1000
+CONSOLE_REFRESH_INTERVAL_MS = 2000
 
 # Trail Monitor
 MONITOR_REFRESH_INTERVAL_MS = 5000

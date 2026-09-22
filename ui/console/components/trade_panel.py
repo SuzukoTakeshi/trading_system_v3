@@ -53,6 +53,9 @@ def trade_panel():
     if "trade_side" not in st.session_state:
         st.session_state.trade_side = "long"
 
+    if "trade_entry_condition" not in st.session_state:
+        st.session_state.trade_entry_condition = "normal"
+
     with st.container(border=True):
 
         st.subheader("TRADE ENTRY")
@@ -382,6 +385,38 @@ def trade_panel():
 
 
         # ==================================================
+        # ENTRY条件
+        # ==================================================
+
+        title_col, data_col = st.columns([1, 2])
+
+        with title_col:
+            st.write("トレード条件")
+
+        with data_col:
+            entry_condition_options = {
+                "条件(通常)": "normal",
+                "条件なし(即時注文)": "pass",
+            }
+
+            entry_condition_label = st.selectbox(
+                "トレード条件",
+                list(entry_condition_options.keys()),
+                index=(
+                    list(entry_condition_options.values()).index(
+                        st.session_state.trade_entry_condition
+                    )
+                ),
+                key="trade_entry_condition_select",
+                label_visibility="collapsed",
+            )
+
+            entry_condition = entry_condition_options[entry_condition_label]
+
+            st.session_state.trade_entry_condition = entry_condition
+
+
+        # ==================================================
         # トレード開始
         # ==================================================
 
@@ -395,6 +430,7 @@ def trade_panel():
                 "margin_type": margin_type,
                 "side": side_str,
                 "strategy": strategy,
+                "entry_condition": entry_condition,
             }
 
             try:

@@ -219,6 +219,9 @@ class AppService:
                     "margin_type": req.margin_type,
                     "side": req.side,
                     "strategy": req.strategy,
+
+                    # entry_conditionはTRADE ENTRY画面の初期値として復元しない
+                    # "entry_condition": req.entry_condition,
                 },
             )
 

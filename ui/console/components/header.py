@@ -31,42 +31,17 @@ def header(ctx):
 
     status = ctx.status
 
-    if status is None:
-        status = {}
-
     market = status.get("market", {})
     market_state = market.get("state", "UNKNOWN")
 
     trade_engine = status.get("trade_engine", {})
     engine = trade_engine.get("state", "UNKNOWN")
 
-    mode = status.get("mode", "UNKNOWN")
-
-
     with st.container(border=True):
 
-        col_refresh, col_market, col_engine, col_asset, col_daily, _, col_engine_action = st.columns(
-            [2, 2, 2, 2, 3, 9, 2]
+        col_market, col_engine, col_asset, col_daily, _, col_engine_action = st.columns(
+            [2, 2, 2, 3, 9, 2]
         )
-
-        with col_refresh:
-
-            st.markdown(
-                f"""
-                <div style="line-height:1.0;">
-                    <b>MODE: </b>
-                    {mode.upper()}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
-            auto_refresh = st.toggle(
-                "AUTO REFRESH",
-                value=st.session_state.auto_refresh,
-                key="console_auto_refresh",
-            )
-            st.session_state.auto_refresh = auto_refresh
 
         with col_market:
 

@@ -85,15 +85,7 @@ def post(path, json=None, params=None):
 # ==================================================
 
 def get_status():
-    try:
-        return get("/status")
-
-    except requests.ConnectionError:
-        return {
-            "trade_engine": {
-                "state": "OFFLINE"
-            }
-        }
+    return get("/status")
 
 
 # ==================================================

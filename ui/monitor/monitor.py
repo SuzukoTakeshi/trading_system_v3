@@ -95,7 +95,7 @@ def main():
     params = st.query_params
 
     trail_chart_display = params.get("trail_chart", "1") == "1"
-    timeline_display = params.get("timeline", "1") == "1"
+    timeline_display = params.get("timeline", "0") == "1"
 
     trail_chart_display, timeline_display = render_header(state, trail_chart_display, timeline_display)
 

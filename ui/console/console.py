@@ -28,7 +28,7 @@
 #
 
 from datetime import datetime
-
+import requests
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 
@@ -47,13 +47,24 @@ from ui.config import (
 # --------------------------------------
 
 from ui.api.client import (
+    get_error_message,
     get_status,
+    get_notifies,
     get_daily_result,
 )
 
-from ui.console.components.context import UIContext
+from ui.console.components.console_context import ConsoleContext
 from ui.console.components.header import header
-from ui.console.components.body import body
+from ui.console.components.main_panel import main_panel
+
+from ui.console.components.trade_panel import trade_panel
+from ui.auditor.auditor_panel import auditor_panel
+
+from ui.auditor.voice import (
+	voice_toggle,
+	is_play_voice,
+    get_status_voice,
+)
 
 from ui.console import message_store
 
@@ -87,52 +98,122 @@ div[data-testid="stHorizontalBlock"] {
 
 def main():
 
+    # Console Context生成
+    if "console_context" not in st.session_state:
+        st.session_state.console_context = ConsoleContext()
+
+    ctx = st.session_state.console_context
+
+    if "notify_list" not in st.session_state:
+        st.session_state.notify_list = []
+
+
     # API Status取得
-    status = get_status()
+    message = None
 
-    # 本日の日次実績取得
-    daily_result = get_daily_result()
+    try:
+        ctx.status = get_status()
+        ctx.online = True
 
-    system_header(status)
+    except requests.ConnectionError as e:
+        ctx.status = {}
+        ctx.online = False
+        message = get_error_message(e)
 
-    if "auto_refresh" not in st.session_state:
-        st.session_state.auto_refresh = False
+    system_header(ctx)
 
-    # Backend OFFLINE
-    if status.get("trade_engine", {}).get("state") == "OFFLINE":
-        st.warning("Trading System 本体が起動していません。")
-        return
+    if ctx.previous_online is not None:
+        if ctx.previous_online != ctx.online:
+            if is_play_voice():
+                status_voice = get_status_voice(ctx.online)
 
-    # UI Context生成
-    ctx = UIContext(status=status, daily_result=daily_result)
+                st.session_state.notify_list.append(status_voice)
 
-    header(ctx)
-
-    body(ctx)
+    ctx.previous_online = ctx.online
 
 
+    if not ctx.online:
+        st.warning(message)
+
+        auditor_panel(st.session_state.notify_list, voice_enabled=ctx.play_voice, image_enabled=False)
+        st.session_state.notify_list = []
+
+    else:
+        data = get_notifies()
+
+        ctx.notify_list = data.get("notifies", [])
+
+        if ctx.notify_list:
+            ctx.last_notify_list = ctx.notify_list
+
+
+        if "notify_list" not in st.session_state:
+            st.session_state.notify_list = []
+
+        ctx.notify_list.extend(st.session_state.notify_list)
+
+        st.session_state.notify_list = []
+
+
+        ctx.play_voice= is_play_voice()
+
+
+        # 本日の日次実績取得
+        daily_result = get_daily_result()
+        ctx.daily_result = daily_result
+
+        header(ctx)
+
+        if ctx.show_auditor:
+            col_main, col_entry, col_auditor = st.columns([10, 3, 2])
+
+            with col_main:
+                main_panel(ctx)
+
+            with col_entry:
+                trade_panel()
+
+            with col_auditor:
+                auditor_panel(ctx.notify_list, voice_enabled=ctx.play_voice, image_enabled=True)
+
+        else:
+            col_main, col_entry = st.columns([13, 3])
+
+            with col_main:
+                main_panel(ctx)
+
+            with col_entry:
+                trade_panel()
+
+            auditor_panel(ctx.notify_list, voice_enabled=ctx.play_voice, image_enabled=False)
+
+    # refresh_once
     if st.session_state.get("refresh_once", False):
         st.session_state.refresh_once = False
         st.rerun()
 
     # Auto Refresh
     #
-    # st_autorefresh() は画面上に描画領域を持つため、
-    # UI途中に配置すると、その位置に縦方向の余白が発生する。
+    # 通常時:
+    #   ctx.auto_refresh に従う
     #
-    # UIへの影響を避けるため、画面の最後に配置する。
+    # OFFLINE時:
+    #   復帰監視のため常に更新する
     #
-    if st.session_state.auto_refresh:
-        st_autorefresh(interval=CONSOLE_REFRESH_INTERVAL_MS, key="console_refresh")
+    if ctx.auto_refresh or not ctx.online:
+        st_autorefresh(
+            interval=CONSOLE_REFRESH_INTERVAL_MS,
+            key="console_refresh",
+        )
 
 
-def system_header(status):
+def system_header(ctx):
 
     now = datetime.now()
     datetime_text = format_datetime_jp(now)
 
     # Backendメッセージ
-    backend_message = status.get("message")
+    backend_message = ctx.status.get("message")
 
     if backend_message:
 
@@ -154,10 +235,34 @@ def system_header(status):
         message_text = system_message.get("message")
 
 
-    col_title, col_message, col_datetime = st.columns([4, 4, 2])
+    col_title, col_mode, col_message, col_auditor, col_voice, col_refresh, col_datetime = st.columns([1, 1, 5, 1, 1, 1, 1])
 
     with col_title:
         st.caption("📈 Trading System Console")
+
+    with col_mode:
+        mode = ctx.status.get("mode", "UNKNOWN")
+
+        st.markdown(
+            f"""
+            <div style="line-height:1.0;">
+                <b>MODE: </b>
+                {mode.upper()}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+    with col_refresh:
+
+        auto_refresh = st.toggle(
+            f"AUTO REFRESH ({CONSOLE_REFRESH_INTERVAL_MS / 1000:g}s)",
+            value=ctx.auto_refresh,
+            key="console_auto_refresh",
+        )
+        ctx.auto_refresh = auto_refresh
+
 
     with col_message:
 
@@ -191,6 +296,22 @@ def system_header(status):
                 """,
                 unsafe_allow_html=True
             )
+
+
+    with col_auditor:
+        show_auditor = st.toggle(
+            "AUDITOR",
+            value=ctx.show_auditor,
+            key="console_show_auditor",
+        )
+
+        ctx.show_auditor = show_auditor
+
+    with col_voice:
+        voice_notify = voice_toggle()
+
+        if voice_notify:
+            st.session_state.notify_list.append(voice_notify)
 
     with col_datetime:
         st.markdown(

@@ -37,6 +37,194 @@ from ui.api.client import (
 
 from ui.console import message_store
 
+
+# ==================================================
+# TRADE LIST 列定義
+# ==================================================
+
+TRADE_COLUMNS = {
+
+    "select": {
+        "label": "選択",
+        "width": "small",
+        "type": "checkbox",
+        "disabled": False,
+    },
+
+    "trade_id": {
+        "label": "ID",
+        "width": "small",
+        "type": "number",
+        "disabled": True,
+    },
+
+    "symbol_name": {
+        "label": "銘柄",
+        "width": "medium",
+        "type": "text",
+        "disabled": True,
+    },
+
+    "current_price": {
+        "label": "現在値",
+        "width": "small",
+        "type": "text",
+        "disabled": True,
+    },
+
+    "quantity": {
+        "label": "数量",
+        "width": "small",
+        "type": "number",
+        "format": "%,d",
+        "disabled": True,
+    },
+
+    "atr": {
+        "label": "ATR",
+        "width": "small",
+        "type": "number",
+        "format": "%.1f",
+        "disabled": True,
+    },
+
+    "trade_type": {
+        "label": "取引区分",
+        "width": "small",
+        "type": "text",
+        "disabled": True,
+    },
+
+    "margin_type": {
+        "label": "信用区分",
+        "width": "small",
+        "type": "text",
+        "disabled": True,
+    },
+
+    "strategy": {
+        "label": "戦略",
+        "width": "small",
+        "type": "text",
+        "disabled": True,
+    },
+
+    "side": {
+        "label": "トレード区分",
+        "width": "small",
+        "type": "text",
+        "disabled": True,
+    },
+
+    "entry_condition": {
+        "label": "トレード条件",
+        "width": "small",
+        "type": "text",
+        "disabled": True,
+    },
+
+    "profit_loss": {
+        "label": "損益",
+        "width": "small",
+        "type": "text",
+        "disabled": True,
+    },
+
+    "state": {
+        "label": "状態",
+        "width": "small",
+        "type": "text",
+        "disabled": True,
+    },
+
+    "message": {
+        "label": "メッセージ",
+        "width": "medium",
+        "type": "text",
+        "disabled": True,
+    },
+
+    "entry_price": {
+        "label": "ENTRY金額",
+        "width": "small",
+        "type": "text",
+        "disabled": True,
+    },
+
+    "entry_time": {
+        "label": "ENTRY日時",
+        "width": "medium",
+        "type": "text",
+        "disabled": True,
+    },
+
+    "exit_price": {
+        "label": "EXIT金額",
+        "width": "small",
+        "type": "text",
+        "disabled": True,
+    },
+
+    "exit_time": {
+        "label": "EXIT日時",
+        "width": "medium",
+        "type": "text",
+        "disabled": True,
+    },
+
+    "created_at": {
+        "label": "登録日時",
+        "width": "medium",
+        "type": "text",
+        "disabled": True,
+    },
+}
+
+
+# ==================================================
+# data_editor 設定生成
+# ==================================================
+
+def create_trade_column_config():
+
+    config = {}
+
+    for key, column in TRADE_COLUMNS.items():
+        column_type = column["type"]
+
+        if column_type == "checkbox":
+            config[key] = st.column_config.CheckboxColumn(
+                column["label"],
+                width=column["width"],
+            )
+        elif column_type == "number":
+            config[key] = st.column_config.NumberColumn(
+                column["label"],
+                width=column["width"],
+                format=column.get("format"),
+            )
+        else:
+            config[key] = st.column_config.TextColumn(
+                column["label"],
+                width=column["width"],
+            )
+
+    return config
+
+
+def create_trade_disabled_columns():
+
+    return [
+        key
+        for key, column in TRADE_COLUMNS.items()
+        if column["disabled"]
+    ]
+
+
+# ==================================================
+# List Button Action
+# ==================================================
+
 def list_button_action(action, trade_id, success_message, cancel_confirm=False):
 
     try:
@@ -54,16 +242,18 @@ def list_button_action(action, trade_id, success_message, cancel_confirm=False):
                 st.session_state["cancel_confirm_message"] = response_message
             else:
                 message_store.set(level="WARNING", message=response_message or "操作が拒否されました。")
-
         else:
             message_store.set(level="ERROR", message=response_message or "処理に失敗しました。")
 
     except Exception as e:
-
         message_store.set(level="ERROR", message=get_error_message(e))
 
     st.rerun()
 
+
+# ==================================================
+# Cancel Confirm Dialog
+# ==================================================
 
 @st.dialog("CANCEL確認")
 def cancel_confirm_dialog(trade_id, message):
@@ -76,7 +266,6 @@ def cancel_confirm_dialog(trade_id, message):
 
     with col1:
         if st.button("はい", width="stretch"):
-
             # CANCEL実行
             cancel_trade(trade_id, force=True)
 
@@ -96,17 +285,19 @@ def cancel_confirm_dialog(trade_id, message):
             st.rerun()
 
 
+# ==================================================
+# Trade List
+# ==================================================
+
 def trade_list():
 
     confirm_trade_id = st.session_state.get("cancel_confirm_trade_id")
 
     if confirm_trade_id is not None:
-
         cancel_confirm_dialog(
             confirm_trade_id,
-            st.session_state.get("cancel_confirm_message", "このTradeは現在CANCELできません。")
+            st.session_state.get("cancel_confirm_message", "このTradeは現在CANCELできません。"),
         )
-
 
     with st.container(border=True):
 
@@ -120,7 +311,7 @@ def trade_list():
             }
             </style>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
         title_col, select_count_col, all_select_col, monitor_col, pause_col, resume_col, cancel_col, delete_col = st.columns(
@@ -143,7 +334,7 @@ def trade_list():
             row = trade.copy()
 
             # 銘柄
-            row["symbol_name"] = f'{row.get("symbol", "")}　{row.get("name", "")}'
+            row["symbol_name"] = (f'{row.get("symbol", "")}　{row.get("name", "")}')
 
             row.pop("symbol", None)
             row.pop("name", None)
@@ -164,19 +355,29 @@ def trade_list():
                 row["current_price"] = f"{current_price:,.2f}"
 
             # 取引区分
-            row["trade_type"] = TRADE_TYPE_LABEL.get(
-                row.get("trade_type", ""),
-                TRADE_TYPE_UNKNOWN
-            )
+            row["trade_type"] = TRADE_TYPE_LABEL.get(row.get("trade_type", ""), TRADE_TYPE_UNKNOWN)
 
             # 信用区分
             if trade.get("trade_type") == "margin":
                 row["margin_type"] = MARGIN_TYPE_LABEL.get(row.get("margin_type", ""), MARGIN_TYPE_UNKNOWN)
+
             else:
                 row["margin_type"] = ""
 
             # 戦略
             row["strategy"] = STRATEGY_LABEL.get(row.get("strategy", ""), row.get("strategy", ""))
+
+            # トレード区分 (LONG/SHORT)
+            row["side"] = SIDE_LABEL.get(row.get("side", ""), row.get("side", ""))
+
+            # トレード条件
+            row["entry_condition"] = {
+                "normal": "条件(通常)",
+                "pass": "条件なし(即時注文)",
+            }.get(
+                row.get("entry_condition", "normal"),
+                "条件(通常)",
+            )
 
             # 損益
             if row["state"] == "closed":
@@ -184,13 +385,11 @@ def trade_list():
             else:
                 profit_loss = row["current_profit_loss"]
 
-            row["profit_loss"] = ("-"
+            row["profit_loss"] = (
+                "-"
                 if profit_loss is None
-                else f'{profit_loss:,.2f}'
+                else f"{int(profit_loss):,}"
             )
-
-            # 売買方向
-            row["side"] = SIDE_LABEL.get(row.get("side", ""), row.get("side", ""))
 
             # 状態
             pause_flag = row.get("pause_flag", False)
@@ -202,15 +401,13 @@ def trade_list():
 
             # メッセージ
             exit_reason = row.get("exit_reason")
+
             if exit_reason:
-                row["message"] = get_exit_reason_label(
-                    exit_reason,
-                    profit_loss,
-                )
+                row["message"] = get_exit_reason_label(exit_reason, profit_loss)
             else:
                 row["message"] = row.get("message")
 
-            # ENTRY
+            # ENTRY金額
             row["entry_price"] = (
                 "-"
                 if row.get("entry_price") is None
@@ -220,7 +417,7 @@ def trade_list():
             # ENTRY日時
             row["entry_time"] = fmt_dt(row.get("entry_time"))
 
-            # EXIT
+            # EXIT金額
             row["exit_price"] = (
                 "-"
                 if row.get("exit_price") is None
@@ -249,6 +446,7 @@ def trade_list():
                     "margin_type": "",
                     "strategy": "",
                     "side": "",
+                    "entry_condition": "",
                     "profit_loss": "",
                     "state": "",
                     "message": "",
@@ -268,84 +466,29 @@ def trade_list():
         }
 
         selected_trade_ids = (
-            st.session_state.get("trade_list_selected_ids", set())
+            st.session_state.get(
+                "trade_list_selected_ids",
+                set(),
+            )
             & current_trade_ids
         )
 
         for trade in trades:
             trade["select"] = (trade["trade_id"] in selected_trade_ids)
 
+        # ==================================================
         # Trade一覧
+        # ==================================================
+
         edited = st.data_editor(
             trades,
             key="trade_list_editor",
             width="stretch",
             height=280,
             hide_index=True,
-
-            column_order=[
-                "select",
-                "trade_id",
-                "symbol_name",
-                "current_price",
-                "quantity",
-                "atr",
-                "trade_type",
-                "margin_type",
-                "strategy",
-                "side",
-                "profit_loss",
-                "state",
-                "message",
-                "entry_price",
-                "entry_time",
-                "exit_price",
-                "exit_time",
-                "created_at",
-            ],
-
-            column_config={
-                "select": st.column_config.CheckboxColumn("選択", width="small"),
-                "trade_id": st.column_config.NumberColumn("ID", width="small"),
-                "symbol_name": st.column_config.TextColumn("銘柄", width="medium"),
-                "current_price": st.column_config.TextColumn("現在値", width="small"),
-                "quantity": st.column_config.NumberColumn("数量", width="small", format="%,d"),
-                "atr": st.column_config.NumberColumn("ATR", width="small", format="%.1f"),
-                "trade_type": st.column_config.TextColumn("取引区分", width="small"),
-                "margin_type": st.column_config.TextColumn("信用区分", width="small"),
-                "strategy": st.column_config.TextColumn("戦略", width="small"),
-                "side": st.column_config.TextColumn("トレード区分", width="small"),
-                "profit_loss": st.column_config.TextColumn("損益", width="small"),
-                "state": st.column_config.TextColumn("状態", width="small"),
-                "message": st.column_config.TextColumn("メッセージ", width="large"),
-                "entry_price": st.column_config.TextColumn("ENTRY金額", width="small"),
-                "entry_time": st.column_config.TextColumn("ENTRY日時", width="medium"),
-                "exit_price": st.column_config.TextColumn("EXIT金額", width="small"),
-                "exit_time": st.column_config.TextColumn("EXIT日時", width="medium"),
-                "created_at": st.column_config.TextColumn("登録日時", width="medium")
-            },
-
-            # 編集禁止
-            disabled=[
-                "trade_id",
-                "symbol_name",
-                "current_price",
-                "price",
-                "quantity",
-                "atr",
-                "trade_type",
-                "margin_type",
-                "strategy",
-                "side",
-                "profit_loss",
-                "state",
-                "message",
-                "entry_price",
-                "entry_time",
-                "exit_price",
-                "exit_time",
-                "created_at",
-            ],
+            column_order=list(TRADE_COLUMNS),
+            column_config=create_trade_column_config(),
+            disabled=create_trade_disabled_columns(),
         )
 
         #
@@ -361,7 +504,6 @@ def trade_list():
         st.session_state["trade_list_selected_ids"] = set(selected_ids)
 
         selected_placeholder.markdown(f"選択 : {len(selected_ids)} 件")
-
 
         #
         # 全選択

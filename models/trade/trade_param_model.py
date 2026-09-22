@@ -28,6 +28,7 @@ class TradeParamModel:
         margin_type,
         side,
         strategy,
+        entry_condition,
 
         initial_stop_delay_seconds,
         stop_atr_multiplier,
@@ -63,6 +64,9 @@ class TradeParamModel:
 
         # 戦略 (スキャルピング/デイトレ/スウィング)
         self.strategy = strategy
+
+        # ENTRY条件
+        self.entry_condition = entry_condition
 
         # EXIT設定
         self.initial_stop_delay_seconds = initial_stop_delay_seconds
@@ -100,6 +104,7 @@ class TradeParamModel:
             "margin_type": self.margin_type,
             "side": self.side.value,
             "strategy": self.strategy.value,
+            "entry_condition": self.entry_condition,
 
             "initial_stop_delay_seconds": self.initial_stop_delay_seconds,
             "stop_atr_multiplier": self.stop_atr_multiplier,
@@ -139,6 +144,7 @@ class TradeParamModel:
             margin_type=MarginType(data.get("margin_type")),
             side=SideType(data.get("side")),
             strategy=StrategyType(data.get("strategy")),
+            entry_condition=data.get("entry_condition", "normal"),
 
             initial_stop_delay_seconds=(data.get("initial_stop_delay_seconds", 0)),
             stop_atr_multiplier=(data.get("stop_atr_multiplier", 0)),

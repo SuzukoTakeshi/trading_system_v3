@@ -1,7 +1,5 @@
 #
-# auditor/components/voice.py
-#
-# Auditor Voice
+# ui/auditor/voice.py
 #
 
 import streamlit as st
@@ -9,27 +7,36 @@ import streamlit as st
 
 def voice_toggle():
 
-    context = st.session_state.auditor_context
+    if "voice_enabled" not in st.session_state:
+        st.session_state.voice_enabled = True
 
-    with st.container():
-        voice_enabled = st.toggle(
-            "Voice",
-            value=context.voice_enabled,
-            key="auditor_voice_enabled",
-        )
+    voice_enabled = st.toggle(
+        "VOICE",
+        value=st.session_state.voice_enabled,
+        key="auditor_voice_enabled",
+    )
 
-    if context.voice_enabled != voice_enabled:
+    if st.session_state.voice_enabled != voice_enabled:
 
         if voice_enabled:
             voice_file = "voice_on.wav"
+            voice_text = "VOICE ON"
         else:
             voice_file = "voice_off.wav"
+            voice_text = "VOICE OFF"
 
-        context.voice_enabled = voice_enabled
+        st.session_state.voice_enabled = voice_enabled
 
-        return voice_file
+        return {
+            "voice_file": voice_file,
+            "voice_text": voice_text,
+        }
 
     return None
+
+
+def is_play_voice():
+    return st.session_state.voice_enabled
 
 
 def get_status_voice(status):

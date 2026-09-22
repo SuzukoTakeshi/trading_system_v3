@@ -53,6 +53,7 @@ class TradeModel(BaseEntity):
         margin_type,
         side,
         strategy,
+        entry_condition,
 
         initial_stop_delay_seconds,
         stop_atr_multiplier,
@@ -96,6 +97,7 @@ class TradeModel(BaseEntity):
             margin_type=margin_type,
             side=side,
             strategy=strategy,
+            entry_condition=entry_condition,
 
             initial_stop_delay_seconds=initial_stop_delay_seconds,
             stop_atr_multiplier=stop_atr_multiplier,
@@ -121,6 +123,14 @@ class TradeModel(BaseEntity):
 
         # EXIT Order
         self.exit_order = None
+
+
+        # Trade状態
+        #   PASSの場合はENTRY条件判定をスキップ
+        if entry_condition == "pass":
+            self.state = TradeState.ENTRY_REQUEST
+        else:
+            self.state = TradeState.CREATED
 
 
     def get_quote(self):
