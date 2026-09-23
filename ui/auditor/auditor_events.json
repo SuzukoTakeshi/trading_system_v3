@@ -1,0 +1,26 @@
+[
+    {
+        "time": "09:00",
+        "image": "morning.png",
+        "voice_id": "AUDITOR_MARKET_OPEN",
+        "voice_text": "今日も一日、頑張ろうね。"
+    },
+    {
+        "time": "12:00",
+        "image": "lunch.png",
+        "voice_id": "AUDITOR_LUNCH",
+        "voice_text": "お昼の時間だよ。"
+    },
+    {
+        "time": "15:00",
+        "image": "market_close.png",
+        "voice_id": "AUDITOR_MARKET_CLOSE",
+        "voice_text": "今日の取引、お疲れさま。"
+    },
+    {
+        "time": "10:00",
+        "image": "auditor_test.png",
+        "voice_id": "AUDITOR_TEST",
+        "voice_text": "テスト!テスト!テスト!"
+    }
+]

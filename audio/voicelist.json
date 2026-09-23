@@ -1,1 +1,27 @@
-[]
+[
+  {
+    "voice_id": "AUDITOR_TEST",
+    "voice_text": "テスト!テスト!テスト!",
+    "voice_file": "auditor_test.wav"
+  },
+  {
+    "voice_id": "TRADE_REGISTER_SYMBOL_NOT_FOUND",
+    "voice_text": "銘柄情報がありません。",
+    "voice_file": "trade_register_symbol_not_found.wav"
+  },
+  {
+    "voice_id": "TRADE_REGISTER_INVALID_QUANTITY",
+    "voice_text": "数量は100以上で指定してください。",
+    "voice_file": "trade_register_invalid_quantity.wav"
+  },
+  {
+    "voice_id": "TRADE_REGISTER_INVALID_TRADE_PRICE",
+    "voice_text": "開始価格は0以上で指定してください。",
+    "voice_file": "trade_register_invalid_trade_price.wav"
+  },
+  {
+    "voice_id": "TRADE_REGISTER_INVALID_ATR",
+    "voice_text": "ATRは0より大きい値を指定してください。",
+    "voice_file": "trade_register_invalid_atr.wav"
+  }
+]

@@ -24,7 +24,7 @@ def get_image_path(current_path=None):
         return current_path
 
     # 画像一覧取得
-    image_dir = Path("ui/auditor/images")
+    image_dir = Path("ui/auditor/random_images")
 
     if not image_dir.exists():
         return current_path

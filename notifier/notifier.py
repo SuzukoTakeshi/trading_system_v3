@@ -11,6 +11,8 @@ from core.logger import Log
 from core.symbol_store import SymbolStore
 
 from audio.voice_manager import VoiceManager
+from audio.voice_registry import VoiceRegistry
+
 from audio.voice_enums import VoiceType
 
 
@@ -25,6 +27,7 @@ class Notifier:
         self.symbol_store = SymbolStore()
 
         self.voice_manager = VoiceManager()
+        self.voice_registry = VoiceRegistry()
 
         # 音声準備待ちQueue
         self.prepare_queue = []
@@ -194,7 +197,7 @@ class Notifier:
 
         # voice_text が無い場合だけ VoiceManager から取得
         if not item.get("voice_text"):
-            item["voice_text"] = self.voice_manager.get_voice_text(
+            item["voice_text"] = self.voice_registry.get_voice_text(
                 voice_file
             )
 

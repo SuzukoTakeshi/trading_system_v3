@@ -4,6 +4,11 @@
 
 import streamlit as st
 
+from audio.voice_registry import VoiceRegistry
+
+
+voice_registry = VoiceRegistry()
+
 
 def voice_toggle():
 
@@ -57,11 +62,25 @@ def get_status_voice(status):
 
 def get_notify_voices(notify_list):
 
-    return [
-        {
-            "voice_file": item.get("voice_file"),
+    voices = []
+
+    for item in notify_list:
+
+        voice_file = item.get("voice_file")
+
+        if not voice_file:
+
+            voice_file = voice_registry.get_voice_file(
+                voice_id=item.get("voice_id"),
+                voice_text=item.get("voice_text"),
+            )
+
+        if not voice_file:
+            continue
+
+        voices.append({
+            "voice_file": voice_file,
             "voice_text": item.get("voice_text"),
-        }
-        for item in notify_list
-        if item.get("voice_file")
-    ]
+        })
+
+    return voices

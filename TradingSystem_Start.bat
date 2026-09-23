@@ -15,8 +15,8 @@ rem
 rem   TradingSystem_Start.bat PROD
 rem   TradingSystem_Start.bat DEV
 rem
-rem   TradingSystem_Start.bat PROD 1 2 3
-rem   TradingSystem_Start.bat DEV 1 2 3
+rem   TradingSystem_Start.bat PROD 1 2
+rem   TradingSystem_Start.bat DEV 1 2
 rem
 rem   第1引数
 rem       PROD / DEV
@@ -26,12 +26,6 @@ rem       サービス用モニター
 rem
 rem   第3引数
 rem       CONSOLEブラウザ配置用モニター
-rem
-rem       0   : ブラウザを起動しない
-rem       1～4 : 指定モニターへ最大化表示
-rem
-rem   第4引数
-rem       AUDITORブラウザ配置用モニター
 rem
 rem       0   : ブラウザを起動しない
 rem       1～4 : 指定モニターへ最大化表示

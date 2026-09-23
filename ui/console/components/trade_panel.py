@@ -39,7 +39,7 @@ def trade_panel():
         st.session_state.trade_price = 0
 
     if "trade_atr" not in st.session_state:
-        st.session_state.trade_atr = 0.0
+        st.session_state.trade_atr = 2.0
 
     if "trade_type" not in st.session_state:
         st.session_state.trade_type = "margin"
@@ -436,11 +436,14 @@ def trade_panel():
             try:
                 result = register_trade(payload)
 
+                st.session_state.notify_list.append({
+                    "voice_id": result.get("response_id"),
+                    "voice_text": result.get("message"),
+                    "voice_file": result.get("voice_file"),
+                })
+
                 if result.get("result") == "OK":
-                    message_store.set(
-                        level="INFO",
-                        message=result.get("message", "TRADE REGISTERED")
-                    )
+                    message_store.set(level="INFO", message=result.get("message", "TRADE REGISTERED"))
 
                     # 銘柄履歴更新
                     options = get_trade_options()
@@ -448,17 +451,11 @@ def trade_panel():
                     st.session_state.trade_symbols = options["symbols"]
 
                 else:
-                    message_store.set(
-                        level="WARNING",
-                        message=result.get("message", "Trade登録に失敗しました。")
-                    )
+                    message_store.set(level="WARNING", message=result.get("message", "Trade登録に失敗しました。"))
 
                 st.rerun()
 
             except Exception as e:
-                message_store.set(
-                    level="ERROR",
-                    message=f"TRADE ERROR : {get_error_message(e)}",
-                )
+                message_store.set(level="ERROR", message=f"TRADE ERROR : {get_error_message(e)}")
 
                 st.rerun()

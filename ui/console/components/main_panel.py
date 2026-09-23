@@ -6,6 +6,8 @@ import streamlit as st
 
 from ui.console.components.trade_list import trade_list
 from ui.console.components.system_log import system_log
+from ui.console.components.asset_panel import asset_panel
+from ui.console.components.config_panel import config_panel
 
 
 def main_panel(ctx):
@@ -23,7 +25,7 @@ def main_panel(ctx):
         button[kind="primary"]:hover {
             background-color: #1565c0 !important;
             color: white !important;
-            border-color: #1565c0 !important;
+            border-color: #1976d2 !important;
         }
         </style>
         """,
@@ -34,17 +36,17 @@ def main_panel(ctx):
 
     with col1:
         if st.button(
-            "TRADE LIST",
+            "トレード(TRADE)",
             width="stretch",
-            key="main_page_list",
-            type="primary" if ctx.main_page == "trade_list" else "secondary",
+            key="main_page_trade",
+            type="primary" if ctx.main_page == "trade" else "secondary",
         ):
-            ctx.main_page = "trade_list"
+            ctx.main_page = "trade"
             st.rerun()
 
     with col2:
         if st.button(
-            "ASSET",
+            "資産(ASSET)",
             width="stretch",
             key="main_page_asset",
             type="primary" if ctx.main_page == "asset" else "secondary",
@@ -54,7 +56,7 @@ def main_panel(ctx):
 
     with col3:
         if st.button(
-            "CONFIG",
+            "設定(CONFIG)",
             width="stretch",
             key="main_page_config",
             type="primary" if ctx.main_page == "config" else "secondary",
@@ -64,9 +66,12 @@ def main_panel(ctx):
 
     match ctx.main_page:
 
-        case "trade_list":
+        case "trade":
             trade_list()
             system_log()
 
+        case "asset":
+            asset_panel(ctx)
+
         case "config":
-            pass
+            config_panel(ctx)

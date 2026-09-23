@@ -32,7 +32,7 @@ class ConsoleContext:
     # Voice出力
     play_voice: bool = True
 
-    main_page: str = "trade_list"
+    main_page: str = "trade"
 
     # Auditorに表示する画像パス
     auditor_image_path: str | None = None
