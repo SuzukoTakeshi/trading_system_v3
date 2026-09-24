@@ -44,12 +44,10 @@ class ProcessTrailingShort(ProcessTrailingBase):
         super().init_trailing(trade)
 
         entry_price = trade.entry_order.result.price
-        atr = trade.param.atr
+        atr_amount = entry_price * trade.param.atr / 100
 
         # ENTRYでの約定価格から初期STOP価格を設定する
-        trade.runtime.stop_price = (
-            entry_price + atr * trade.param.stop_atr_multiplier
-        )
+        trade.runtime.stop_price = (entry_price + atr_amount * trade.param.stop_atr_multiplier)
 
         trade.runtime.trailing_lowest_price = entry_price
         trade.runtime.trailing_highest_price = None
@@ -75,7 +73,13 @@ class ProcessTrailingShort(ProcessTrailingBase):
             Log.event(f"(#{trade.id}) {message}")
             trade.add_timeline(event="TRAILING", message=message, current_price=current_price)
 
-            new_stop = trade.runtime.trailing_lowest_price + trade.param.atr * trade.param.trail_atr_multiplier
+            entry_price = trade.entry_order.result.price
+            atr_amount = entry_price * trade.param.atr / 100
+
+            new_stop = (
+                trade.runtime.trailing_lowest_price
+                + atr_amount * trade.param.trail_atr_multiplier
+            )
 
             if new_stop < trade.runtime.stop_price:
                 trade.runtime.stop_price = new_stop

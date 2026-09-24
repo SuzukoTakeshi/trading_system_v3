@@ -39,7 +39,7 @@ def trade_panel():
         st.session_state.trade_price = 0
 
     if "trade_atr" not in st.session_state:
-        st.session_state.trade_atr = 2.0
+        st.session_state.trade_atr = 1.0
 
     if "trade_type" not in st.session_state:
         st.session_state.trade_type = "margin"
@@ -176,12 +176,13 @@ def trade_panel():
         title_col, data_col, _ = st.columns([1, 1, 1])
 
         with title_col:
-            st.write("ATR")
+            st.write("ATR (%)")
 
         with data_col:
             atr = st.number_input(
-                "ATR",
-                min_value=0.0,
+                "ATR (%)",
+                min_value=0.1,
+                max_value=10.0,
                 step=0.1,
                 key="trade_atr",
                 label_visibility="collapsed",

@@ -209,7 +209,7 @@ def render_trail_card(trade: dict):
         # current_price / expected_profit_loss
         # ---------------------
 
-        current_price_col, expected_profit_loss_col = st.columns([5, 1])
+        current_price_col, expected_profit_loss_col = st.columns([4, 1])
 
         with current_price_col:
             current_price = fmt_price(trade.get("current_price"))

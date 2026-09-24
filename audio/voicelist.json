@@ -21,7 +21,7 @@
   },
   {
     "voice_id": "TRADE_REGISTER_INVALID_ATR",
-    "voice_text": "ATRは0より大きい値を指定してください。",
+    "voice_text": "ATRは0.1以上で指定してください。",
     "voice_file": "trade_register_invalid_atr.wav"
   }
 ]

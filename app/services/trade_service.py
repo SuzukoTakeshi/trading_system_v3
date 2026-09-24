@@ -172,7 +172,7 @@ class TradeService:
         if req.trade_price is None or req.trade_price < 0:
             return { "response_id": "TRADE_REGISTER_INVALID_TRADE_PRICE" }
 
-        if req.atr is None or req.atr <= 0:
+        if req.atr is None or req.atr < 0.1:
             return { "response_id": "TRADE_REGISTER_INVALID_ATR" }
 
         return None

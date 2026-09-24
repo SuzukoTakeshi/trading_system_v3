@@ -47,7 +47,8 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
         cfg = self.get_entry_config()
 
         # 押し込み幅計算
-        pullback_width = (trade.param.atr * cfg["pullback_atr_multiplier"])
+        atr_amount = (trade.runtime.entry_base_price * trade.param.atr / 100)
+        pullback_width = (atr_amount * cfg["pullback_atr_multiplier"])
 
         # 押し込み判定ライン
         pullback_price = (trade.runtime.entry_base_price - pullback_width)

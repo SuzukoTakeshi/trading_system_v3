@@ -454,12 +454,6 @@ class TradeEngine:
                         if self.process_completed.process(trade):
                             trade.change_state(TradeState.CLOSED)
 
-                    # ==========================================
-                    # Trade終了
-                    # ・最終状態
-                    # ==========================================
-                    case TradeState.CLOSED:
-                        pass
 
             except Exception as e:
 

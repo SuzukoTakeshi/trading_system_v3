@@ -79,11 +79,7 @@ class ProcessEntryReversalLong(ProcessEntryBase):
             )
 
             Log.event(f"(#{trade.id}) {message}")
-            trade.add_timeline(
-                event="ENTRY",
-                message=message,
-                current_price=current_price
-            )
+            trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
 
         # ---------------------------------------
         # 前回価格更新
@@ -93,35 +89,20 @@ class ProcessEntryReversalLong(ProcessEntryBase):
         # ---------------------------------------
         # 反転確認回数
         # ---------------------------------------
-        if (
-            trade.runtime.entry_reversal_count
-            >=
-            cfg["reversal_confirm_count"]
-        ):
+        if (trade.runtime.entry_reversal_count >= cfg["reversal_confirm_count"]):
+            reversal_lowest_price = trade.runtime.entry_reversal_lowest_price
 
-            reversal_lowest_price = (
-                trade.runtime.entry_reversal_lowest_price
-            )
+            reversal_atr_multiplier = cfg["reversal_atr_multiplier"]
 
-            reversal_atr_multiplier = (
-                cfg["reversal_atr_multiplier"]
-            )
+            atr_amount = (trade.runtime.entry_base_price * trade.param.atr / 100)
+            required_rise_width = (atr_amount * reversal_atr_multiplier)
 
-            required_rise_width = (
-                trade.param.atr
-                * reversal_atr_multiplier
-            )
-
-            rise_width = (
-                current_price
-                - reversal_lowest_price
-            )
+            rise_width = (current_price - reversal_lowest_price)
 
             # ---------------------------------------
             # 上昇幅が不足している場合
             # ---------------------------------------
             if rise_width < required_rise_width:
-
                 message = (
                     f"REVERSAL WAIT LONG "
                     f"count={trade.runtime.entry_reversal_count} "

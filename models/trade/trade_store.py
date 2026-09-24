@@ -35,7 +35,7 @@ class TradeStore(BaseStore):
     # ==========================================
     def _get_file_name(self, trade_id):
 
-        return f"{trade_id}.json"
+        return f"trade_{trade_id}.json"
 
 
     # ==========================================
@@ -59,11 +59,13 @@ class TradeStore(BaseStore):
     def find_all(self, order="asc"):
 
         file_paths = list(
-            self.dir_path.glob("*.json")
+            self.dir_path.glob("trade_*.json")
         )
 
         file_paths.sort(
-            key=lambda path: int(path.stem),
+            key=lambda path: int(
+                path.stem.replace("trade_", "")
+            ),
             reverse=(order == "desc")
         )
 

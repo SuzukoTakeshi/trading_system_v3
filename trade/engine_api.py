@@ -120,9 +120,6 @@ class TradeEngineAPI:
             f"strategy={trade.param.strategy.value} "
             f"pullback_atr={strategy_cfg['entry']['pullback_atr_multiplier']} "
             f"reversal_count={strategy_cfg['entry']['reversal_confirm_count']} "
-            f"entry_atr={strategy_cfg['entry']['atr']['enabled']} "
-            f"atr_min={strategy_cfg['entry']['atr']['min']} "
-            f"atr_max={strategy_cfg['entry']['atr']['max']} "
 
             f"initial_stop_delay={strategy_cfg['exit']['initial_stop_delay_seconds']}s "
             f"stop_initial_atr={strategy_cfg['exit']['stop_initial']['atr_multiplier']} "

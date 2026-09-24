@@ -37,7 +37,7 @@ class TradeChartStore(BaseStore):
     # ==========================================
     def _get_file_name(self, trade_id):
 
-        return f"{trade_id}.json"
+        return f"trade_chart_{trade_id}.json"
 
 
     # ==========================================

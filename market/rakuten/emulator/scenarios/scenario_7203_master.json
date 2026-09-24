@@ -3,7 +3,7 @@
         "symbol": 7203,
         "trade_price": 0,
         "quantity": 100,
-        "atr": 2.0,
+        "atr": 1.0,
         "trade_type": "margin",
         "margin_type": "day",
         "side": "long",

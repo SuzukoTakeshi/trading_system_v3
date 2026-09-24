@@ -1,0 +1,391 @@
+{
+  "id": 1202,
+  "param": {
+    "symbol": "7203",
+    "quantity": 100,
+    "trade_price": 0,
+    "atr": 1.0,
+    "trade_type": "margin",
+    "margin_type": "day",
+    "side": "long",
+    "strategy": "scalping",
+    "entry_condition": "normal",
+    "initial_stop_delay_seconds": 1,
+    "stop_atr_multiplier": 2.0,
+    "trail_atr_multiplier": 1.0,
+    "time_enabled": true,
+    "time_limit_minutes": 30,
+    "close_enabled": true,
+    "close_time": "15:15",
+    "chart_interval_seconds": 10,
+    "trading_unit": 100,
+    "lower_limit": 1,
+    "upper_limit": 999999
+  },
+  "runtime": {
+    "price_limit_waiting": false,
+    "trailing_start_time": "2026-09-25T01:02:12.162727",
+    "trailing_highest_price": 3060.0,
+    "trailing_lowest_price": null,
+    "entry_base_price": 3000.0,
+    "entry_lowest_price": 2975.0,
+    "entry_highest_price": null,
+    "entry_previous_price": 2990.0,
+    "entry_reversal_count": 3,
+    "entry_reversal_lowest_price": 2975.0,
+    "entry_reversal_highest_price": null,
+    "exit_decision_price": 3030.0,
+    "stop_price": 3030.1,
+    "exit_reason": "stop_line_exit"
+  },
+  "state": "completed",
+  "message": "",
+  "pause_flag": false,
+  "cancel_request": false,
+  "created_at": "2026-09-25T00:58:51.809675",
+  "updated_at": "2026-09-25T00:58:51.809675",
+  "entry_order": {
+    "id": 489,
+    "symbol": "7203",
+    "order_action": "buy",
+    "price": 2990.0,
+    "quantity": 100,
+    "order_role": "entry",
+    "order_type": "market",
+    "state": "closed",
+    "submitted_at": "2026-09-25T01:02:06.833331",
+    "result": {
+      "order_no": 14890,
+      "status": "約定",
+      "result_datetime": "2026-09-25T01:02:07",
+      "quantity": 200,
+      "price": 2990.0,
+      "market_name": "JAX"
+    },
+    "order_no": 14890,
+    "order_id_sub_no": 0,
+    "cancel_order_id": null,
+    "created_at": "2026-09-25T01:02:04.647004",
+    "updated_at": "2026-09-25T01:02:04.647004"
+  },
+  "exit_order": {
+    "id": 492,
+    "symbol": "7203",
+    "order_action": "sell",
+    "price": 3030.0,
+    "quantity": 100,
+    "order_role": "exit",
+    "order_type": "market",
+    "state": "closed",
+    "submitted_at": "2026-09-25T01:02:29.065953",
+    "result": {
+      "order_no": 14920,
+      "status": "約定",
+      "result_datetime": "2026-09-25T01:02:29",
+      "quantity": 300,
+      "price": 3030.0,
+      "market_name": "JAX"
+    },
+    "order_no": 14920,
+    "order_id_sub_no": 0,
+    "cancel_order_id": null,
+    "created_at": "2026-09-25T01:02:26.840489",
+    "updated_at": "2026-09-25T01:02:26.840489"
+  },
+  "timeline": [
+    {
+      "time": "2026-09-25T00:58:52.192525",
+      "event": "ENGINE",
+      "message": "TRADE CREATED quantity=100 trade_price=0 atr=1.0 type=margin margin_type=MarginType.DAY side=long strategy=scalping",
+      "state": "created"
+    },
+    {
+      "time": "2026-09-25T01:01:39.000395",
+      "event": "STATE",
+      "message": "STATE created -> entry_wait",
+      "state": "entry_wait",
+      "current_price": 3000.0
+    },
+    {
+      "time": "2026-09-25T01:01:39.977101",
+      "event": "STATE",
+      "message": "STATE entry_wait -> entry_pullback",
+      "state": "entry_pullback",
+      "current_price": 3000.0
+    },
+    {
+      "time": "2026-09-25T01:01:44.862017",
+      "event": "ENTRY",
+      "message": "PULLBACK ENTRY LONG symbol=7203 current_price=2985.0 entry_lowest_price=2985.0",
+      "state": "entry_pullback",
+      "current_price": 2985.0
+    },
+    {
+      "time": "2026-09-25T01:01:46.723411",
+      "event": "ENTRY",
+      "message": "PULLBACK UPDATE LOW LONG symbol=7203 current_price=2980.0",
+      "state": "entry_pullback",
+      "current_price": 2980.0
+    },
+    {
+      "time": "2026-09-25T01:01:49.043294",
+      "event": "ENTRY",
+      "message": "PULLBACK UPDATE LOW LONG symbol=7203 current_price=2975.0",
+      "state": "entry_pullback",
+      "current_price": 2975.0
+    },
+    {
+      "time": "2026-09-25T01:01:51.027054",
+      "event": "ENTRY",
+      "message": "PULLBACK END LONG symbol=7203 current_price=2980.0",
+      "state": "entry_pullback",
+      "current_price": 2980.0
+    },
+    {
+      "time": "2026-09-25T01:01:51.028001",
+      "event": "STATE",
+      "message": "STATE entry_pullback -> entry_reversal",
+      "state": "entry_reversal",
+      "current_price": 2980.0
+    },
+    {
+      "time": "2026-09-25T01:01:52.011033",
+      "event": "ENTRY",
+      "message": "REVERSAL ENTRY LONG count=1 current_price=2980.0 reversal_lowest_price=2975.0",
+      "state": "entry_reversal",
+      "current_price": 2980.0
+    },
+    {
+      "time": "2026-09-25T01:01:52.978949",
+      "event": "ENTRY",
+      "message": "REVERSAL ENTRY LONG count=2 current_price=2985.0 reversal_lowest_price=2975.0",
+      "state": "entry_reversal",
+      "current_price": 2985.0
+    },
+    {
+      "time": "2026-09-25T01:01:52.980496",
+      "event": "ENTRY",
+      "message": "REVERSAL WAIT LONG count=2 current_price=2985.0 reversal_lowest_price=2975.0 rise_width=10.0 required_rise_width=15.0",
+      "state": "entry_reversal",
+      "current_price": 2985.0
+    },
+    {
+      "time": "2026-09-25T01:01:53.696683",
+      "event": "ENTRY",
+      "message": "REVERSAL WAIT LONG count=2 current_price=2985.0 reversal_lowest_price=2975.0 rise_width=10.0 required_rise_width=15.0",
+      "state": "entry_reversal",
+      "current_price": 2985.0
+    },
+    {
+      "time": "2026-09-25T01:01:54.270822",
+      "event": "ENTRY",
+      "message": "REVERSAL WAIT LONG count=2 current_price=2985.0 reversal_lowest_price=2975.0 rise_width=10.0 required_rise_width=15.0",
+      "state": "entry_reversal",
+      "current_price": 2985.0
+    },
+    {
+      "time": "2026-09-25T01:01:55.129952",
+      "event": "ENTRY",
+      "message": "REVERSAL ENTRY LONG count=0 current_price=2980.0 reversal_lowest_price=2975.0",
+      "state": "entry_reversal",
+      "current_price": 2980.0
+    },
+    {
+      "time": "2026-09-25T01:01:59.001323",
+      "event": "ENTRY",
+      "message": "REVERSAL ENTRY LONG count=1 current_price=2980.0 reversal_lowest_price=2975.0",
+      "state": "entry_reversal",
+      "current_price": 2980.0
+    },
+    {
+      "time": "2026-09-25T01:02:01.139396",
+      "event": "ENTRY",
+      "message": "REVERSAL ENTRY LONG count=2 current_price=2985.0 reversal_lowest_price=2975.0",
+      "state": "entry_reversal",
+      "current_price": 2985.0
+    },
+    {
+      "time": "2026-09-25T01:02:01.140640",
+      "event": "ENTRY",
+      "message": "REVERSAL WAIT LONG count=2 current_price=2985.0 reversal_lowest_price=2975.0 rise_width=10.0 required_rise_width=15.0",
+      "state": "entry_reversal",
+      "current_price": 2985.0
+    },
+    {
+      "time": "2026-09-25T01:02:01.850113",
+      "event": "ENTRY",
+      "message": "REVERSAL WAIT LONG count=2 current_price=2985.0 reversal_lowest_price=2975.0 rise_width=10.0 required_rise_width=15.0",
+      "state": "entry_reversal",
+      "current_price": 2985.0
+    },
+    {
+      "time": "2026-09-25T01:02:02.433019",
+      "event": "ENTRY",
+      "message": "REVERSAL WAIT LONG count=2 current_price=2985.0 reversal_lowest_price=2975.0 rise_width=10.0 required_rise_width=15.0",
+      "state": "entry_reversal",
+      "current_price": 2985.0
+    },
+    {
+      "time": "2026-09-25T01:02:03.401355",
+      "event": "ENTRY",
+      "message": "REVERSAL ENTRY LONG count=3 current_price=2990.0 reversal_lowest_price=2975.0",
+      "state": "entry_reversal",
+      "current_price": 2990.0
+    },
+    {
+      "time": "2026-09-25T01:02:03.526289",
+      "event": "ENTRY",
+      "message": "REVERSAL COMPLETE LONG symbol=7203 count=3 current_price=2990.0 reversal_lowest_price=2975.0 rise_width=15.0 required_rise_width=15.0",
+      "state": "entry_reversal",
+      "current_price": 2990.0
+    },
+    {
+      "time": "2026-09-25T01:02:03.526867",
+      "event": "STATE",
+      "message": "STATE entry_reversal -> entry_request",
+      "state": "entry_request",
+      "current_price": 2990.0
+    },
+    {
+      "time": "2026-09-25T01:02:04.772350",
+      "event": "ORDER",
+      "message": "(@489) CREATE ORDER order_action=buy price=2990.0 quantity=100 order_type=market order_role=OrderRole.ENTRY",
+      "state": "entry_request"
+    },
+    {
+      "time": "2026-09-25T01:02:06.833293",
+      "event": "ORDER",
+      "message": "(@489) REQUEST ORDER request.order_id=4890 symbol=7203 result=True error=SUCCESS",
+      "state": "entry_request"
+    },
+    {
+      "time": "2026-09-25T01:02:08.792556",
+      "event": "STATE",
+      "message": "STATE entry_request -> entry_result",
+      "state": "entry_result",
+      "current_price": 3000.0
+    },
+    {
+      "time": "2026-09-25T01:02:10.698841",
+      "event": "ORDER",
+      "message": "(@489) ORDER FILLED order_no=14890 symbol=7203 quantity=200 price=2990.0 result_datetime=2026-09-25 01:02:07 market_name=JAX",
+      "state": "entry_result"
+    },
+    {
+      "time": "2026-09-25T01:02:10.854894",
+      "event": "STATE",
+      "message": "STATE entry_result -> trailing",
+      "state": "trailing",
+      "current_price": 3010.0
+    },
+    {
+      "time": "2026-09-25T01:02:12.289397",
+      "event": "TRAILING",
+      "message": "INITIAL STOP entry=2990.0 stop=2930.2",
+      "state": "trailing",
+      "current_price": 3020.0
+    },
+    {
+      "time": "2026-09-25T01:02:14.003545",
+      "event": "TRAILING",
+      "message": "TRAILING HIGH UPDATE LONG current_price=3030.0",
+      "state": "trailing",
+      "current_price": 3030.0
+    },
+    {
+      "time": "2026-09-25T01:02:14.129052",
+      "event": "TRAILING",
+      "message": "TRAILING UPDATE LONG current_price=3030.0 stop=3000.1",
+      "state": "trailing",
+      "current_price": 3030.0
+    },
+    {
+      "time": "2026-09-25T01:02:15.228272",
+      "event": "TRAILING",
+      "message": "TRAILING HIGH UPDATE LONG current_price=3040.0",
+      "state": "trailing",
+      "current_price": 3040.0
+    },
+    {
+      "time": "2026-09-25T01:02:15.353707",
+      "event": "TRAILING",
+      "message": "TRAILING UPDATE LONG current_price=3040.0 stop=3010.1",
+      "state": "trailing",
+      "current_price": 3040.0
+    },
+    {
+      "time": "2026-09-25T01:02:17.186642",
+      "event": "TRAILING",
+      "message": "TRAILING HIGH UPDATE LONG current_price=3050.0",
+      "state": "trailing",
+      "current_price": 3050.0
+    },
+    {
+      "time": "2026-09-25T01:02:17.310687",
+      "event": "TRAILING",
+      "message": "TRAILING UPDATE LONG current_price=3050.0 stop=3020.1",
+      "state": "trailing",
+      "current_price": 3050.0
+    },
+    {
+      "time": "2026-09-25T01:02:19.969455",
+      "event": "TRAILING",
+      "message": "TRAILING HIGH UPDATE LONG current_price=3060.0",
+      "state": "trailing",
+      "current_price": 3060.0
+    },
+    {
+      "time": "2026-09-25T01:02:20.093638",
+      "event": "TRAILING",
+      "message": "TRAILING UPDATE LONG current_price=3060.0 stop=3030.1",
+      "state": "trailing",
+      "current_price": 3060.0
+    },
+    {
+      "time": "2026-09-25T01:02:25.838446",
+      "event": "EXIT",
+      "message": "STOP HIT LONG current_price=3030.0 <= stop_price=3030.1",
+      "state": "trailing",
+      "current_price": 3030.0
+    },
+    {
+      "time": "2026-09-25T01:02:25.838483",
+      "event": "STATE",
+      "message": "STATE trailing -> exit_request",
+      "state": "exit_request",
+      "current_price": 3030.0
+    },
+    {
+      "time": "2026-09-25T01:02:26.963839",
+      "event": "ORDER",
+      "message": "(@492) CREATE ORDER order_action=sell price=3030.0 quantity=100 order_type=market order_role=OrderRole.EXIT",
+      "state": "exit_request"
+    },
+    {
+      "time": "2026-09-25T01:02:29.065906",
+      "event": "ORDER",
+      "message": "(@492) REQUEST ORDER request.order_id=4920 symbol=7203 result=True error=SUCCESS",
+      "state": "exit_request"
+    },
+    {
+      "time": "2026-09-25T01:02:30.801510",
+      "event": "STATE",
+      "message": "STATE exit_request -> exit_result",
+      "state": "exit_result",
+      "current_price": 3010.0
+    },
+    {
+      "time": "2026-09-25T01:02:32.679196",
+      "event": "EXIT",
+      "message": "(@492) EXIT ORDER FILLED symbol=7203 order_no=14920 quantity=300 price=3030.0 result_datetime=2026-09-25 01:02:29 market_name=JAX",
+      "state": "exit_result"
+    },
+    {
+      "time": "2026-09-25T01:02:32.836084",
+      "event": "STATE",
+      "message": "STATE exit_result -> completed",
+      "state": "completed",
+      "current_price": 3010.0
+    }
+  ]
+}

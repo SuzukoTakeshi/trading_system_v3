@@ -314,8 +314,8 @@ def trade_list():
             unsafe_allow_html=True,
         )
 
-        title_col, select_count_col, all_select_col, monitor_col, pause_col, resume_col, cancel_col, delete_col = st.columns(
-            [2, 1, 1, 1, 1, 1, 1, 1]
+        title_col, select_count_col, all_select_col, all_deselect_col, monitor_col, pause_col, resume_col, cancel_col, delete_col = st.columns(
+            [2, 1, 1, 1, 1, 1, 1, 1, 1]
         )
 
         with title_col:
@@ -519,6 +519,14 @@ def trade_list():
                     if trade["trade_id"] is not None
                 }
 
+                st.rerun()
+
+        #
+        # 全選択解除
+        #
+        with all_deselect_col:
+            if st.button("☐ All Deselect", width="stretch", key="trade_list_deselect_all"):
+                st.session_state["trade_list_selected_ids"] = set()
                 st.rerun()
 
         #
