@@ -51,7 +51,6 @@ class ProcessTrailingBase(ProcessBase):
                 code="ENTRY_PRICE_NOT_FOUND",
             )
 
-
         # 初回TRAILING初期化
         if trade.runtime.stop_price is None:
             self.init_trailing(trade)
@@ -60,6 +59,10 @@ class ProcessTrailingBase(ProcessBase):
             Log.event(f"(#{trade.id}) {message}")
             trade.add_timeline(event="TRAILING", message=message, current_price=self.quote.current_price)
 
+            return False
+
+        # 初期STOP待機
+        if self.is_initial_stop_delay(trade):
             return False
 
         # トレーリング更新
@@ -77,10 +80,6 @@ class ProcessTrailingBase(ProcessBase):
             # 指定時刻決済 (ProcessTrailingBase)
             elif self.is_close_time_exit(trade):
                 return True
-
-        # 初期STOP待機 (ProcessTrailingBase)
-        if self.is_initial_stop_delay(trade):
-            return False
 
         # STOP判定
         return self.is_stop_hit(trade)
@@ -270,35 +269,38 @@ class ProcessTrailingBase(ProcessBase):
 
     def is_initial_stop_delay(self, trade):
         """
-        初期STOP監視開始待ち
-        初期STOPの監視開始待ち時間を判定する。
-        
-        ENTRY約定直後は、価格が一時的にENTRY価格付近を上下することがあるため、設定
-        された待ち時間の間はSTOP判定を行わない。
+        初期STOP / TRAILING開始待ち
+        ENTRY約定直後の初期STOP監視および
+        Trailing更新の開始を待機する。
+
+        ENTRY約定直後は、価格が一時的にENTRY価格付近を上下するため、
+        設定された待ち時間の間はSTOP判定およびTrailing更新を行わない。
         
         判定基準:
             trailing_start_time        : TRAILING管理を開始した時刻
-            initial_stop_delay_seconds : 初期STOP監視を開始するまでの待ち時間
-            stop_delay_time            : 初期STOP監視を開始できる時刻
-        
+            initial_stop_delay_seconds : 初期STOP / TRAILINGを開始するまでの待ち時間
+            stop_delay_time            : 初期STOP / TRAILINGを開始できる時刻        
+
         Return:
-            True  : 初期STOP監視開始待ち中。STOP判定を行わない。
-            False : 待ち時間が終了。STOP判定を行ってよい。
+            True  : 初期STOP / TRAILING開始待ち中。
+            False : 待ち時間が終了。STOP / TRAILINGを開始してよい。
         """
 
-        # 初期STOP待ち時間が設定されていない場合は、待機せず、直ちにSTOP判定を開始する。
+        # 初期STOP待ち時間が設定されていない場合は、待機せず、
+        # 直ちにSTOP / TRAILINGを開始する。
         if trade.param.initial_stop_delay_seconds <= 0:
             return False
 
-        # TRAILING開始時刻を基準に、初期STOP監視を開始する時刻を計算する。
+        # TRAILING開始時刻を基準に、初期STOP / TRAILINGを開始する時刻を計算する。
         stop_delay_time = (
-            trade.runtime.trailing_start_time + timedelta(seconds=trade.param.initial_stop_delay_seconds)
+            trade.runtime.trailing_start_time
+            + timedelta(seconds=trade.param.initial_stop_delay_seconds)
         )
 
-        # 初期STOP監視開始時刻に達していない場合は、まだSTOP判定を行わず待機する。
+        # 初期STOP / TRAILING開始時刻に達していない場合は待機する。
         if datetime.now() < stop_delay_time:
-            Log.debug(f"(#{trade.id}) INITIAL STOP DELAY")
+            Log.debug(f"(#{trade.id}) INITIAL STOP / TRAILING DELAY")
             return True
 
-        # 待ち時間終了。以降は通常のSTOP判定を行う。
+        # 待ち時間終了。以降は通常のSTOP / TRAILINGを開始する。
         return False
