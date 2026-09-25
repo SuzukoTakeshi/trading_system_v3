@@ -285,7 +285,7 @@ def system_header(ctx):
         message_text = system_message.get("message")
 
     col_title, col_mode, col_message, col_trade, col_auditor, col_voice, col_refresh, col_datetime = st.columns(
-        [1, 1, 5, 1, 1, 1, 1, 1]
+        [3, 2, 8, 2, 2, 2, 3, 3]
     )
 
 
@@ -395,7 +395,7 @@ def system_header(ctx):
         st.markdown(
             f"""
             <div style="text-align:right;">
-                <small>{datetime_text}</small>
+                {datetime_text}
             </div>
             """,
             unsafe_allow_html=True

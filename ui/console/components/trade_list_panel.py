@@ -289,7 +289,7 @@ def cancel_confirm_dialog(trade_id, message):
 # Trade List
 # ==================================================
 
-def trade_list():
+def trade_list_panel():
 
     confirm_trade_id = st.session_state.get("cancel_confirm_trade_id")
 
@@ -484,7 +484,7 @@ def trade_list():
             trades,
             key="trade_list_editor",
             width="stretch",
-            height=280,
+            height=500,
             hide_index=True,
             column_order=list(TRADE_COLUMNS),
             column_config=create_trade_column_config(),

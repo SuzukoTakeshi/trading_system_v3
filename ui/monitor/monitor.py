@@ -66,6 +66,7 @@ div[data-testid="stButton"] {
     unsafe_allow_html=True
 )
 
+
 def main():
     # --------------------------------------
     # Engine Data
@@ -97,7 +98,11 @@ def main():
     trail_chart_display = params.get("trail_chart", "1") == "1"
     timeline_display = params.get("timeline", "0") == "1"
 
-    trail_chart_display, timeline_display = render_header(state, trail_chart_display, timeline_display)
+    trail_chart_display, timeline_display = render_header(
+        state,
+        trail_chart_display,
+        timeline_display
+    )
 
 
     trade_ids_param = params.get("trade_ids", "")
@@ -129,7 +134,7 @@ def main():
         st.info("監視対象Tradeが指定されていません")
 
     else:
-        card_columns = 4    
+        card_columns = 4
 
         for i in range(0, len(trade_ids), card_columns):
             row_trade_ids = trade_ids[i:i + card_columns]
@@ -146,13 +151,45 @@ def main():
                         if trade.get("trade_id") == trade_id:
                             target = trade.copy()
 
-                            target["chart_datas"] = (chart_datas.get(str(trade_id), []))
+                            target["chart_datas"] = (
+                                chart_datas.get(str(trade_id), [])
+                            )
                             break
+
+
+                    # -------------------------
+                    # Delete
+                    # -------------------------
+                    _, delete_col = st.columns([3, 1])
+
+                    with delete_col:
+                        if st.button(
+                            "削除",
+                            key=f"monitor_delete_{trade_id}",
+                            width="stretch",
+                        ):
+                            remaining_trade_ids = [
+                                current_id
+                                for current_id in trade_ids
+                                if current_id != trade_id
+                            ]
+
+                            if remaining_trade_ids:
+                                st.query_params["trade_ids"] = ",".join(
+                                    str(current_id)
+                                    for current_id in remaining_trade_ids
+                                )
+                            else:
+                                st.query_params.pop("trade_ids", None)
+
+                            st.rerun()
+
 
                     # -------------------------
                     # Tradeなし
                     # -------------------------
                     if target is None:
+
                         st.markdown(
                             f"""
                             <div
@@ -163,7 +200,7 @@ def main():
                                     text-align: center;
                                     color: #FF5252;
                                     font-size: 1.1rem;
-                                    margin-top: 1rem;
+                                    margin-top: 0.3rem;
                                 "
                             >
                                 Trade {trade_id} が見つかりません
@@ -171,36 +208,8 @@ def main():
                             """,
                             unsafe_allow_html=True
                         )
+
                         continue
-
-
-                    with st.container():
-
-                        # -------------------------
-                        # Delete
-                        # -------------------------
-                        _, delete_col = st.columns([3, 1])
-
-                        with delete_col:
-                            if st.button(
-                                "削除",
-                                key=f"monitor_delete_{trade_id}", width="stretch",
-                            ):
-                                remaining_trade_ids = [
-                                    current_id
-                                    for current_id in trade_ids
-                                    if current_id != trade_id
-                                ]
-
-                                if remaining_trade_ids:
-                                    st.query_params["trade_ids"] = ",".join(
-                                        str(current_id)
-                                        for current_id in remaining_trade_ids
-                                    )
-                                else:
-                                    st.query_params.pop("trade_ids", None)
-
-                                st.rerun()
 
 
                     # -------------------------

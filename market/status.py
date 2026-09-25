@@ -46,7 +46,7 @@ class MarketStatus:
             return {
                 "state": "CLOSED",
                 "is_open": False,
-                "message": "WEEKEND",
+                "message": "土日",
                 "updated": updated,
             }
 
@@ -56,7 +56,7 @@ class MarketStatus:
             return {
                 "state": "HOLIDAY",
                 "is_open": False,
-                "message": "HOLIDAY",
+                "message": "祝日",
                 "updated": updated,
             }
 
@@ -87,7 +87,7 @@ class MarketStatus:
         return {
             "state": "CLOSED",
             "is_open": False,
-            "message": "OUT_OF_HOURS",
+            "message": "時間外",
             "updated": updated,
         }
 

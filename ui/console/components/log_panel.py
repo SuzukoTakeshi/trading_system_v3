@@ -50,22 +50,13 @@ LOG_COLORS = {
 
 def format_log(record):
 
-    time_text = html.escape(
-        str(record.get("time", ""))
-    )
+    time_text = html.escape(str(record.get("time", "")))
 
-    level = str(
-        record.get("level", "")
-    )
+    level = str(record.get("level", ""))
 
-    message = html.escape(
-        str(record.get("message", ""))
-    )
+    message = html.escape(str(record.get("message", "")))
 
-    color = LOG_COLORS.get(
-        level,
-        "#ffffff"
-    )
+    color = LOG_COLORS.get(level, "#ffffff")
 
     return (
         f'<div style="'
@@ -88,75 +79,48 @@ def format_log(record):
 # System Log
 # ==================================================
 
-def system_log():
+def log_panel():
 
     with st.container(border=True):
 
-        #
         # Header
-        #
-
-        title_col, limit_col = st.columns(
-            [8, 1]
-        )
+        title_col, limit_col = st.columns([8, 1])
 
         with title_col:
-            st.subheader("SYSTEM LOG")
+            st.subheader("LOG")
 
         with limit_col:
-
             limit = st.selectbox(
                 "取得件数",
                 [10, 20, 50, 100, 200],
-                index=1,
+                index=3,
                 label_visibility="collapsed",
             )
 
-        #
         # Log取得
-        #
-
         try:
-
             logs = get_logs(limit)
 
         except Exception:
-
-            st.error(
-                "System Logを取得できません。"
-            )
-
+            st.error("System Logを取得できません。")
             return
 
-        #
         # Logなし
-        #
-
         if not logs:
-
-            st.info(
-                "System Logはありません。"
-            )
-
+            st.info("System Logはありません。")
             return
 
-        #
         # HTML生成
-        #
-
         log_html = "\n".join(
             format_log(record)
             for record in logs
         )
 
-        #
         # Log表示
-        #
-
         st.markdown(
             f"""
             <div style="
-                height: 200px;
+                height: 550px;
                 overflow-y: auto;
                 background-color: #000000;
                 border: 1px solid #555555;

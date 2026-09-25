@@ -296,7 +296,7 @@ def render_trail_card(trade: dict):
         # Position
         # ---------------------
 
-        quantity_col, trade_price_col, atr_col, trade_type_col, margin_type_col = st.columns(5)
+        quantity_col, trade_price_col, atr_col, _ = st.columns(4)
 
         with quantity_col:
             quantity = trade.get("quantity")
@@ -308,6 +308,11 @@ def render_trail_card(trade: dict):
         with atr_col:
             render_item("ATR", f"{trade.get('atr'):,.1f}%")
 
+
+        # ---------------------
+        # Trade Info
+        # ---------------------
+        trade_type_col, margin_type_col, created_at_col, space_col = st.columns(4)
 
         with trade_type_col:
             trade_type = trade.get("trade_type", "-")
@@ -346,11 +351,6 @@ def render_trail_card(trade: dict):
             margin_type = trade.get("margin_type", "-")
             margin_type_text = MARGIN_TYPE_LABEL.get(margin_type, "-") if margin_type else "-"
             render_item("信用区分", margin_type_text)
-
-        # ---------------------
-        # Trade Info
-        # ---------------------
-        created_at_col, space_col = st.columns(2)
 
         with created_at_col:
             render_item("登録日時", fmt_dt(trade.get("created_at")))

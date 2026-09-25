@@ -76,8 +76,8 @@ SIDE_LABEL = {
 # Trade Type
 # ==================================================
 TRADE_TYPE_LABEL = {
-    "cash": "現物",
-    "margin": "信用",
+    "cash": "🟢 現物",
+    "margin": "🟣 信用",
 }
 TRADE_TYPE_UNKNOWN = "UNKNOWN"
 

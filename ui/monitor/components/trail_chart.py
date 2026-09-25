@@ -150,7 +150,7 @@ def render_trail_chart(
     # STOP
     # ==================================================
 
-    ax.plot(t, stop, label="STOP", linewidth=1)
+    ax.plot(t, stop, label="STOP", linewidth=1, color="red")
 
     stop_rows = df[df["stop_loss"].notna()]
 
