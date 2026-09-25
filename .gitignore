@@ -67,4 +67,5 @@ work/
 ui/console/console_test.py
 start_console_test.bat
 
+audio/voices/*.wav
 audio/comment.txt
