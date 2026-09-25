@@ -54,7 +54,7 @@ def trade_panel():
         st.session_state.trade_side = "long"
 
     if "trade_entry_condition" not in st.session_state:
-        st.session_state.trade_entry_condition = "normal"
+        st.session_state.trade_entry_condition = "standard"
 
     with st.container(border=True):
 
@@ -396,7 +396,7 @@ def trade_panel():
 
         with data_col:
             entry_condition_options = {
-                "条件(通常)": "normal",
+                "条件(通常)": "standard",
                 "条件なし(即時注文)": "pass",
             }
 

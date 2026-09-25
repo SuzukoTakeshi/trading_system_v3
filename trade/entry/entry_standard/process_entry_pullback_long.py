@@ -1,5 +1,5 @@
 #
-# trade/process/process_entry_pullback_long.py
+# trade/entry/entry_standard/process_entry_pullback_long.py
 #
 # Entry PullBack Process LONG
 #
@@ -18,7 +18,7 @@ from core.logger import Log
 
 from trade.trade_enums import EntryState
 
-from trade.process.process_entry_base import ProcessEntryBase
+from trade.entry.process_entry_base import ProcessEntryBase
 
 
 class ProcessEntryPullbackLong(ProcessEntryBase):
@@ -31,11 +31,17 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
 
     # ==========================================
     # Process入口
-    #   EngineからENTRY_PULLBACK状態で呼ばれる
+    #   EngineからENTRY状態で呼ばれる
     # ==========================================
-    def process(self, trade, quote):
+    def process(self, trade):
 
-        Log.trace("ENTRY", f"(#{trade.id}) ProcessEntryPullbackLong:process")
+        Log.trace(
+            "ENTRY",
+            f"(#{trade.id}) ProcessEntryPullbackLong:process"
+        )
+
+        # 現在価格取得
+        quote = trade.get_quote()
 
         # 共通初期処理
         self.process_base(trade, quote)
@@ -47,18 +53,30 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
         cfg = self.get_entry_config()
 
         # 押し込み幅計算
-        atr_amount = (trade.runtime.entry_base_price * trade.param.atr / 100)
-        pullback_width = (atr_amount * cfg["pullback_atr_multiplier"])
+        atr_amount = (
+            trade.runtime.entry_base_price
+            * trade.param.atr
+            / 100
+        )
+
+        pullback_width = (
+            atr_amount
+            * cfg["pullback_atr_multiplier"]
+        )
 
         # 押し込み判定ライン
-        pullback_price = (trade.runtime.entry_base_price - pullback_width)
+        pullback_price = (
+            trade.runtime.entry_base_price
+            - pullback_width
+        )
 
         # 初回押し込み設定
         if trade.runtime.entry_lowest_price is None:
 
             if current_price <= pullback_price:
 
-                Log.trace("ENTRY",
+                Log.trace(
+                    "ENTRY",
                     f"(#{trade.id}) 初回押し込み設定(LONG) "
                     f"if {current_price} <= {pullback_price}"
                 )
@@ -71,39 +89,77 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
                 trade.entry_state = EntryState.PULLBACK
 
                 message = (
-                    f"PULLBACK ENTRY LONG symbol={trade.param.symbol} current_price={current_price} "
-                    f"entry_lowest_price={trade.runtime.entry_lowest_price}"
+                    f"PULLBACK ENTRY LONG "
+                    f"symbol={trade.param.symbol} "
+                    f"current_price={current_price} "
+                    f"entry_lowest_price="
+                    f"{trade.runtime.entry_lowest_price}"
                 )
-                Log.event(f"(#{trade.id}) {message}")
-                trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
+
+                Log.event(
+                    f"(#{trade.id}) {message}"
+                )
+
+                trade.add_timeline(
+                    event="ENTRY",
+                    message=message,
+                    current_price=current_price,
+                )
 
                 # 通知
-                self.notify(trade, "PULLBACK ENTRY LONG")
+                self.notify(
+                    trade,
+                    "PULLBACK ENTRY LONG"
+                )
 
             return False
-
 
         # 押し込み中
         #   安値更新確認
         if current_price < trade.runtime.entry_lowest_price:
-            message = f"PULLBACK UPDATE LOW LONG symbol={trade.param.symbol} current_price={current_price}"
-            Log.trace("ENTRY", f"(#{trade.id}) {message}")
-            trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
+
+            message = (
+                f"PULLBACK UPDATE LOW LONG "
+                f"symbol={trade.param.symbol} "
+                f"current_price={current_price}"
+            )
+
+            Log.trace(
+                "ENTRY",
+                f"(#{trade.id}) {message}"
+            )
+
+            trade.add_timeline(
+                event="ENTRY",
+                message=message,
+                current_price=current_price,
+            )
 
             # 最安値更新
             trade.runtime.entry_lowest_price = current_price
-
 
         # 初回反転確認
         #   前回価格より上昇した場合
         if (
             trade.runtime.entry_previous_price is not None
-            and
-            current_price > trade.runtime.entry_previous_price
+            and current_price > trade.runtime.entry_previous_price
         ):
-            message = f"PULLBACK END LONG symbol={trade.param.symbol} current_price={current_price}"
-            Log.event(f"(#{trade.id}) {message}")
-            trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
+
+            message = (
+                f"PULLBACK END LONG "
+                f"symbol={trade.param.symbol} "
+                f"current_price={current_price}"
+            )
+
+            Log.event(
+                f"(#{trade.id}) {message}"
+            )
+
+            trade.add_timeline(
+                event="ENTRY",
+                message=message,
+                current_price=current_price,
+            )
 
             # ---------------------------------------
             # Reversal開始情報
@@ -115,7 +171,10 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
             )
 
             # 通知
-            self.notify(trade, "PULLBACK END LONG")
+            self.notify(
+                trade,
+                "PULLBACK END LONG"
+            )
 
             return True
 

@@ -31,11 +31,7 @@ class EngineState(str, Enum):
 #   ↓
 # ENTRY_WAIT
 #   ↓
-# ENTRY_PULLBACK
-#   ↓
-# ENTRY_REVERSAL
-#   ↓
-# ORDER_CREATE
+# ENTRY
 #   ↓
 # ENTRY_REQUEST
 #   ↓
@@ -48,7 +44,7 @@ class EngineState(str, Enum):
 # EXIT_RESULT
 #   ↓
 # COMPLETED
-#
+# 
 # CANCELED:
 #   手動取消
 #
@@ -62,8 +58,7 @@ class TradeState(str, Enum):
 
     # Entry監視
     ENTRY_WAIT = "entry_wait"
-    ENTRY_PULLBACK = "entry_pullback"
-    ENTRY_REVERSAL = "entry_reversal"
+    ENTRY = "entry"
 
     # 注文処理
     ENTRY_REQUEST = "entry_request"
@@ -93,8 +88,7 @@ class TradeState(str, Enum):
         return state in [
             cls.CREATED,
             cls.ENTRY_WAIT,
-            cls.ENTRY_PULLBACK,
-            cls.ENTRY_REVERSAL,
+            cls.ENTRY,
             cls.ENTRY_REQUEST,
             cls.ENTRY_RESULT,
             cls.TRAILING,

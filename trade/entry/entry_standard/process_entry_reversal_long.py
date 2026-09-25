@@ -1,5 +1,5 @@
 #
-# trade/process/process_entry_reversal_long.py
+# trade/entry/entry_standard/process_entry_reversal_long.py
 #
 # Entry Reversal Process LONG
 #
@@ -15,7 +15,7 @@
 from core.logger import Log
 from core.exception import EntryPreviousPriceNotFoundError
 
-from trade.process.process_entry_base import ProcessEntryBase
+from trade.entry.process_entry_base import ProcessEntryBase
 
 
 class ProcessEntryReversalLong(ProcessEntryBase):
@@ -25,14 +25,22 @@ class ProcessEntryReversalLong(ProcessEntryBase):
 
         Log.create("ProcessEntryReversalLong")
 
+
     # ==========================================
     # Process入口
-    #   EngineからENTRY_REVERSAL状態で呼ばれる
+    #   EngineからENTRY状態で呼ばれる
     # ==========================================
-    def process(self, trade, quote):
+    def process(self, trade):
 
-       # Log.flow(f"(#{trade.id}) ProcessEntryReversalShort:process")
+        Log.trace(
+            "ENTRY",
+            f"(#{trade.id}) ProcessEntryReversalLong:process"
+        )
 
+        # 現在価格取得
+        quote = trade.get_quote()
+
+        # 共通初期処理
         self.process_base(trade, quote)
 
         current_price = self.quote.current_price
@@ -70,6 +78,7 @@ class ProcessEntryReversalLong(ProcessEntryBase):
         # カウント変化を記録
         # ---------------------------------------
         if previous_count != trade.runtime.entry_reversal_count:
+
             message = (
                 f"REVERSAL ENTRY LONG "
                 f"count={trade.runtime.entry_reversal_count} "
@@ -78,8 +87,15 @@ class ProcessEntryReversalLong(ProcessEntryBase):
                 f"{trade.runtime.entry_reversal_lowest_price}"
             )
 
-            Log.event(f"(#{trade.id}) {message}")
-            trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
+            Log.event(
+                f"(#{trade.id}) {message}"
+            )
+
+            trade.add_timeline(
+                event="ENTRY",
+                message=message,
+                current_price=current_price,
+            )
 
         # ---------------------------------------
         # 前回価格更新
@@ -89,20 +105,40 @@ class ProcessEntryReversalLong(ProcessEntryBase):
         # ---------------------------------------
         # 反転確認回数
         # ---------------------------------------
-        if (trade.runtime.entry_reversal_count >= cfg["reversal_confirm_count"]):
-            reversal_lowest_price = trade.runtime.entry_reversal_lowest_price
+        if (
+            trade.runtime.entry_reversal_count
+            >= cfg["reversal_confirm_count"]
+        ):
 
-            reversal_atr_multiplier = cfg["reversal_atr_multiplier"]
+            reversal_lowest_price = (
+                trade.runtime.entry_reversal_lowest_price
+            )
 
-            atr_amount = (trade.runtime.entry_base_price * trade.param.atr / 100)
-            required_rise_width = (atr_amount * reversal_atr_multiplier)
+            reversal_atr_multiplier = (
+                cfg["reversal_atr_multiplier"]
+            )
 
-            rise_width = (current_price - reversal_lowest_price)
+            atr_amount = (
+                trade.runtime.entry_base_price
+                * trade.param.atr
+                / 100
+            )
+
+            required_rise_width = (
+                atr_amount
+                * reversal_atr_multiplier
+            )
+
+            rise_width = (
+                current_price
+                - reversal_lowest_price
+            )
 
             # ---------------------------------------
             # 上昇幅が不足している場合
             # ---------------------------------------
             if rise_width < required_rise_width:
+
                 message = (
                     f"REVERSAL WAIT LONG "
                     f"count={trade.runtime.entry_reversal_count} "
@@ -112,9 +148,15 @@ class ProcessEntryReversalLong(ProcessEntryBase):
                     f"required_rise_width={required_rise_width}"
                 )
 
-                Log.trace(f"(#{trade.id}) {message}")
+                Log.trace(
+                    f"(#{trade.id}) {message}"
+                )
 
-                trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
+                trade.add_timeline(
+                    event="ENTRY",
+                    message=message,
+                    current_price=current_price,
+                )
 
                 return False
 
@@ -131,11 +173,20 @@ class ProcessEntryReversalLong(ProcessEntryBase):
                 f"required_rise_width={required_rise_width}"
             )
 
-            Log.event(f"(#{trade.id}) {message}")
+            Log.event(
+                f"(#{trade.id}) {message}"
+            )
 
-            trade.add_timeline(event="ENTRY", message=message, current_price=current_price)
+            trade.add_timeline(
+                event="ENTRY",
+                message=message,
+                current_price=current_price,
+            )
 
-            self.notify(trade, "REVERSAL COMPLETE LONG")
+            self.notify(
+                trade,
+                "REVERSAL COMPLETE LONG"
+            )
 
             return True
 

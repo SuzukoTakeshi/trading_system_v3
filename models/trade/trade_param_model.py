@@ -144,7 +144,7 @@ class TradeParamModel:
             margin_type=MarginType(data.get("margin_type")),
             side=SideType(data.get("side")),
             strategy=StrategyType(data.get("strategy")),
-            entry_condition=data.get("entry_condition", "normal"),
+            entry_condition=data.get("entry_condition", "standard"),
 
             initial_stop_delay_seconds=(data.get("initial_stop_delay_seconds", 0)),
             stop_atr_multiplier=(data.get("stop_atr_multiplier", 0)),

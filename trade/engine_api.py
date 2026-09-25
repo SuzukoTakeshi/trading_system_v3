@@ -191,8 +191,7 @@ class TradeEngineAPI:
         if trade.state not in [
             TradeState.CREATED,
             TradeState.ENTRY_WAIT,
-            TradeState.ENTRY_PULLBACK,
-            TradeState.ENTRY_REVERSAL,
+            TradeState.ENTRY,
             TradeState.TRAILING,
         ]:
             return False
@@ -255,8 +254,7 @@ class TradeEngineAPI:
             cancelable_states = [
                 TradeState.CREATED,
                 TradeState.ENTRY_WAIT,
-                TradeState.ENTRY_PULLBACK,
-                TradeState.ENTRY_REVERSAL,
+                TradeState.ENTRY,
                 TradeState.TRAILING,
             ]
 

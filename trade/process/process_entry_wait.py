@@ -6,7 +6,6 @@
 # 役割:
 #   ・ENTRY判定開始前のMarket準備確認
 #   ・初回価格取得待ち
-#   ・ENTRY_PULLBACK移行条件判定
 #
 
 from core.logger import Log

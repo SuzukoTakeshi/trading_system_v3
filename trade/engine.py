@@ -51,8 +51,7 @@ from trade.engine_api import TradeEngineAPI
 
 from trade.process.process_market import ProcessMarket
 from trade.process.process_entry_wait import ProcessEntryWait
-from trade.process.process_entry_pullback import ProcessEntryPullback
-from trade.process.process_entry_reversal import ProcessEntryReversal
+from trade.entry.process_entry import ProcessEntry
 from trade.process.process_entry_request import ProcessEntryRequest
 from trade.process.process_entry_result import ProcessEntryResult
 from trade.process.process_trailing import ProcessTrailing
@@ -124,8 +123,7 @@ class TradeEngine:
         # Cycle Process
         self.process_market = ProcessMarket(self.context, self.market)
         self.process_entry_wait = ProcessEntryWait(self.context, self.market)
-        self.process_entry_pullback = ProcessEntryPullback(self.context, self.market)
-        self.process_entry_reversal = ProcessEntryReversal(self.context, self.market)
+        self.process_entry = ProcessEntry(self.context, self.market)
         self.process_entry_request = ProcessEntryRequest(self.context, self.market)
         self.process_entry_result = ProcessEntryResult(self.context, self.market)
         self.process_trailing = ProcessTrailing(self.context, self.market)
@@ -375,25 +373,18 @@ class TradeEngine:
                     # ==========================================
                     case TradeState.ENTRY_WAIT:
                         if self.process_entry_wait.process(trade):
-                            trade.change_state(TradeState.ENTRY_PULLBACK)
+                            trade.change_state(TradeState.ENTRY)
 
                     # ==========================================
                     # Entry判定
-                    # ・押し込み確認
-                    # ・反転確認
-                    # ・ENTRY成立判定
+                    # ・ENTRY条件の判定
+                    # ・EntryStateによる内部状態管理
+                    # ・ENTRY成立待ち
                     # ==========================================
-                    case TradeState.ENTRY_PULLBACK:
-                        if self.process_entry_pullback.process(trade):
-                            trade.change_state(TradeState.ENTRY_REVERSAL)
+                    case TradeState.ENTRY:
+                        result = self.process_entry.process(trade)
 
-                    # ==========================================
-                    # Entry確定
-                    # ・ENTRY成立後処理
-                    # ・ENTRY成立判定
-                    # ==========================================
-                    case TradeState.ENTRY_REVERSAL:
-                        if self.process_entry_reversal.process(trade):
+                        if result:
                             trade.change_state(TradeState.ENTRY_REQUEST)
 
                     # ==========================================
@@ -678,8 +669,7 @@ class TradeEngine:
         if trade.state in [
             TradeState.CREATED,
             TradeState.ENTRY_WAIT,
-            TradeState.ENTRY_PULLBACK,
-            TradeState.ENTRY_REVERSAL,
+            TradeState.ENTRY,
         ]:
             trade.change_state(TradeState.CANCELED)
 

@@ -1,9 +1,10 @@
 #
-# trade/process/process_entry_base.py
+# trade/entry/process_entry_base.py
 #
 # Entry Process Base
 #
 # 役割:
+#   ・ENTRY共通処理
 #   ・LONG/SHORT共通処理
 #   ・ENTRY基盤
 #
@@ -20,6 +21,7 @@ from trade.process.process_base import ProcessBase
 class ProcessEntryBase(ProcessBase):
 
     def __init__(self, context, market):
+
         super().__init__(context, market)
 
         self.strategy_config = StrategyConfig.instance()
@@ -36,6 +38,7 @@ class ProcessEntryBase(ProcessBase):
         self.quote = quote
 
         current_price = quote.current_price
+
         if current_price is None:
             return
 
@@ -51,11 +54,11 @@ class ProcessEntryBase(ProcessBase):
         ):
             trade.runtime.trailing_lowest_price = current_price
 
-
     # ==========================================
     # Strategy設定取得
     # ==========================================
     def get_entry_config(self):
+
         return (
             self.strategy_config
             .get_strategy(self.trade.param.strategy.value)

@@ -372,10 +372,10 @@ def trade_list_panel():
 
             # トレード条件
             row["entry_condition"] = {
-                "normal": "条件(通常)",
+                "standard": "条件(通常)",
                 "pass": "条件なし(即時注文)",
             }.get(
-                row.get("entry_condition", "normal"),
+                row.get("entry_condition", "standard"),
                 "条件(通常)",
             )
 

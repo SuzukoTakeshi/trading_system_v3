@@ -25,7 +25,7 @@ from core.logger import Log
 from core.entity import BaseEntity
 from core.path import TRADE_ID_FILE
 
-from trade.trade_enums import TradeState
+from trade.trade_enums import TradeState, EntryState
 
 from models.order.order_model import OrderModel
 from models.trade.trade_param_model import TradeParamModel
@@ -73,6 +73,10 @@ class TradeModel(BaseEntity):
         # Trade状態
         #   Trade作成完了
         self.state = TradeState.CREATED
+
+        # Entry状態
+        #   ENTRY条件判定の内部状態
+        self.entry_state = EntryState.WAITING
 
         # Trade一時停止
         self.pause_flag = False
@@ -123,14 +127,6 @@ class TradeModel(BaseEntity):
 
         # EXIT Order
         self.exit_order = None
-
-
-        # Trade状態
-        #   PASSの場合はENTRY条件判定をスキップ
-        if entry_condition == "pass":
-            self.state = TradeState.ENTRY_REQUEST
-        else:
-            self.state = TradeState.CREATED
 
 
     def get_quote(self):
@@ -197,6 +193,7 @@ class TradeModel(BaseEntity):
             "runtime": self.runtime.to_dict(),
 
             "state": self.state.value,
+            "entry_state": self.entry_state.value,
             "message": self.message,
 
             "pause_flag": self.pause_flag,
@@ -237,6 +234,9 @@ class TradeModel(BaseEntity):
         trade.runtime = TradeRuntimeModel.from_dict(data.get("runtime", {}))
 
         trade.state = TradeState(data["state"])
+        trade.entry_state = EntryState(
+            data.get("entry_state", EntryState.WAITING.value)
+        )
         trade.message = data.get("message")
 
         trade.pause_flag = data.get("pause_flag", False)
