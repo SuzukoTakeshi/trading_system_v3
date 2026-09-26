@@ -151,11 +151,11 @@ def add_trade_chart_data(context, trade):
 
             # Trade情報は常に最新値へ更新
             last.high_watermark = (
-                trade.runtime.trailing_highest_price
+                trade.runtime.stop_highest_price
             )
 
             last.low_watermark = (
-                trade.runtime.trailing_lowest_price
+                trade.runtime.stop_lowest_price
             )
 
             last.stop_loss = (
@@ -182,11 +182,11 @@ def add_trade_chart_data(context, trade):
 
         # Trade情報
         high_watermark=(
-            trade.runtime.trailing_highest_price
+            trade.runtime.stop_highest_price
         ),
 
         low_watermark=(
-            trade.runtime.trailing_lowest_price
+            trade.runtime.stop_lowest_price
         ),
 
         stop_loss=trade.runtime.stop_price,

@@ -8,7 +8,7 @@
 #
 #   ENTRY判定状態
 #   約定後管理状態
-#   トレーリング状態
+#   STOP管理状態
 #   を保持する。
 #
 
@@ -50,20 +50,20 @@ class TradeRuntimeModel:
 
 
         # ---------------------------------------
-        # トレーリング管理
+        # STOP管理
         # ---------------------------------------
 
-        # Trailing開始時刻
+        # STOP開始時刻
         #
-        # 約定後、初回Trailing処理を開始した時刻
+        # 約定後、初回STOP処理を開始した時刻
         #
-        self.trailing_start_time = None
+        self.stop_start_time = None
 
         # LONG: 保有後最高値
-        self.trailing_highest_price = None
+        self.stop_highest_price = None
 
         # SHORT: 保有後最安値
-        self.trailing_lowest_price = None
+        self.stop_lowest_price = None
 
 
         # ---------------------------------------
@@ -120,15 +120,15 @@ class TradeRuntimeModel:
             # TRADE READY
             "price_limit_waiting": self.price_limit_waiting,
 
-            # トレーリング管理
-            "trailing_start_time": (
-                self.trailing_start_time.isoformat()
-                if self.trailing_start_time
+            # STOP管理
+            "stop_start_time": (
+                self.stop_start_time.isoformat()
+                if self.stop_start_time
                 else None
             ),
 
-            "trailing_highest_price": self.trailing_highest_price,
-            "trailing_lowest_price": self.trailing_lowest_price,
+            "stop_highest_price": self.stop_highest_price,
+            "stop_lowest_price": self.stop_lowest_price,
 
             # ENTRY判定管理
             "entry_base_price": self.entry_base_price,
@@ -166,18 +166,18 @@ class TradeRuntimeModel:
             False
         )
 
-        # トレーリング管理
-        trailing_start_time_str = data.get("trailing_start_time")
-        if trailing_start_time_str:
-            runtime.trailing_start_time = datetime.fromisoformat(
-                trailing_start_time_str
+        # STOP管理
+        stop_start_time_str = data.get("stop_start_time")
+        if stop_start_time_str:
+            runtime.stop_start_time = datetime.fromisoformat(
+                stop_start_time_str
             )
 
-        runtime.trailing_highest_price = data.get(
-            "trailing_highest_price"
+        runtime.stop_highest_price = data.get(
+            "stop_highest_price"
         )
-        runtime.trailing_lowest_price = data.get(
-            "trailing_lowest_price"
+        runtime.stop_lowest_price = data.get(
+            "stop_lowest_price"
         )
 
         # ENTRY判定管理

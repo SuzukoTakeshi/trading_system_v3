@@ -52,7 +52,7 @@ class TradeClose:
             return False
 
         # ENTRY済みの場合は対象外
-        # ENTRY後はProcessTrailingBaseで処理する。
+        # ENTRY後はProcessExitで処理する。
         if (
             trade.entry_order is not None
             and trade.entry_order.result is not None

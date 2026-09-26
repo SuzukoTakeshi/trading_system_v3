@@ -54,7 +54,7 @@ from trade.process.process_entry_wait import ProcessEntryWait
 from trade.entry.process_entry import ProcessEntry
 from trade.process.process_entry_request import ProcessEntryRequest
 from trade.process.process_entry_result import ProcessEntryResult
-from trade.process.process_trailing import ProcessTrailing
+from trade.exit.process_exit import ProcessExit
 from trade.process.process_exit_request import ProcessExitRequest
 from trade.process.process_exit_result import ProcessExitResult
 from trade.process.process_completed import ProcessCompleted
@@ -126,7 +126,7 @@ class TradeEngine:
         self.process_entry = ProcessEntry(self.context, self.market)
         self.process_entry_request = ProcessEntryRequest(self.context, self.market)
         self.process_entry_result = ProcessEntryResult(self.context, self.market)
-        self.process_trailing = ProcessTrailing(self.context, self.market)
+        self.process_exit = ProcessExit(self.context, self.market)
         self.process_exit_request = ProcessExitRequest(self.context, self.market)
         self.process_exit_result = ProcessExitResult(self.context, self.market)
         self.process_completed = ProcessCompleted(self.context, self.market)
@@ -403,19 +403,20 @@ class TradeEngine:
                     case TradeState.ENTRY_RESULT:
                         if self.process_entry_result.process(trade):
                             self.process_asset.process(trade)
-                            trade.change_state(TradeState.TRAILING)
+                            trade.change_state(TradeState.EXIT)
 
                     # ==========================================
-                    # 利確/損切管理
-                    # ・最初のSTOP設定
+                    # EXIT判定
+                    # ・STOP初期化
+                    # ・初期STOP待機
                     # ・STOP更新
-                    # ・利益が乗ったらSTOPを切り上げる
-                    # ・利確/損切判定
-                    # ・損失側は固定STOP
-                    # ・利益側はTrailで追う
+                    # ・STOP判定
+                    # ・1日信用強制手仕舞い
+                    # ・時間決済
+                    # ・指定時刻決済
                     # ==========================================
-                    case TradeState.TRAILING:
-                        if self.process_trailing.process(trade):
+                    case TradeState.EXIT:
+                        if self.process_exit.process(trade):
                             trade.change_state(TradeState.EXIT_REQUEST)
 
                     # ==========================================
@@ -680,7 +681,7 @@ class TradeEngine:
         # 既にポジションを保有しているので、
         # Tradeを直接CANCELEDにはしない。
         #
-        elif trade.state == TradeState.TRAILING:
+        elif trade.state == TradeState.EXIT:
 
             # CANCEL時点の現在価格を取得
             quote = self.context.cache.quotes.get(trade.param.symbol)

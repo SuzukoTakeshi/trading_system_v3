@@ -43,16 +43,16 @@ class ProcessEntryBase(ProcessBase):
             return
 
         if (
-            trade.runtime.trailing_highest_price is None
-            or current_price > trade.runtime.trailing_highest_price
+            trade.runtime.stop_highest_price is None
+            or current_price > trade.runtime.stop_highest_price
         ):
-            trade.runtime.trailing_highest_price = current_price
+            trade.runtime.stop_highest_price = current_price
 
         if (
-            trade.runtime.trailing_lowest_price is None
-            or current_price < trade.runtime.trailing_lowest_price
+            trade.runtime.stop_lowest_price is None
+            or current_price < trade.runtime.stop_lowest_price
         ):
-            trade.runtime.trailing_lowest_price = current_price
+            trade.runtime.stop_lowest_price = current_price
 
     # ==========================================
     # Strategy設定取得

@@ -34,12 +34,12 @@
         "voice_type": "VOICE_FILE",
         "voice_file": "reversal.wav"
     },
-    "INIT TRAILING LONG": {
+    "INIT STOP LONG": {
         "message": "作戦Bに移行しました。",
         "voice_type": "VOICE_FILE",
         "voice_file": "strategy_b.wav"
     },
-    "INIT TRAILING SHORT": {
+    "INIT STOP SHORT": {
         "message": "作戦Bに移行しました。",
         "voice_type": "VOICE_FILE",
         "voice_file": "strategy_b.wav"

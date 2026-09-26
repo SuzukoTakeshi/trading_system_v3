@@ -192,7 +192,7 @@ class TradeEngineAPI:
             TradeState.CREATED,
             TradeState.ENTRY_WAIT,
             TradeState.ENTRY,
-            TradeState.TRAILING,
+            TradeState.EXIT,
         ]:
             return False
 
@@ -255,7 +255,7 @@ class TradeEngineAPI:
                 TradeState.CREATED,
                 TradeState.ENTRY_WAIT,
                 TradeState.ENTRY,
-                TradeState.TRAILING,
+                TradeState.EXIT,
             ]
 
             if trade.state not in cancelable_states:

@@ -16,7 +16,7 @@
         "scenario": [
             {
                 "comment": [
-                    "=== TRAILING STOP TEST ===",
+                    "=== STOP TEST ===",
                     "Strategy : SCALPING",
                     "Side     : LONG",
                     "ATR      : 1.0"
@@ -52,7 +52,7 @@
             { "price": 3050.0 },
             { "price": 3060.0 },
 
-            { "comment": "トレーリングSTOPまで下落" },
+            { "comment": "STOPまで下落" },
             { "price": 3050.0 },
             { "price": 3040.0 },
             { "price": 3030.0 },

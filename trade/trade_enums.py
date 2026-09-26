@@ -37,7 +37,7 @@ class EngineState(str, Enum):
 #   ↓
 # ENTRY_RESULT
 #   ↓
-# TRAILING
+# EXIT
 #   ↓
 # EXIT_REQUEST
 #   ↓
@@ -64,8 +64,8 @@ class TradeState(str, Enum):
     ENTRY_REQUEST = "entry_request"
     ENTRY_RESULT = "entry_result"
 
-    # 保有管理
-    TRAILING = "trailing"
+    # Exit管理
+    EXIT = "exit"
 
     # 決済処理
     EXIT_REQUEST = "exit_request"
@@ -91,7 +91,7 @@ class TradeState(str, Enum):
             cls.ENTRY,
             cls.ENTRY_REQUEST,
             cls.ENTRY_RESULT,
-            cls.TRAILING,
+            cls.EXIT,
             cls.EXIT_REQUEST,
             cls.EXIT_RESULT,
             cls.COMPLETED,

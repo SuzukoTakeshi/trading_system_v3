@@ -37,7 +37,8 @@ EVENT_LABEL = {
     "created": "⚪ 登録",
 
     # Entry監視
-    "entry_wait": "🟢 エントリー",
+    "entry": "🟢 ENTRY開始",
+    "entry_wait": "🟢 ENTRY待ち",
     "entry_pullback": "🟢 押し込み中",
     "entry_reversal": "🟢 反転上昇中",
 
@@ -45,8 +46,8 @@ EVENT_LABEL = {
     "entry_request": "🟤 注文発生",
     "entry_result": "🟤 注文完了",
 
-    # 保有管理
-    "trailing": "🔵 トレール",
+    # EXIT監視
+    "exit": "🔵 EXIT監視",
 
     # 決済処理
     "exit_request": "🟣 決済発生",
@@ -171,7 +172,6 @@ TIMELINE_EVENT_LABEL = {
     "ENTRY": "エントリー",
     "ORDER": "注文",
     "EXIT": "決済",
-    "TRAILING": "トレール",
     "ENGINE": "Engine",
 }
 TIMELINE_EVENT_UNKNOWN = "UNKNOWN"

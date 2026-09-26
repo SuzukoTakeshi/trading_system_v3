@@ -55,55 +55,55 @@
             },
             {
                 "price": 3295.0,
-                "comment": "STATE entry_result -> trailing"
+                "comment": "STATE entry_result -> exit"
             },
             {
                 "price": 3295.0,
-                "comment": "INITIAL TRAILING entry=3295.0 stop=3293.5"
+                "comment": "INITIAL EXIT entry=3295.0 stop=3293.5"
             },
             {
                 "price": 3296.0,
-                "comment": "TRAILING HIGH UPDATE LONG current_price=3296.0"
+                "comment": "STOP HIGH UPDATE LONG current_price=3296.0"
             },
             {
                 "price": 3298.0,
-                "comment": "TRAILING HIGH UPDATE LONG current_price=3298.0"
+                "comment": "STOP HIGH UPDATE LONG current_price=3298.0"
             },
             {
                 "price": 3298.0,
-                "comment": "TRAILING UPDATE LONG current_price=3298.0 stop=3295.0"
+                "comment": "STOP UPDATE LONG current_price=3298.0 stop=3295.0"
             },
             {
                 "price": 3300.0,
-                "comment": "TRAILING HIGH UPDATE LONG current_price=3300.0"
+                "comment": "STOP HIGH UPDATE LONG current_price=3300.0"
             },
             {
                 "price": 3300.0,
-                "comment": "TRAILING UPDATE LONG current_price=3300.0 stop=3297.0"
+                "comment": "STOP UPDATE LONG current_price=3300.0 stop=3297.0"
             },
             {
                 "price": 3303.0,
-                "comment": "TRAILING HIGH UPDATE LONG current_price=3303.0"
+                "comment": "STOP HIGH UPDATE LONG current_price=3303.0"
             },
             {
                 "price": 3303.0,
-                "comment": "TRAILING UPDATE LONG current_price=3303.0 stop=3300.0"
+                "comment": "STOP UPDATE LONG current_price=3303.0 stop=3300.0"
             },
             {
                 "price": 3304.0,
-                "comment": "TRAILING HIGH UPDATE LONG current_price=3304.0"
+                "comment": "STOP HIGH UPDATE LONG current_price=3304.0"
             },
             {
                 "price": 3304.0,
-                "comment": "TRAILING UPDATE LONG current_price=3304.0 stop=3301.0"
+                "comment": "STOP UPDATE LONG current_price=3304.0 stop=3301.0"
             },
             {
                 "price": 3306.0,
-                "comment": "TRAILING HIGH UPDATE LONG current_price=3306.0"
+                "comment": "STOP HIGH UPDATE LONG current_price=3306.0"
             },
             {
                 "price": 3306.0,
-                "comment": "TRAILING UPDATE LONG current_price=3306.0 stop=3303.0"
+                "comment": "STOP UPDATE LONG current_price=3306.0 stop=3303.0"
             },
             {
                 "price": 3303.0,
@@ -111,7 +111,7 @@
             },
             {
                 "price": 3303.0,
-                "comment": "STATE trailing -> exit_request"
+                "comment": "STATE exit -> exit_request"
             },
             {
                 "end": true

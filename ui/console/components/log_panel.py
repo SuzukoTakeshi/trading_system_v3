@@ -27,7 +27,7 @@ LOG_COLORS = {
     "CREATE": "#00ff00",
     "STATE": "#ffff00",
     "MARKET": "#ff00ff",
-    "TRAILING": "#0080ff",
+    "EXIT": "#0080ff",
     "ASSET": "#ff00ff",
 
     "FLOW": "#00ffff",
