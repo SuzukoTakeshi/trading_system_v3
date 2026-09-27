@@ -1,5 +1,5 @@
 #
-# models/trade/trade_runtime.py
+# models/trade/trade_runtime_model.py
 #
 # Trade Runtime
 #
@@ -18,10 +18,14 @@ from core.logger import Log
 
 from trade.trade_enums import ExitReason
 
+from models.trade.trade_runtime_range_model import TradeRuntimeRangeModel
+
+from trade.entry.entry_range.range_runtime import create_range_runtime
+
 
 class TradeRuntimeModel:
 
-    def __init__(self):
+    def __init__(self, strategy_type=None):
 
         Log.create("TradeRuntimeModel")
 
@@ -113,6 +117,12 @@ class TradeRuntimeModel:
         # EXIT理由
         self.exit_reason: ExitReason | None = None
 
+        # Strategy固有Runtime
+        self.strategy_runtime = None
+
+        if strategy_type == "range":
+            self.strategy_runtime = create_range_runtime()
+
 
     def to_dict(self):
 
@@ -150,11 +160,17 @@ class TradeRuntimeModel:
                 if self.exit_reason
                 else None
             ),
+
+            "strategy_runtime": (
+                self.strategy_runtime.to_dict()
+                if self.strategy_runtime
+                else None
+            ),
         }
 
 
     @classmethod
-    def from_dict(cls, data):
+    def from_dict(cls, data, strategy_type=None):
 
         runtime = cls()
 
@@ -198,6 +214,23 @@ class TradeRuntimeModel:
         exit_reason_str = data.get("exit_reason")
         if exit_reason_str:
             runtime.exit_reason = ExitReason(exit_reason_str)
+
+        # Strategy固有Runtime
+        runtime.strategy_runtime = None
+
+        strategy_runtime_data = data.get(
+            "strategy_runtime"
+        )
+
+        if (
+            strategy_type == "range"
+            and strategy_runtime_data is not None
+        ):
+            runtime.strategy_runtime = (
+                TradeRuntimeRangeModel.from_dict(
+                    strategy_runtime_data
+                )
+            )
 
         return runtime
 

@@ -23,6 +23,8 @@ LOG_DIR = STORAGE_DIR / "logs"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 STRATEGY_CONFIG_FILE = CONFIG_DIR / "strategy_config.json"
 
+STRATEGY_RANGE_CONFIG_FILE = CONFIG_DIR / "strategy_range_config.json"
+
 # Master Data
 SYMBOLS_FILE = STORAGE_DIR / "json" / "symbols.json"
 

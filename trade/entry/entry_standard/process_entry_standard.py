@@ -51,9 +51,7 @@ class ProcessEntryStandard:
     # ==========================================
     def process(self, trade):
 
-        Log.flow(
-            f"(#{trade.id}) ProcessEntryStandard:process"
-        )
+        # Log.flow(f"(#{trade.id}) ProcessEntryStandard:process")
 
 
         # ==========================================

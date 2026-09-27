@@ -15,8 +15,9 @@
 
 from core.logger import Log
 
-from trade.entry.entry_pass.process_entry_pass import ProcessEntryPass
 from trade.entry.entry_standard.process_entry_standard import ProcessEntryStandard
+from trade.entry.entry_pass.process_entry_pass import ProcessEntryPass
+from trade.entry.entry_range.process_entry_range import ProcessEntryRange
 
 class ProcessEntry:
 
@@ -27,20 +28,24 @@ class ProcessEntry:
         self.context = context
         self.market = market
 
-        self.entry_pass = ProcessEntryPass(context, market)
         self.entry_standard = ProcessEntryStandard(context, market)
+        self.entry_pass = ProcessEntryPass(context, market)
+        self.entry_range = ProcessEntryRange(context, market)
 
     # ==========================================
     # ENTRY判定
     # ==========================================
     def process(self, trade):
 
-        Log.flow(f"(#{trade.id}) ProcessEntry:process")
+        # Log.flow(f"(#{trade.id}) ProcessEntry:process")
 
-        if trade.param.entry_condition == "pass":
+        if trade.param.strategy_type == "standard":
+            return self.entry_standard.process(trade)
+
+        if trade.param.strategy_type == "pass":
             return self.entry_pass.process(trade)
 
-        if trade.param.entry_condition == "standard":
-            return self.entry_standard.process(trade)
+        if trade.param.strategy_type == "range":
+            return self.entry_range.process(trade)
 
         return False

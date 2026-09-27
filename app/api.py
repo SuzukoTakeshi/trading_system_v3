@@ -83,6 +83,8 @@ def trade_params(symbol: str):
 @app.post("/trade")
 def trade(req: TradeRequestDTO):
 
+    print(req)
+
     return app_service.trade_service.register_trade(req)
 
 

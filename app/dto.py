@@ -1,9 +1,8 @@
 #
 # app/dto.py
 #
-# Trading System V2
-# Data Transfer Object
-#
+
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -14,12 +13,13 @@ from trade.trade_enums import (
     StrategyType,
 )
 
-from typing import Optional
 
 #
 # Trade登録 Request
 #
 class TradeRequestDTO(BaseModel):
+
+    strategy_type: str
 
     symbol: str
     trade_price: int
@@ -29,7 +29,10 @@ class TradeRequestDTO(BaseModel):
     margin_type: Optional[MarginType] = None
     side: SideType
     strategy: StrategyType = StrategyType.DAYTRADE
-    entry_condition: str = "standard"
+
+    params: dict[str, Any] = {}
+
 
 class TradeIdsRequestDTO(BaseModel):
+
     trade_ids: list[int]

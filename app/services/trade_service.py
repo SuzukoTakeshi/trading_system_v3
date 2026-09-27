@@ -87,6 +87,7 @@ class TradeService:
         cfg = StrategyConfig.instance().data["strategy"]
 
         params = {
+            "strategy_type": "standard",
             "name": symbol_info["name"],
             "quantity": 100,
             "trade_price": 0,
@@ -126,6 +127,7 @@ class TradeService:
             self.trade_params_store.set(
                 req.symbol,
                 {
+                    "strategy_type": req.strategy_type,
                     "quantity": req.quantity,
                     "trade_price": req.trade_price,
                     "atr": req.atr,

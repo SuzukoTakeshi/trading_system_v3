@@ -45,6 +45,8 @@ class TradeModel(BaseEntity):
 
     def __init__(
         self,
+        strategy_type,
+
         symbol,
         quantity,
         trade_price,
@@ -53,7 +55,7 @@ class TradeModel(BaseEntity):
         margin_type,
         side,
         strategy,
-        entry_condition,
+        params,
 
         initial_stop_delay_seconds,
         stop_atr_multiplier,
@@ -93,6 +95,8 @@ class TradeModel(BaseEntity):
 
         # Trade開始パラメータ
         self.param = TradeParamModel(
+            strategy_type=strategy_type,
+
             symbol=symbol,
             quantity=quantity,
             trade_price=trade_price,
@@ -101,7 +105,7 @@ class TradeModel(BaseEntity):
             margin_type=margin_type,
             side=side,
             strategy=strategy,
-            entry_condition=entry_condition,
+            params=params,
 
             initial_stop_delay_seconds=initial_stop_delay_seconds,
             stop_atr_multiplier=stop_atr_multiplier,
@@ -114,7 +118,7 @@ class TradeModel(BaseEntity):
         )
 
         # Trade実行中データ
-        self.runtime = TradeRuntimeModel()
+        self.runtime = TradeRuntimeModel( strategy_type=strategy_type)
 
         # Trade履歴
         self.timeline = []
@@ -231,7 +235,10 @@ class TradeModel(BaseEntity):
         trade.id = data["id"]
 
         trade.param = TradeParamModel.from_dict(data["param"])
-        trade.runtime = TradeRuntimeModel.from_dict(data.get("runtime", {}))
+        trade.runtime = TradeRuntimeModel.from_dict(
+            data.get("runtime", {}),
+            strategy_type=trade.param.strategy_type,
+        )
 
         trade.state = TradeState(data["state"])
         trade.entry_state = EntryState(

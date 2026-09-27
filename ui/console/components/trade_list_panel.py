@@ -116,7 +116,7 @@ TRADE_COLUMNS = {
         "disabled": True,
     },
 
-    "entry_condition": {
+    "strategy_type": {
         "label": "トレード条件",
         "width": "small",
         "type": "text",
@@ -371,11 +371,11 @@ def trade_list_panel():
             row["side"] = SIDE_LABEL.get(row.get("side", ""), row.get("side", ""))
 
             # トレード条件
-            row["entry_condition"] = {
+            row["strategy_type"] = {
                 "standard": "条件(通常)",
                 "pass": "条件なし(即時注文)",
             }.get(
-                row.get("entry_condition", "standard"),
+                row.get("strategy_type", "standard"),
                 "条件(通常)",
             )
 
@@ -446,7 +446,7 @@ def trade_list_panel():
                     "margin_type": "",
                     "strategy": "",
                     "side": "",
-                    "entry_condition": "",
+                    "strategy_type": "",
                     "profit_loss": "",
                     "state": "",
                     "message": "",

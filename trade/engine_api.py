@@ -68,6 +68,8 @@ class TradeEngineAPI:
             )
 
         trade = TradeModel(
+            strategy_type=req.strategy_type,
+
             symbol=req.symbol,
             quantity=req.quantity,
             trade_price=req.trade_price,
@@ -76,7 +78,7 @@ class TradeEngineAPI:
             margin_type=req.margin_type,
             side=side,
             strategy=strategy,
-            entry_condition=req.entry_condition,
+            params=req.params,
 
             initial_stop_delay_seconds=(strategy_cfg["exit"]["initial_stop_delay_seconds"] ),
             stop_atr_multiplier=(strategy_cfg["exit"]["stop_initial"]["atr_multiplier"]),
@@ -103,6 +105,7 @@ class TradeEngineAPI:
             f"margin_type={trade.param.margin_type} "
             f"side={trade.param.side.value} "
             f"strategy={trade.param.strategy.value} "
+            f"params={trade.param.params} "
 
             f"initial_stop_delay={trade.param.initial_stop_delay_seconds}s "
             f"stop_atr_multiplier={trade.param.stop_atr_multiplier} "

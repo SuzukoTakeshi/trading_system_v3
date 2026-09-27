@@ -197,6 +197,8 @@ class EmulatorEngine:
 
         # TradeRequestDTO形式へ変換
         req = {
+            "strategy_type": "standard",
+
             "symbol": str(trade["symbol"]),
             "quantity": trade["quantity"],
             "trade_price": trade["trade_price"],
@@ -224,7 +226,9 @@ class EmulatorEngine:
             "margin_type": self.normalize_margin_type(trade.get("margin_type")),
 
             "side": trade["side"].lower(),
-            "strategy": trade["strategy"]
+            "strategy": trade["strategy"],
+
+            "params": {}
         }
 
         Log.emulator(f"CREATE EMULATOR TRADE (@{req['symbol']})")

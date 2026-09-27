@@ -43,9 +43,7 @@ class ProcessEntryPullback:
     # ==========================================
     def process(self, trade):
 
-        Log.flow(
-            f"(#{trade.id}) ProcessEntryPullback:process"
-        )
+        # Log.flow(f"(#{trade.id}) ProcessEntryPullback:process")
 
         if trade.param.side == SideType.LONG:
 
