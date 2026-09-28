@@ -1,5 +1,5 @@
 #
-# trade/trade_chart_data.py
+# trade/trade_chart.py
 #
 # Trade Chart Data
 #
@@ -9,6 +9,7 @@
 #
 
 from datetime import datetime
+from core.logger import Log
 
 from models.trade.trade_chart_model import TradeChartModel
 from trade.trade_enums import TradeState
@@ -20,6 +21,8 @@ from trade.trade_enums import TradeState
 def add_trade_chart_data(context, trade):
 
     quote = trade.get_quote()
+
+    # Log.event(f"(#{trade.id}) CHART DATA state={trade.state}")
 
     if quote is None:
         return
@@ -43,11 +46,8 @@ def add_trade_chart_data(context, trade):
     )
 
     if state in final_states:
-
         if chart_data_list:
-
             last = chart_data_list[-1]
-
             if last.state == state:
                 return
 
@@ -120,6 +120,27 @@ def add_trade_chart_data(context, trade):
     current_price = quote.current_price
 
     # ==================================================
+    # RANGEパラメータ
+    # ==================================================
+
+    range_params = None
+
+    if trade.param.strategy_type == "range":
+
+        runtime = trade.runtime.strategy_runtime
+
+        range_params = {
+            "range_high": runtime.range_high,
+            "range_low": runtime.range_low,
+            "average_width": runtime.average_width,
+            "long_entry_upper": runtime.long_entry_upper,
+            "short_entry_lower": runtime.short_entry_lower,
+            "range_upper_limit": runtime.range_upper_limit,
+            "range_lower_limit": runtime.range_lower_limit,
+        }
+
+
+    # ==================================================
     # 同一時間枠のデータを更新
     # ==================================================
 
@@ -171,11 +192,18 @@ def add_trade_chart_data(context, trade):
             last.side = trade.param.side
             last.state = state
 
+            last.range_params = range_params
+
             return
+
 
     # ==================================================
     # 新しい時間枠
     # ==================================================
+
+    Log.event(
+        f"(#{trade.id}) RANGE CHART PARAMS {range_params}"
+    )
 
     trade_chart_data = TradeChartModel(
         time=frame_time,
@@ -205,6 +233,8 @@ def add_trade_chart_data(context, trade):
         price_high=current_price,
         price_low=current_price,
         price_close=current_price,
+
+        range_params=range_params,
     )
 
     context.cache.trade_chart_datas.setdefault(

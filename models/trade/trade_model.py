@@ -301,8 +301,10 @@ class TradeModel(BaseEntity):
 
         data.update({
             "trade_id": self.id,
-            "symbol": self.param.symbol,
 
+            "strategy_type": self.param.strategy_type,
+
+            "symbol": self.param.symbol,
             "quantity": self.param.quantity,
             "atr": self.param.atr,
             "trade_price": self.param.trade_price,

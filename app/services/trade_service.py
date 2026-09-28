@@ -193,6 +193,9 @@ class TradeService:
 
             result.append({
                 "trade_id": trade["trade_id"],
+
+                "strategy_type": trade["strategy_type"],
+
                 "symbol": trade["symbol"],
                 "name": symbol["name"] if symbol else "",
 

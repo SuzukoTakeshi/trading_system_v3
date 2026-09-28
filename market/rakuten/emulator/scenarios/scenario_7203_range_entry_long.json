@@ -1,0 +1,60 @@
+{
+    "trade": {
+        "symbol": 7203,
+        "trade_price": 0,
+        "quantity": 100,
+        "atr": 1.0,
+        "trade_type": "margin",
+        "margin_type": "day",
+        "side": "long",
+        "strategy": "scalping"
+    },
+
+    "market": {
+        "mode": "scenario",
+        "interval": 2.0,
+        "scenario": [
+            {
+                "comment": [
+                    "=== RANGE LONG ENTRY TEST ===",
+                    "Strategy : RANGE",
+                    "Side     : LONG",
+                    "Interval : 0.2 min",
+                    "Calculation : 1.0 min"
+                ]
+            },
+
+            { "comment": "開始" },
+            { "price": 3000.0 },
+
+            { "comment": "RANGE計測 LOW形成" },
+            { "price": 2990.0 },
+            { "price": 2985.0 },
+            { "price": 2975.0 },
+
+            { "comment": "RANGE計測 HIGH形成" },
+            { "price": 2985.0 },
+            { "price": 2990.0 },
+            { "price": 3040.0 },
+
+            { "comment": "RANGE計測 HIGH更新" },
+            { "price": 3050.0 },
+            { "price": 3060.0 },
+
+            { "comment": "RANGE計測中" },
+            { "price": 3040.0 },
+            { "price": 3020.0 },
+
+            { "comment": "計測終了後 LONG ENTRY位置へ" },
+            { "price": 3000.0 },
+            { "price": 2990.0 },
+            { "price": 2985.0 },
+            { "price": 2980.0 },
+
+            { "comment": "LONG ENTRY成立" },
+            { "price": 2980.0 },
+
+            { "end": true }
+        ]
+    }
+}

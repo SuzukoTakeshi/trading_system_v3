@@ -23,17 +23,18 @@ from trade.trade_enums import (
     ExitReason,
 )
 
+from trade.exit.process_exit_base import ProcessExitBase
+
 from trade.exit.exit_stop.process_exit_stop import ProcessExitStop
 
 
-class ProcessExit:
+class ProcessExit(ProcessExitBase):
 
     def __init__(self, context, market):
 
         Log.create("ProcessExit")
 
-        self.context = context
-        self.market = market
+        super().__init__(context, market)
 
         self.exit_stop = ProcessExitStop(context, market)
 

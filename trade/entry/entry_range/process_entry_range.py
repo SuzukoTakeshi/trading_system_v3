@@ -28,10 +28,7 @@ class ProcessEntryRange:
 
 
     def process(self, trade):
-
-        # Log.flow(
-        #     f"(#{trade.id}) ProcessEntryRange:process"
-        # )
+        # Log.flow(f"(#{trade.id}) ProcessEntryRange:process")
 
         runtime = trade.runtime.strategy_runtime
 
@@ -42,12 +39,9 @@ class ProcessEntryRange:
         quote = trade.get_quote()
         price = quote.current_price
 
-
         # RANGEセッション開始
         if runtime.session_start_time is None:
-
             runtime.session_start_time = now
-
 
         # RANGE計測時間判定
         elapsed_seconds = (
@@ -60,23 +54,23 @@ class ProcessEntryRange:
                 trade,
                 runtime,
                 now,
-                price,
+                price
             )
 
             return False
 
-
+        # RANGE計測終了後
         self.process_after_calculation(
             trade,
             runtime,
-            now,
+            now
         )
 
-
+        # RANGE継続判定
         if not self.judge_range(
             trade,
             runtime,
-            price,
+            price
         ):
 
             trade.change_state(
@@ -85,24 +79,33 @@ class ProcessEntryRange:
 
             return False
 
-
+        # ENTRY判定
         if trade.param.side == SideType.LONG:
 
-            return self.entry_long(
+            result = self.entry_long(
                 trade,
                 runtime,
-                price,
+                price
             )
-
 
         if trade.param.side == SideType.SHORT:
 
-            return self.entry_short(
+            result = self.entry_short(
                 trade,
                 runtime,
-                price,
+                price
             )
 
+        # EntryのみのDebugの為、一時的にCLOSEDで終わらせる
+        if result:
+
+            Log.debug(
+                "★★★★ EntryのみのDebugの為、一時的にCLOSEDで終わらせる"
+            )
+
+            trade.change_state(
+                TradeState.CLOSED
+            )
 
         return False
 
@@ -110,13 +113,12 @@ class ProcessEntryRange:
     # ==================================================
     # 判定材料の定期収集計算処理
     # ==================================================
-
     def process_calculation(
         self,
         trade,
         runtime,
         now,
-        price,
+        price
     ):
 
         # 区間開始
@@ -132,9 +134,11 @@ class ProcessEntryRange:
 
         # 現在区間のHIGH / LOWを更新
         if price > runtime.minute_high:
+
             runtime.minute_high = price
 
         if price < runtime.minute_low:
+
             runtime.minute_low = price
 
 
@@ -145,18 +149,10 @@ class ProcessEntryRange:
 
         if elapsed_seconds >= runtime.interval_minutes * 60:
 
-            # 区間のHIGH / LOWを確定
-            runtime.minute_history.append(
-                {
-                    "high": runtime.minute_high,
-                    "low": runtime.minute_low,
-                }
-            )
-
-            Log.event(
-                f"(#{trade.id}) RANGE INTERVAL "
-                f"HIGH={runtime.minute_high} "
-                f"LOW={runtime.minute_low}"
+            # 区間完了処理
+            self.complete_interval(
+                trade,
+                runtime
             )
 
             # 次の区間を開始
@@ -164,56 +160,57 @@ class ProcessEntryRange:
             runtime.minute_high = price
             runtime.minute_low = price
 
-
         return False
 
 
     # ==================================================
-    # RANGE計測終了後の処理
+    # 区間完了処理
     # ==================================================
-
-    def process_after_calculation(
+    def complete_interval(
         self,
         trade,
-        runtime,
-        now,
+        runtime
     ):
 
-        Log.event(
-            f"(#{trade.id}) RANGE CALCULATION COMPLETE"
+        # 区間のHIGH / LOWを確定
+        runtime.minute_history.append(
+            {
+                "high": runtime.minute_high,
+                "low": runtime.minute_low,
+            }
         )
 
+        Log.event(
+            f"(#{trade.id}) RANGE INTERVAL "
+            f"HIGH={runtime.minute_high} "
+            f"LOW={runtime.minute_low}"
+        )
 
         # ==================================================
         # 各区間のRANGE幅
         # ==================================================
-
         widths = []
 
         for item in runtime.minute_history:
 
-            width = item["high"] - item["low"]
+            width = (
+                item["high"]
+                - item["low"]
+            )
 
             widths.append(width)
-
-
-        if not widths:
-            return
-
 
         # ==================================================
         # 平均RANGE幅
         # ==================================================
-
-        average_width = (
-            sum(widths) / len(widths)
+        runtime.average_width = (
+            sum(widths)
+            / len(widths)
         )
 
-
         # ==================================================
-        # RANGE確定
+        # RANGE HIGH / LOW
         # ==================================================
-
         runtime.range_high = max(
             item["high"]
             for item in runtime.minute_history
@@ -224,229 +221,163 @@ class ProcessEntryRange:
             for item in runtime.minute_history
         )
 
+        # ==================================================
+        # RANGE上限 / 下限
+        # ==================================================
+        deviation = (
+            runtime.average_width
+            * runtime.deviation_rate
+            / 100
+        )
+
+        runtime.range_upper_limit = (
+            runtime.range_high
+            + deviation
+        )
+
+        runtime.range_lower_limit = (
+            runtime.range_low
+            - deviation
+        )
+
+
+    # ==================================================
+    # RANGE計測終了後の処理
+    # ==================================================
+    def process_after_calculation(
+        self,
+        trade,
+        runtime,
+        now
+    ):
+
+        # ENTRY価格が既に確定済み
+        if runtime.long_entry_upper is not None:
+
+            return
+
+        Log.event(
+            f"(#{trade.id}) RANGE CALCULATION COMPLETE"
+        )
+
+        # ==================================================
+        # LONG ENTRY価格
+        # ==================================================
+        long_deviation = (
+            runtime.average_width
+            * runtime.entry_low_deviation_rate
+            / 100
+        )
+
+        runtime.long_entry_upper = (
+            runtime.range_low
+            + long_deviation
+        )
+
+        # ==================================================
+        # SHORT ENTRY価格
+        # ==================================================
+        short_deviation = (
+            runtime.average_width
+            * runtime.entry_high_deviation_rate
+            / 100
+        )
+
+        runtime.short_entry_lower = (
+            runtime.range_high
+            - short_deviation
+        )
 
         Log.event(
             f"(#{trade.id}) RANGE CONFIRMED "
             f"HIGH={runtime.range_high} "
             f"LOW={runtime.range_low} "
-            f"AVERAGE_WIDTH={average_width}"
+            f"AVERAGE_WIDTH={runtime.average_width} "
+            f"LONG_UPPER={runtime.long_entry_upper} "
+            f"SHORT_LOWER={runtime.short_entry_lower}"
         )
 
 
     # ==================================================
     # RANGE判定
     # ==================================================
-
     def judge_range(
         self,
         trade,
         runtime,
-        price,
+        price
     ):
-
-        # ==================================================
-        # 平均RANGE幅
-        # ==================================================
-
-        widths = []
-
-        for item in runtime.minute_history:
-
-            width = item["high"] - item["low"]
-
-            widths.append(width)
-
-
-        if not widths:
-            return False
-
-
-        average_width = (
-            sum(widths) / len(widths)
-        )
-
-
-        # ==================================================
-        # 許容乖離幅
-        # ==================================================
-
-        deviation = (
-            average_width
-            * runtime.deviation_rate
-            / 100
-        )
-
-
-        # ==================================================
-        # RANGE上限 / 下限
-        # ==================================================
-
-        upper_limit = (
-            runtime.range_high
-            + deviation
-        )
-
-        lower_limit = (
-            runtime.range_low
-            - deviation
-        )
-
 
         # ==================================================
         # RANGE終了判定
         # ==================================================
-
-        if price > upper_limit:
-
-            Log.event(
-                f"(#{trade.id}) RANGE END "
-                f"PRICE={price} "
-                f"UPPER={upper_limit}"
-            )
-
-            return False
-
-
-        if price < lower_limit:
+        if price > runtime.range_upper_limit:
 
             Log.event(
                 f"(#{trade.id}) RANGE END "
                 f"PRICE={price} "
-                f"LOWER={lower_limit}"
+                f"UPPER={runtime.range_upper_limit}"
             )
 
             return False
 
+        if price < runtime.range_lower_limit:
+
+            Log.event(
+                f"(#{trade.id}) RANGE END "
+                f"PRICE={price} "
+                f"LOWER={runtime.range_lower_limit}"
+            )
+
+            return False
 
         # RANGE継続
         return True
 
 
+    # ==================================================
+    # LONG ENTRY
+    # ==================================================
     def entry_long(
         self,
         trade,
         runtime,
-        price,
+        price
     ):
 
-        # ==================================================
-        # 平均RANGE幅
-        # ==================================================
-
-        widths = []
-
-        for item in runtime.minute_history:
-
-            width = item["high"] - item["low"]
-
-            widths.append(width)
-
-
-        if not widths:
-            return False
-
-
-        average_width = (
-            sum(widths) / len(widths)
-        )
-
-
-        # ==================================================
-        # LOW側ENTRY乖離幅
-        # ==================================================
-
-        entry_deviation = (
-            average_width
-            * runtime.entry_low_deviation_rate
-            / 100
-        )
-
-
-        # ==================================================
-        # LONG ENTRY判定
-        # ==================================================
-
-        entry_upper = (
-            runtime.range_low
-            + entry_deviation
-        )
-
-
-        if runtime.range_low <= price <= entry_upper:
+        if runtime.range_low <= price <= runtime.long_entry_upper:
 
             Log.event(
                 f"(#{trade.id}) RANGE LONG ENTRY "
                 f"PRICE={price} "
                 f"LOW={runtime.range_low} "
-                f"UPPER={entry_upper}"
+                f"UPPER={runtime.long_entry_upper}"
             )
 
             return True
-
 
         return False
 
 
+    # ==================================================
+    # SHORT ENTRY
+    # ==================================================
     def entry_short(
         self,
         trade,
         runtime,
-        price,
+        price
     ):
 
-        # ==================================================
-        # 平均RANGE幅
-        # ==================================================
-
-        widths = []
-
-        for item in runtime.minute_history:
-
-            width = item["high"] - item["low"]
-
-            widths.append(width)
-
-
-        if not widths:
-            return False
-
-
-        average_width = (
-            sum(widths) / len(widths)
-        )
-
-
-        # ==================================================
-        # HIGH側ENTRY乖離幅
-        # ==================================================
-
-        entry_deviation = (
-            average_width
-            * runtime.entry_high_deviation_rate
-            / 100
-        )
-
-
-        # ==================================================
-        # SHORT ENTRY判定
-        # ==================================================
-
-        entry_lower = (
-            runtime.range_high
-            - entry_deviation
-        )
-
-
-        if entry_lower <= price <= runtime.range_high:
+        if runtime.short_entry_lower <= price <= runtime.range_high:
 
             Log.event(
                 f"(#{trade.id}) RANGE SHORT ENTRY "
                 f"PRICE={price} "
-                f"LOWER={entry_lower} "
+                f"LOWER={runtime.short_entry_lower} "
                 f"HIGH={runtime.range_high}"
             )
 
             return True
-
 
         return False

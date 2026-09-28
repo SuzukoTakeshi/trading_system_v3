@@ -41,6 +41,8 @@ class TradeChartModel:
         price_high=None,
         price_low=None,
         price_close=None,
+
+        range_params=None,
     ):
 
         self.time = time or datetime.now()
@@ -64,6 +66,17 @@ class TradeChartModel:
         self.price_high = price_high
         self.price_low = price_low
         self.price_close = price_close
+
+        # RANGE
+        self.range_params = range_params
+        # {
+        #     "range_high": 3060.0,
+        #     "range_low": 2975.0,
+        #     "long_entry_upper": 2993.125,
+        #     "short_entry_lower": 3041.875,
+        #     "range_upper_limit": 3078.125,
+        #     "range_lower_limit": 2956.875
+        # }
 
 
     @property
@@ -108,6 +121,9 @@ class TradeChartModel:
             "price_high": self.price_high,
             "price_low": self.price_low,
             "price_close": self.price_close,
+
+            # RANGE
+            "range_params": self.range_params,
         }
 
 
@@ -157,4 +173,7 @@ class TradeChartModel:
             price_high=data.get("price_high"),
             price_low=data.get("price_low"),
             price_close=data.get("price_close"),
+
+            # RANGE
+            range_params=data.get("range_params"),
         )

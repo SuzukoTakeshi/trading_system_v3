@@ -19,7 +19,8 @@ from ui.config import MONITOR_REFRESH_INTERVAL_MS
 # --------------------------------------
 from ui.monitor.components.header import render_header
 from ui.monitor.components.trail_card import render_trail_card
-from ui.monitor.components.trail_chart import render_trail_chart
+from ui.monitor.components.trail_chart_standard import render_standard_chart
+from ui.monitor.components.trail_chart_range import render_range_chart
 from ui.monitor.components.timeline_card import render_timeline_card
 
 # --------------------------------------
@@ -217,13 +218,28 @@ def main():
                     # -------------------------
                     render_trail_card(target)
 
+                    # -------------------------
+                    # Chart
+                    # -------------------------
                     if trail_chart_display:
-                        render_trail_chart(
-                            target.get("chart_datas", []),
-                            target.get("symbol", ""),
-                            target.get("name", "")
-                        )
+                        strategy_type = target.get("strategy_type", "")
 
+                        if strategy_type == "range":
+                            render_range_chart(
+                                target.get("chart_datas", []),
+                                target.get("symbol", ""),
+                                target.get("name", "")
+                            )
+                        else:
+                            render_standard_chart(
+                                target.get("chart_datas", []),
+                                target.get("symbol", ""),
+                                target.get("name", "")
+                            )
+
+                    # -------------------------
+                    # TimeLine
+                    # -------------------------
                     if timeline_display:
                         render_timeline_card(
                             target.get("timeline", [])

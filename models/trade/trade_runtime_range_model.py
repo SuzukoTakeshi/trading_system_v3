@@ -47,6 +47,12 @@ class TradeRuntimeRangeModel:
         # 確定したRANGE
         self.range_high = None
         self.range_low = None
+        self.average_width = None
+
+        self.long_entry_upper = None
+        self.short_entry_lower = None
+        self.range_upper_limit = None
+        self.range_lower_limit = None
 
 
     def to_dict(self):
@@ -80,8 +86,14 @@ class TradeRuntimeRangeModel:
 
             "minute_history": self.minute_history,
 
+            # RANGE
             "range_high": self.range_high,
             "range_low": self.range_low,
+            "average_width": self.average_width,
+            "long_entry_upper": self.long_entry_upper,
+            "short_entry_lower": self.short_entry_lower,
+            "range_upper_limit": self.range_upper_limit,
+            "range_lower_limit": self.range_lower_limit,
         }
 
 
@@ -136,9 +148,13 @@ class TradeRuntimeRangeModel:
             [],
         )
 
-
+        # RANGE
         runtime.range_high = data.get("range_high")
         runtime.range_low = data.get("range_low")
-
+        runtime.average_width = data.get("average_width")
+        runtime.long_entry_upper = data.get("long_entry_upper")
+        runtime.short_entry_lower = data.get("short_entry_lower")
+        runtime.range_upper_limit = data.get("range_upper_limit")
+        runtime.range_lower_limit = data.get("range_lower_limit")
 
         return runtime
