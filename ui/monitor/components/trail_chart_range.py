@@ -182,6 +182,7 @@ def render_range_chart(
                     linestyle="--",
                     linewidth=0.8,
                     alpha=0.7,
+                    color="red",
                     label="RANGE HIGH"
                 )
 
@@ -196,6 +197,7 @@ def render_range_chart(
                     linestyle="--",
                     linewidth=0.8,
                     alpha=0.7,
+                    color="green",
                     label="RANGE LOW"
                 )
 
@@ -210,6 +212,7 @@ def render_range_chart(
                     linestyle=":",
                     linewidth=0.8,
                     alpha=0.7,
+                    color="green",
                     label="LONG ENTRY"
                 )
 
@@ -224,6 +227,7 @@ def render_range_chart(
                     linestyle=":",
                     linewidth=0.8,
                     alpha=0.7,
+                    color="red",
                     label="SHORT ENTRY"
                 )
 
@@ -238,6 +242,7 @@ def render_range_chart(
                     linestyle="--",
                     linewidth=0.8,
                     alpha=0.5,
+                    color="red",
                     label="RANGE UPPER"
                 )
 
@@ -252,6 +257,7 @@ def render_range_chart(
                     linestyle="--",
                     linewidth=0.8,
                     alpha=0.5,
+                    color="green",
                     label="RANGE LOWER"
                 )
 

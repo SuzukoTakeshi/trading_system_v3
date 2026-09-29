@@ -58,9 +58,6 @@ class ProcessEntryRange:
 
             runtime.range_initialized = True
 
-        else:
-            result = update_range(runtime, price)
-
         # RANGE継続判定
         if not self.judge_range(trade, runtime, price):
             trade.change_state(TradeState.CLOSED)
@@ -72,6 +69,11 @@ class ProcessEntryRange:
 
         if trade.param.side == SideType.SHORT:
             result = self.entry_short(trade, runtime, price)
+
+        # ENTRY成立しなかった場合のみRANGE更新
+        if not result:
+            update_range(runtime, price)
+            self._update_params(runtime)
 
         return result
 
@@ -140,15 +142,8 @@ class ProcessEntryRange:
             for item in runtime.minute_history
         )
 
-        # RANGE幅
-        range_width = (runtime.range_high - runtime.range_low)
-
-        # RANGE上限 / 下限
-        deviation = (range_width * runtime.deviation_rate / 100)
-
-        runtime.range_upper_limit = (runtime.range_high + deviation)
-
-        runtime.range_lower_limit = (runtime.range_low - deviation)
+        # RANGEパラメータ更新
+        self._update_params(runtime)
 
 
     # ==================================================
@@ -163,18 +158,8 @@ class ProcessEntryRange:
         runtime.high_count = 1
         runtime.low_count = 1
 
-        # RANGE幅
-        range_width = (runtime.range_high - runtime.range_low)
-
-        # LONG ENTRY価格
-        long_deviation = (range_width * runtime.entry_low_deviation_rate / 100)
-
-        runtime.long_entry_upper = (runtime.range_low + long_deviation)
-
-        # SHORT ENTRY価格
-        short_deviation = (range_width * runtime.entry_high_deviation_rate / 100)
-
-        runtime.short_entry_lower = (runtime.range_high - short_deviation)
+        # RANGE / ENTRYパラメータ確定
+        self._update_params(runtime)
 
         Log.event(
             f"(#{trade.id}) RANGE CONFIRMED "
@@ -238,3 +223,53 @@ class ProcessEntryRange:
             return True
 
         return False
+
+
+    def _update_params(self, runtime):
+
+        range_width = (
+            runtime.range_high - runtime.range_low
+        )
+
+        # --------------------
+        # RANGE上限 / 下限
+        # --------------------
+        deviation = (
+            range_width
+            * runtime.deviation_rate
+            / 100
+        )
+
+        runtime.range_upper_limit = (
+            runtime.range_high + deviation
+        )
+
+        runtime.range_lower_limit = (
+            runtime.range_low - deviation
+        )
+
+        # --------------------
+        # ENTRY
+        # --------------------
+
+        # LONG ENTRY上限
+        long_deviation = (
+            range_width
+            * runtime.entry_low_deviation_rate
+            / 100
+        )
+
+        runtime.long_entry_upper = (
+            runtime.range_low + long_deviation
+        )
+
+        # SHORT ENTRY下限
+        short_deviation = (
+            range_width
+            * runtime.entry_high_deviation_rate
+            / 100
+        )
+
+        runtime.short_entry_lower = (
+            runtime.range_high - short_deviation
+        )

@@ -4,14 +4,18 @@
         "range.calculation_minutes": "RANGE計測を行う期間（分）",
         "range.deviation_rate": "RANGE HIGH / LOWからの許容乖離率（%）",
         "range.entry_high_deviation_rate": "HIGHからのENTRY判定乖離率（%）",
-        "range.entry_low_deviation_rate": "LOWからのENTRY判定乖離率（%）"
+        "range.entry_low_deviation_rate": "LOWからのENTRY判定乖離率（%）",
+        "range.exit_high_deviation_rate": "HIGHからのEXIT判定乖離率（%）",
+        "range.exit_low_deviation_rate": "LOWからのEXIT判定乖離率（%）"
     },
 
     "range": {
         "interval_minutes": 0.2,
         "calculation_minutes": 1,
         "deviation_rate": 50.0,
-        "entry_high_deviation_rate": 50.0,
-        "entry_low_deviation_rate": 50.0
+        "entry_high_deviation_rate": 30.0,
+        "entry_low_deviation_rate": 30.0,
+        "exit_high_deviation_rate": 30.0,
+        "exit_low_deviation_rate": 30.0
     }
 }

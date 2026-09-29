@@ -9,7 +9,7 @@
     "STATE": true,
     "MARKET": true,
     "ASSET": true,
-    "FLOW": true,
+    "FLOW": false,
 
     "EMULATOR": true,
 

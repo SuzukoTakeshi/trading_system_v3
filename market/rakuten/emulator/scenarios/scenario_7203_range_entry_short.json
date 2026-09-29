@@ -6,7 +6,7 @@
         "atr": 1.0,
         "trade_type": "margin",
         "margin_type": "day",
-        "side": "long",
+        "side": "short",
         "strategy": "scalping"
     },
 
@@ -17,9 +17,9 @@
 
             {
                 "comment": [
-                    "=== RANGE LONG ENTRY / UPDATE TEST ===",
+                    "=== RANGE SHORT ENTRY / UPDATE TEST ===",
                     "Strategy     : RANGE",
-                    "Side         : LONG",
+                    "Side         : SHORT",
                     "Interval     : 0.2 min",
                     "Calculation  : 1.0 min"
                 ]
@@ -80,39 +80,20 @@
             { "price": 3050.0 },
 
             {
-                "comment": "=== LONG ENTRY位置へ ==="
+                "comment": "=== SHORT ENTRY位置へ ==="
             },
+            { "price": 3035.0 },
+            { "price": 3030.0 },
             { "price": 3025.0 },
-            { "price": 3020.0 },
-            { "price": 3018.0 },
 
             {
-                "comment": "=== LONG ENTRY成立 ==="
+                "comment": "=== SHORT ENTRY成立 ==="
             },
-            { "price": 2995.0 },
+            { "price": 3045.0 },
 
             {
                 "end": true
-            },
-
-            {
-                "comment": "=== ENTRY後 RANGE更新確認 ==="
-            },
-            { "price": 3020.0 },
-            { "price": 3030.0 },
-            { "price": 3040.0 },
-            { "price": 3050.0 },
-
-            {
-                "comment": "=== ENTRY後 HIGH更新確認 ==="
-            },
-            { "price": 3060.0 },
-            { "price": 3070.0 },
-
-            {
-                "comment": "=== END ==="
-            },
-            { "end": true }
+            }
         ]
     }
 }

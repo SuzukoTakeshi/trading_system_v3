@@ -19,17 +19,23 @@ class TradeRuntimeRangeModel:
         Log.create("TradeRuntimeRangeModel")
 
 
-        # RANGEセッション開始時刻
-        self.session_start_time = None
-
-
+        # --------------------
         # RANGE設定
+        # --------------------
         self.interval_minutes = None
         self.calculation_minutes = None
         self.deviation_rate = None
+
+        # ENTRY
         self.entry_high_deviation_rate = None
         self.entry_low_deviation_rate = None
+        # EXIT
+        self.exit_high_deviation_rate = None
+        self.exit_low_deviation_rate = None
 
+
+        # RANGEセッション開始時刻
+        self.session_start_time = None
 
         # 現在区間の開始時刻
         self.minute_start_time = None
@@ -49,14 +55,21 @@ class TradeRuntimeRangeModel:
         self.high_count = None
         self.low_count = None
 
+        # --------------------
         # 確定したRANGE
+        # --------------------
         self.range_high = None
         self.range_low = None
 
-        self.long_entry_upper = None
-        self.short_entry_lower = None
         self.range_upper_limit = None
         self.range_lower_limit = None
+
+        # ENTRY
+        self.long_entry_upper = None
+        self.short_entry_lower = None
+        # EXIT
+        self.long_exit_lower = None
+        self.short_exit_upper = None
 
 
     def to_dict(self):
@@ -77,6 +90,12 @@ class TradeRuntimeRangeModel:
             ),
             "entry_low_deviation_rate": (
                 self.entry_low_deviation_rate
+            ),
+            "exit_high_deviation_rate": (
+                self.exit_high_deviation_rate
+            ),
+            "exit_low_deviation_rate": (
+                self.exit_low_deviation_rate
             ),
 
             "minute_start_time": (
@@ -99,6 +118,8 @@ class TradeRuntimeRangeModel:
             "range_low": self.range_low,
             "long_entry_upper": self.long_entry_upper,
             "short_entry_lower": self.short_entry_lower,
+            "long_exit_lower": self.long_exit_lower,
+            "short_exit_upper": self.short_exit_upper,
             "range_upper_limit": self.range_upper_limit,
             "range_lower_limit": self.range_lower_limit,
         }
@@ -121,6 +142,8 @@ class TradeRuntimeRangeModel:
         runtime.deviation_rate = data.get("deviation_rate")
         runtime.entry_high_deviation_rate = data.get("entry_high_deviation_rate")
         runtime.entry_low_deviation_rate = data.get("entry_low_deviation_rate")
+        runtime.exit_high_deviation_rate = data.get("exit_high_deviation_rate")
+        runtime.exit_low_deviation_rate = data.get("exit_low_deviation_rate")
         minute_start_time = data.get("minute_start_time")
         if minute_start_time:
             runtime.minute_start_time = datetime.fromisoformat(minute_start_time)
@@ -138,6 +161,8 @@ class TradeRuntimeRangeModel:
         runtime.range_low = data.get("range_low")
         runtime.long_entry_upper = data.get("long_entry_upper")
         runtime.short_entry_lower = data.get("short_entry_lower")
+        runtime.long_exit_lower = data.get("long_exit_lower")
+        runtime.short_exit_upper = data.get("short_exit_upper")
         runtime.range_upper_limit = data.get("range_upper_limit")
         runtime.range_lower_limit = data.get("range_lower_limit")
 

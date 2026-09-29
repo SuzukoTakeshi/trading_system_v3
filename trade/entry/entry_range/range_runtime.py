@@ -28,11 +28,21 @@ def create_range_runtime():
     runtime.interval_minutes = range_config["interval_minutes"]
     runtime.calculation_minutes = range_config["calculation_minutes"]
     runtime.deviation_rate = range_config["deviation_rate"]
+
+    # ENTRY
     runtime.entry_high_deviation_rate = (
         range_config["entry_high_deviation_rate"]
     )
     runtime.entry_low_deviation_rate = (
         range_config["entry_low_deviation_rate"]
+    )
+
+    # EXIT
+    runtime.exit_high_deviation_rate = (
+        range_config["exit_high_deviation_rate"]
+    )
+    runtime.exit_low_deviation_rate = (
+        range_config["exit_low_deviation_rate"]
     )
 
     Log.event(
@@ -43,7 +53,11 @@ def create_range_runtime():
         f"entry_high_deviation_rate="
         f"{runtime.entry_high_deviation_rate} "
         f"entry_low_deviation_rate="
-        f"{runtime.entry_low_deviation_rate}"
+        f"{runtime.entry_low_deviation_rate} "
+        f"exit_high_deviation_rate="
+        f"{runtime.exit_high_deviation_rate} "
+        f"exit_low_deviation_rate="
+        f"{runtime.exit_low_deviation_rate}"
     )
 
     return runtime
