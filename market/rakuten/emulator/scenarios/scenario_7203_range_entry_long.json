@@ -92,22 +92,17 @@
             { "price": 2995.0 },
 
             {
-                "end": true
-            },
-
-            {
-                "comment": "=== ENTRY後 RANGE更新確認 ==="
+                "comment": "=== ENTRY後 RANGE固定確認 ==="
             },
             { "price": 3020.0 },
             { "price": 3030.0 },
             { "price": 3040.0 },
-            { "price": 3050.0 },
 
             {
-                "comment": "=== ENTRY後 HIGH更新確認 ==="
+                "comment": "=== LONG EXIT UPPER到達 ==="
             },
+            { "price": 3050.0 },
             { "price": 3060.0 },
-            { "price": 3070.0 },
 
             {
                 "comment": "=== END ==="

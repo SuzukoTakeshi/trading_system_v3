@@ -68,8 +68,8 @@ class TradeRuntimeRangeModel:
         self.long_entry_upper = None
         self.short_entry_lower = None
         # EXIT
-        self.long_exit_lower = None
-        self.short_exit_upper = None
+        self.long_exit_upper = None
+        self.short_exit_lower = None
 
 
     def to_dict(self):
@@ -118,8 +118,8 @@ class TradeRuntimeRangeModel:
             "range_low": self.range_low,
             "long_entry_upper": self.long_entry_upper,
             "short_entry_lower": self.short_entry_lower,
-            "long_exit_lower": self.long_exit_lower,
-            "short_exit_upper": self.short_exit_upper,
+            "long_exit_upper": self.long_exit_upper,
+            "short_exit_lower": self.short_exit_lower,
             "range_upper_limit": self.range_upper_limit,
             "range_lower_limit": self.range_lower_limit,
         }
@@ -161,8 +161,8 @@ class TradeRuntimeRangeModel:
         runtime.range_low = data.get("range_low")
         runtime.long_entry_upper = data.get("long_entry_upper")
         runtime.short_entry_lower = data.get("short_entry_lower")
-        runtime.long_exit_lower = data.get("long_exit_lower")
-        runtime.short_exit_upper = data.get("short_exit_upper")
+        runtime.long_exit_upper = data.get("long_exit_upper")
+        runtime.short_exit_lower = data.get("short_exit_lower")
         runtime.range_upper_limit = data.get("range_upper_limit")
         runtime.range_lower_limit = data.get("range_lower_limit")
 

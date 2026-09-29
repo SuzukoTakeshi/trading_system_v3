@@ -74,22 +74,27 @@
             { "price": 3055.0 },
 
             {
-                "comment": "=== RANGE更新 HIGH側確認 ==="
-            },
-            { "price": 3045.0 },
-            { "price": 3050.0 },
-
-            {
                 "comment": "=== SHORT ENTRY位置へ ==="
             },
+            { "price": 3045.0 },
             { "price": 3035.0 },
             { "price": 3030.0 },
-            { "price": 3025.0 },
 
             {
                 "comment": "=== SHORT ENTRY成立 ==="
             },
-            { "price": 3045.0 },
+            { "price": 3025.0 },
+
+            {
+                "comment": "=== ENTRY後 RANGE固定確認 ==="
+            },
+            { "price": 3015.0 },
+            { "price": 3005.0 },
+
+            {
+                "comment": "=== SHORT EXIT LOWER到達 ==="
+            },
+            { "price": 2990.0 },
 
             {
                 "end": true

@@ -112,6 +112,8 @@ class ProcessEntryRequest(ProcessOrderBase):
         # DEBUGでは反転確定時の価格または現在価格を約定価格として使用する。
         if trade.param.strategy_type == "pass":
             price = trade.get_quote().current_price
+        elif trade.param.strategy_type == "range":
+            price = trade.get_quote().current_price
         else:
             price = trade.runtime.entry_previous_price
 

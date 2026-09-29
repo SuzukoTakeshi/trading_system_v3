@@ -172,6 +172,7 @@ class EntryState(str, Enum):
 #       trade.param.close_time    : 指定時刻 HH:MM"形式で設定する。
 #   MANUAL_EXIT: 手動決済
 #   STOP_LINE_EXIT: 損切ライン到達による決済
+#   RANGE_EXIT: RANGE条件による決済
 #
 class ExitReason(str, Enum):
     MARGIN_DAY_CLOSE = "margin_day_close"
@@ -179,3 +180,4 @@ class ExitReason(str, Enum):
     CLOSE_EXIT = "close_exit"
     MANUAL_EXIT = "manual_exit"
     STOP_LINE_EXIT = "stop_line_exit"
+    RANGE_EXIT = "range_exit"

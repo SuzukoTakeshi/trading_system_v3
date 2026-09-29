@@ -26,6 +26,7 @@ from trade.trade_enums import (
 from trade.exit.process_exit_base import ProcessExitBase
 
 from trade.exit.exit_stop.process_exit_stop import ProcessExitStop
+from trade.exit.exit_range.process_exit_range import ProcessExitRange
 
 
 class ProcessExit(ProcessExitBase):
@@ -37,6 +38,7 @@ class ProcessExit(ProcessExitBase):
         super().__init__(context, market)
 
         self.exit_stop = ProcessExitStop(context, market)
+        self.exit_range = ProcessExitRange(context, market)
 
         self.quote = None
 
@@ -45,15 +47,22 @@ class ProcessExit(ProcessExitBase):
     # ==========================================
     def process(self, trade):
 
-        Log.flow(
-            f"(#{trade.id}) ProcessExit:process"
-        )
+        Log.flow(f"(#{trade.id}) ProcessExit:process")
 
         self.quote = trade.get_quote()
 
-        # STOP EXIT
-        if self.exit_stop.process(trade):
-            return True
+        if trade.param.strategy_type == "standard":
+            if self.exit_stop.process(trade):
+                return True
+
+        if trade.param.strategy_type == "pass":
+            if self.exit_stop.process(trade):
+                return True
+
+        if trade.param.strategy_type == "range":
+            if self.exit_range.process(trade):
+                return True
+
 
         # DEBUGでは時間系EXITを行わない
         if not self.market.is_debug():
