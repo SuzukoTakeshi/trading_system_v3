@@ -206,10 +206,10 @@ def render_trail_card(trade: dict):
             )
 
         # ---------------------
-        # current_price / expected_profit_loss
+        # current_price / expected_profit_loss / current_profit_loss
         # ---------------------
 
-        current_price_col, expected_profit_loss_col = st.columns([4, 1])
+        current_price_col, expected_profit_col = st.columns([5, 2])
 
         with current_price_col:
             current_price = fmt_price(trade.get("current_price"))
@@ -222,15 +222,20 @@ def render_trail_card(trade: dict):
                 unsafe_allow_html=True
             )
 
-        with expected_profit_loss_col:
+        with expected_profit_col:
 
             entry_price = trade.get("entry_price")
             stop_price = trade.get("stop_price")
             quantity = trade.get("quantity")
             side = trade.get("side")
+            current_price_value = trade.get("current_price")
 
             expected_profit_loss = None
+            current_profit_loss = None
 
+            # ---------------------
+            # STOP損益
+            # ---------------------
             if (
                 entry_price is not None
                 and stop_price is not None
@@ -238,16 +243,39 @@ def render_trail_card(trade: dict):
             ):
                 expected_profit_loss = trade["expected_profit_loss"]
 
-            # ENTRY未約定など、計算に必要な値がまだない場合は何もしない
+            # ---------------------
+            # 現在損益
+            # ---------------------
+            if (
+                entry_price is not None
+                and current_price_value is not None
+                and quantity is not None
+            ):
+                if side == "long":
+                    current_profit_loss = (
+                        current_price_value - entry_price
+                    ) * quantity
 
+                elif side == "short":
+                    current_profit_loss = (
+                        entry_price - current_price_value
+                    ) * quantity
+
+            # ---------------------
+            # STOP損益
+            # ---------------------
             if expected_profit_loss is not None:
 
                 if expected_profit_loss > 0:
-                    expected_profit_loss_text = f"+¥{expected_profit_loss:,.0f}"
+                    expected_profit_loss_text = (
+                        f"+¥{expected_profit_loss:,.0f}"
+                    )
                     expected_profit_loss_color = "#00C853"
 
                 elif expected_profit_loss < 0:
-                    expected_profit_loss_text = f"-¥{abs(expected_profit_loss):,.0f}"
+                    expected_profit_loss_text = (
+                        f"-¥{abs(expected_profit_loss):,.0f}"
+                    )
                     expected_profit_loss_color = "#FF5252"
 
                 else:
@@ -257,7 +285,7 @@ def render_trail_card(trade: dict):
                 st.markdown(
                     f"""
                     <div class="trail-item">
-                        <div class="trail-label">予想損益</div>
+                        <div class="trail-label">STOP損益</div>
                         <div
                             class="trail-value"
                             style="
@@ -267,6 +295,46 @@ def render_trail_card(trade: dict):
                             "
                         >
                             {expected_profit_loss_text}
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            # ---------------------
+            # 現在損益
+            # ---------------------
+            if current_profit_loss is not None:
+
+                if current_profit_loss > 0:
+                    current_profit_loss_text = (
+                        f"+¥{current_profit_loss:,.0f}"
+                    )
+                    current_profit_loss_color = "#00C853"
+
+                elif current_profit_loss < 0:
+                    current_profit_loss_text = (
+                        f"-¥{abs(current_profit_loss):,.0f}"
+                    )
+                    current_profit_loss_color = "#FF5252"
+
+                else:
+                    current_profit_loss_text = "¥0"
+                    current_profit_loss_color = "#999999"
+
+                st.markdown(
+                    f"""
+                    <div class="trail-item">
+                        <div class="trail-label">現在損益</div>
+                        <div
+                            class="trail-value"
+                            style="
+                                color: {current_profit_loss_color};
+                                font-size: 1.2rem;
+                                text-align: right;
+                            "
+                        >
+                            {current_profit_loss_text}
                         </div>
                     </div>
                     """,

@@ -132,7 +132,6 @@ def add_trade_chart_data(context, trade):
         range_params = {
             "range_high": runtime.range_high,
             "range_low": runtime.range_low,
-            "average_width": runtime.average_width,
             "long_entry_upper": runtime.long_entry_upper,
             "short_entry_lower": runtime.short_entry_lower,
             "range_upper_limit": runtime.range_upper_limit,
@@ -200,10 +199,6 @@ def add_trade_chart_data(context, trade):
     # ==================================================
     # 新しい時間枠
     # ==================================================
-
-    Log.event(
-        f"(#{trade.id}) RANGE CHART PARAMS {range_params}"
-    )
 
     trade_chart_data = TradeChartModel(
         time=frame_time,

@@ -74,3 +74,4 @@ storage/json/trade_history/
 
 storage/json/trade - コピー (2)/
 storage/json/trade_chart - コピー (2)/
+trade/entry/entry_range/process_entry_range_copy.py

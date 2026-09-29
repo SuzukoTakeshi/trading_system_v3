@@ -43,11 +43,15 @@ class TradeRuntimeRangeModel:
         # 確定した区間単位のHIGH / LOW
         self.minute_history = []
 
+        self.range_initialized = False
+
+        # 累積平均の初期値
+        self.high_count = None
+        self.low_count = None
 
         # 確定したRANGE
         self.range_high = None
         self.range_low = None
-        self.average_width = None
 
         self.long_entry_upper = None
         self.short_entry_lower = None
@@ -83,13 +87,16 @@ class TradeRuntimeRangeModel:
 
             "minute_high": self.minute_high,
             "minute_low": self.minute_low,
-
             "minute_history": self.minute_history,
 
+            "range_initialized": self.range_initialized,
+
             # RANGE
+            "high_count": self.high_count,
+            "low_count": self.low_count,
+
             "range_high": self.range_high,
             "range_low": self.range_low,
-            "average_width": self.average_width,
             "long_entry_upper": self.long_entry_upper,
             "short_entry_lower": self.short_entry_lower,
             "range_upper_limit": self.range_upper_limit,
@@ -109,49 +116,26 @@ class TradeRuntimeRangeModel:
                 session_start_time
             )
 
-
-        runtime.interval_minutes = data.get(
-            "interval_minutes"
-        )
-
-        runtime.calculation_minutes = data.get(
-            "calculation_minutes"
-        )
-
-        runtime.deviation_rate = data.get(
-            "deviation_rate"
-        )
-
-        runtime.entry_high_deviation_rate = data.get(
-            "entry_high_deviation_rate"
-        )
-
-        runtime.entry_low_deviation_rate = data.get(
-            "entry_low_deviation_rate"
-        )
-
-
+        runtime.interval_minutes = data.get("interval_minutes")
+        runtime.calculation_minutes = data.get("calculation_minutes")
+        runtime.deviation_rate = data.get("deviation_rate")
+        runtime.entry_high_deviation_rate = data.get("entry_high_deviation_rate")
+        runtime.entry_low_deviation_rate = data.get("entry_low_deviation_rate")
         minute_start_time = data.get("minute_start_time")
-
         if minute_start_time:
-            runtime.minute_start_time = datetime.fromisoformat(
-                minute_start_time
-            )
-
+            runtime.minute_start_time = datetime.fromisoformat(minute_start_time)
 
         runtime.minute_high = data.get("minute_high")
         runtime.minute_low = data.get("minute_low")
+        runtime.minute_history = data.get("minute_history", [])
 
-
-        runtime.minute_history = data.get(
-            "minute_history",
-            [],
-        )
+        runtime.range_initialized = data.get("range_initialized", False)
 
         # RANGE
+        runtime.high_count = data.get("high_count")
+        runtime.low_count = data.get("low_count")
         runtime.range_high = data.get("range_high")
         runtime.range_low = data.get("range_low")
-        runtime.average_width = data.get("average_width")
         runtime.long_entry_upper = data.get("long_entry_upper")
         runtime.short_entry_lower = data.get("short_entry_lower")
         runtime.range_upper_limit = data.get("range_upper_limit")
