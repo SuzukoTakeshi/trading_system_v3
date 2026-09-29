@@ -126,6 +126,7 @@ SCENARIO_LABEL = {
 #       trade.param.close_time    : 指定時刻 HH:MM"形式で設定する。
 #   manual_exit: 手動決済
 #   stop_line_exit: 損切ライン到達による決済
+#   range_exit: RANGE完了
 #
 # ==========================================
 
@@ -135,6 +136,7 @@ EXIT_REASON_LABEL = {
     "close_exit": "指定時刻決済",
     "manual_exit": "手動決済",
     "stop_line_exit": "損切り",
+    "range_exit": "RANGE完了",
 }
 
 # ==========================================

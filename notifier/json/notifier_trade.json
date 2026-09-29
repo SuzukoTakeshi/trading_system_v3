@@ -113,5 +113,11 @@
         "message": "指定時刻になったので決済します。",
         "voice_type": "VOICE_FILE",
         "voice_file": "trade_close_time_exit.wav"
+    },
+
+    "ENTRY RANGE START": {
+        "message": "レンジトレード判定を開始します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "entry_range_start.wav"
     }
 }

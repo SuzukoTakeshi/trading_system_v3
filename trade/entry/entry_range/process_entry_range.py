@@ -16,16 +16,17 @@ from trade.trade_enums import (
     TradeState
 )
 
+from trade.entry.process_entry_base import ProcessEntryBase
+
 from trade.entry.entry_range.range_calculator import update_range
 
-class ProcessEntryRange:
+
+class ProcessEntryRange(ProcessEntryBase):
 
     def __init__(self, context, market):
+        super().__init__(context, market)
 
         Log.create("ProcessEntryRange")
-
-        self.context = context
-        self.market = market
 
 
     def process(self, trade):
@@ -57,6 +58,9 @@ class ProcessEntryRange:
                 return False
 
             runtime.range_initialized = True
+
+            self.notify(trade, "ENTRY RANGE START")
+
 
         # RANGE継続判定
         if not self.judge_range(trade, runtime, price):

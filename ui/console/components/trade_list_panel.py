@@ -58,6 +58,13 @@ TRADE_COLUMNS = {
         "disabled": True,
     },
 
+    "strategy_type": {
+        "label": "タイプ",
+        "width": "small",
+        "type": "text",
+        "disabled": True,
+    },
+
     "symbol_name": {
         "label": "銘柄",
         "width": "medium",
@@ -111,13 +118,6 @@ TRADE_COLUMNS = {
 
     "side": {
         "label": "トレード区分",
-        "width": "small",
-        "type": "text",
-        "disabled": True,
-    },
-
-    "strategy_type": {
-        "label": "トレード条件",
         "width": "small",
         "type": "text",
         "disabled": True,
@@ -333,6 +333,9 @@ def trade_list_panel():
         for trade in trades:
             row = trade.copy()
 
+            # 戦略タイプ
+            row["strategy_type"] = row.get("strategy_type", "")
+
             # 銘柄
             row["symbol_name"] = (f'{row.get("symbol", "")}　{row.get("name", "")}')
 
@@ -372,11 +375,12 @@ def trade_list_panel():
 
             # トレード条件
             row["strategy_type"] = {
-                "standard": "条件(通常)",
-                "pass": "条件なし(即時注文)",
+                "standard": "STANDARD",
+                "pass": "PASS",
+                "range": "RANGE",
             }.get(
-                row.get("strategy_type", "standard"),
-                "条件(通常)",
+                row.get("strategy_type", ""),
+                row.get("strategy_type", ""),
             )
 
             # 損益
@@ -438,6 +442,7 @@ def trade_list_panel():
             trades = [
                 {
                     "trade_id": None,
+                    "strategy_type": "",
                     "symbol_name": "",
                     "current_price": None,
                     "quantity": None,
@@ -446,7 +451,6 @@ def trade_list_panel():
                     "margin_type": "",
                     "strategy": "",
                     "side": "",
-                    "strategy_type": "",
                     "profit_loss": "",
                     "state": "",
                     "message": "",
