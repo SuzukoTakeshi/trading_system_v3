@@ -176,6 +176,13 @@ def update_stop_price(trade_id, stop_price):
     )
 
 
+def update_profit_target_price(trade_id, profit_target_price):
+    return post(
+        f"/trade/{trade_id}/profit_target",
+        json={"profit_target_price": profit_target_price},
+    )
+
+
 # ==========================================
 # Trade取消
 # ==========================================

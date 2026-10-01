@@ -65,6 +65,7 @@ def trade_panel():
                 "トレード条件",
                 list(strategy_type_options.keys()),
                 index=condition_index,
+                accept_new_options=False,
                 key="trade_strategy_type_select",
                 label_visibility="collapsed",
             )

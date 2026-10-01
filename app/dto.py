@@ -48,3 +48,8 @@ class TradeIdsRequestDTO(BaseModel):
 class StopPriceRequestDTO(BaseModel):
 
     stop_price: float
+
+
+class ProfitTargetPriceRequestDTO(BaseModel):
+
+    profit_target_price: float

@@ -5,7 +5,11 @@ from datetime import datetime
 
 import streamlit as st
 
-from ui.api.client import get_error_message, update_stop_price
+from ui.api.client import (
+    get_error_message,
+    update_stop_price,
+    update_profit_target_price,
+)
 
 from ui.utils.ui_labels import (
     SIDE_LABEL,
@@ -49,6 +53,33 @@ def stop_price_dialog(trade_id, current_stop):
                 st.rerun()
             else:
                 st.error(response.get("message", "STOPライン変更に失敗しました。"))
+        except Exception as e:
+            st.error(get_error_message(e))
+
+
+@st.dialog("利確ライン変更")
+def profit_target_price_dialog(trade_id, current_target):
+
+    st.write(f"Trade #{trade_id} の利確ラインを変更します。")
+
+    with st.form(key=f"monitor_profit_target_form_{trade_id}"):
+        requested_target = st.number_input(
+            "新しい利確ライン (円)",
+            min_value=0.01,
+            value=float(current_target),
+            step=0.1,
+            key=f"monitor_profit_target_input_{trade_id}",
+        )
+        submitted = st.form_submit_button("変更依頼", width="stretch")
+
+    if submitted:
+        try:
+            response = update_profit_target_price(trade_id, requested_target)
+            if response.get("result") == "OK":
+                st.success(response.get("message", "利確ラインを変更しました。"))
+                st.rerun()
+            else:
+                st.error(response.get("message", "利確ライン変更に失敗しました。"))
         except Exception as e:
             st.error(get_error_message(e))
 
@@ -478,7 +509,7 @@ def render_trail_card(trade: dict):
             with exit_method_col:
                 render_item("EXIT判定", exit_method_text)
             with profit_col:
-                render_item("利確率", profit_text)
+                render_item("初期利確率", profit_text)
 
         # ---------------------
         # 取得
@@ -504,20 +535,39 @@ def render_trail_card(trade: dict):
             render_item("取得日時", fmt_dt(trade.get("entry_time")))
 
         with stop_price_col:
-            stop_price = trade.get("stop_price")
-            stop_value_col, stop_edit_col = st.columns([5, 1])
+            if trade.get("exit_method") == "profit":
+                target_price = trade.get("profit_target_price")
+                target_value_col, target_edit_col = st.columns([5, 1])
 
-            with stop_value_col:
-                render_item("損切ライン", fmt_price(stop_price))
+                with target_value_col:
+                    render_item("利確ライン", fmt_price(target_price))
 
-            if trade.get("state") == "exit" and stop_price is not None:
-                with stop_edit_col:
-                    if st.button(
-                        "✏️",
-                        key=f"monitor_stop_edit_{trade['trade_id']}",
-                        help="損切ラインを変更",
-                    ):
-                        stop_price_dialog(trade["trade_id"], stop_price)
+                if trade.get("state") == "exit" and target_price is not None:
+                    with target_edit_col:
+                        if st.button(
+                            "✏️",
+                            key=f"monitor_profit_target_edit_{trade['trade_id']}",
+                            help="利確ラインを変更",
+                        ):
+                            profit_target_price_dialog(
+                                trade["trade_id"],
+                                target_price,
+                            )
+            else:
+                stop_price = trade.get("stop_price")
+                stop_value_col, stop_edit_col = st.columns([5, 1])
+
+                with stop_value_col:
+                    render_item("損切ライン", fmt_price(stop_price))
+
+                if trade.get("state") == "exit" and stop_price is not None:
+                    with stop_edit_col:
+                        if st.button(
+                            "✏️",
+                            key=f"monitor_stop_edit_{trade['trade_id']}",
+                            help="損切ラインを変更",
+                        ):
+                            stop_price_dialog(trade["trade_id"], stop_price)
 
         with col4:
             render_item("", "")

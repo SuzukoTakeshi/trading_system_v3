@@ -87,13 +87,19 @@ class ProcessExit(ProcessExitBase):
 
         entry_price = trade.entry_order.result.price
         current_price = self.quote.current_price
-        target_rate = trade.param.profit_target_percent / 100
+        target_price = trade.runtime.profit_target_price
+
+        if target_price is None:
+            target_rate = trade.param.profit_target_percent / 100
+            if trade.param.side.value == "long":
+                target_price = entry_price * (1 + target_rate)
+            else:
+                target_price = entry_price * (1 - target_rate)
+            trade.runtime.profit_target_price = target_price
 
         if trade.param.side.value == "long":
-            target_price = entry_price * (1 + target_rate)
             hit = current_price >= target_price
         else:
-            target_price = entry_price * (1 - target_rate)
             hit = current_price <= target_price
 
         if not hit:
@@ -101,8 +107,7 @@ class ProcessExit(ProcessExitBase):
 
         message = (
             f"PROFIT TARGET EXIT side={trade.param.side.value} "
-            f"current_price={current_price} target={target_price} "
-            f"profit_target_percent={trade.param.profit_target_percent}%"
+            f"current_price={current_price} target={target_price}"
         )
         Log.event(f"(#{trade.id}) {message}")
         trade.add_timeline(

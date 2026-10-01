@@ -114,6 +114,9 @@ class TradeRuntimeModel:
         #
         self.stop_price = None
 
+        # 利確方式で使う固定の利確価格
+        self.profit_target_price = None
+
         # EXIT理由
         self.exit_reason: ExitReason | None = None
 
@@ -153,6 +156,7 @@ class TradeRuntimeModel:
             "exit_decision_price": self.exit_decision_price,
 
             "stop_price": self.stop_price,
+            "profit_target_price": self.profit_target_price,
 
             # Enum → JSON
             "exit_reason": (
@@ -209,6 +213,7 @@ class TradeRuntimeModel:
         runtime.exit_decision_price = data.get("exit_decision_price")
 
         runtime.stop_price = data.get("stop_price")
+        runtime.profit_target_price = data.get("profit_target_price")
 
         # JSON → Enum
         exit_reason_str = data.get("exit_reason")

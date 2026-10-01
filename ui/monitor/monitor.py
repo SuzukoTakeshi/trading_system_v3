@@ -276,9 +276,8 @@ def main():
                                 target.get("symbol", ""),
                                 target.get("name", ""),
                                 exit_method=target.get("exit_method", "stop"),
-                                profit_target_percent=target.get(
-                                    "profit_target_percent",
-                                    0.1,
+                                profit_target_price=target.get(
+                                    "profit_target_price"
                                 ),
                             )
 

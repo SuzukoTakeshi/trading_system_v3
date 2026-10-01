@@ -234,6 +234,7 @@ class TradeService:
                 "current_tick": trade["current_tick"],
                 "previous_price": trade["previous_price"],
                 "stop_price": trade["stop_price"],
+                "profit_target_price": trade.get("profit_target_price"),
 
                 # Entry
                 "entry_price": trade["entry_price"],
@@ -333,6 +334,36 @@ class TradeService:
 
         return Response.rejected(
             response_id="TRADE_STOP_UPDATE_REJECTED",
+            message=message,
+        )
+
+    # ---------------------
+    # 利確ライン変更
+    # ---------------------
+    def update_profit_target_price(self, trade_id, profit_target_price):
+
+        Log.debug(
+            f"(#{trade_id}) TRADE SERVICE UPDATE PROFIT TARGET "
+            f"profit_target_price={profit_target_price}"
+        )
+
+        result, message = self.trade_engine.api.update_profit_target_price(
+            trade_id,
+            profit_target_price,
+        )
+
+        if result:
+            return Response.ok(
+                response_id="TRADE_PROFIT_TARGET_UPDATED",
+                message=f"(#{trade_id}) {message}",
+                data={
+                    "trade_id": trade_id,
+                    "profit_target_price": profit_target_price,
+                },
+            )
+
+        return Response.rejected(
+            response_id="TRADE_PROFIT_TARGET_UPDATE_REJECTED",
             message=message,
         )
 

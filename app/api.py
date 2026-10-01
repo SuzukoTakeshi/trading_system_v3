@@ -15,6 +15,7 @@ from app.dto import (
     TradeRequestDTO,
     TradeIdsRequestDTO,
     StopPriceRequestDTO,
+    ProfitTargetPriceRequestDTO,
 )
 
 app = FastAPI(title="Trading System")
@@ -113,6 +114,15 @@ def update_trade_stop(trade_id: int, req: StopPriceRequestDTO):
     return app_service.trade_service.update_stop_price(
         trade_id,
         req.stop_price,
+    )
+
+
+@app.post("/trade/{trade_id}/profit_target")
+def update_trade_profit_target(trade_id: int, req: ProfitTargetPriceRequestDTO):
+
+    return app_service.trade_service.update_profit_target_price(
+        trade_id,
+        req.profit_target_price,
     )
 
 

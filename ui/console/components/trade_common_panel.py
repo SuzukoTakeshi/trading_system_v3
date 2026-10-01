@@ -375,9 +375,20 @@ def trade_common_panel(strategy_type="standard"):
         else:
             side_str = None
 
+    st.markdown(
+        """
+        <hr style="
+            margin: 0px 0;
+            border: none;
+            border-top: 1px solid #444;
+        ">
+        """,
+        unsafe_allow_html=True,
+    )
+
     entry_method = strategy_type
     exit_method = "stop"
-    profit_target_percent = 0.1
+    profit_target_percent = 1.0
 
     if strategy_type == "standard":
         entry_method_key = f"trade_entry_method_{strategy_type}"

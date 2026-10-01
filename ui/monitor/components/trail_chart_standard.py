@@ -19,7 +19,7 @@ def render_standard_chart(
     symbol: str = "",
     name: str = "",
     exit_method: str = "stop",
-    profit_target_percent: float = 0.1,
+    profit_target_price: float | None = None,
 ):
 
     if not trail_history:
@@ -137,19 +137,8 @@ def render_standard_chart(
     low = plot_df["low_watermark"]
     stop = plot_df["stop_loss"]
     show_stop = exit_method != "profit"
-    profit_target_price = None
 
     entry_rows = df[df["entry_price"].notna()]
-    if exit_method == "profit" and not entry_rows.empty:
-        entry_price_for_target = entry_rows.iloc[0]["entry_price"]
-        if side == "LONG":
-            profit_target_price = entry_price_for_target * (
-                1 + profit_target_percent / 100
-            )
-        elif side == "SHORT":
-            profit_target_price = entry_price_for_target * (
-                1 - profit_target_percent / 100
-            )
 
     # ==================================================
     # PRICE
@@ -278,7 +267,7 @@ def render_standard_chart(
             linewidth=1,
             alpha=0.9,
             color="green",
-            label=f"PROFIT TARGET ({profit_target_percent:g}%)",
+            label=f"PROFIT TARGET ({profit_target_price:,.2f})",
         )
 
     # ==================================================
