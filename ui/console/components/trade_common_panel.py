@@ -31,9 +31,6 @@ def trade_common_panel(strategy_type="standard"):
     if "trade_quantity" not in st.session_state:
         st.session_state.trade_quantity = 100
 
-    if "trade_price" not in st.session_state:
-        st.session_state.trade_price = 0
-
     if "trade_atr" not in st.session_state:
         st.session_state.trade_atr = 1.0
 
@@ -116,7 +113,6 @@ def trade_common_panel(strategy_type="standard"):
 
         if params:
             st.session_state.trade_quantity = params["quantity"]
-            st.session_state.trade_price = params["trade_price"]
             st.session_state.trade_atr = params["atr"]
             st.session_state.trade_type = params["trade_type"]
             st.session_state.trade_margin_type = params["margin_type"]
@@ -149,28 +145,6 @@ def trade_common_panel(strategy_type="standard"):
 
     if strategy_type != "range":
         # ==================================================
-        # 開始価格
-        # ==================================================
-
-        title_col, data_col, comment_col = st.columns([1, 1.2, 0.8])
-
-        with title_col:
-            st.write("開始価格")
-
-        with data_col:
-            trade_price = st.number_input(
-                "開始価格",
-                min_value=0,
-                step=1,
-                key="trade_price",
-                label_visibility="collapsed",
-            )
-
-        with comment_col:
-            st.write("市場価格とする場合0")
-
-
-        # ==================================================
         # ATR
         # ==================================================
 
@@ -190,7 +164,6 @@ def trade_common_panel(strategy_type="standard"):
             )
     else:
         # RANGEは現在値から計測を開始し、ATRをENTRY/EXIT判定に使わない。
-        trade_price = 0
         atr = 1.0
 
 
@@ -410,7 +383,6 @@ def trade_common_panel(strategy_type="standard"):
     return {
         "symbol": symbol,
         "quantity": quantity,
-        "trade_price": trade_price,
         "atr": atr,
         "trade_type": trade_type,
         "margin_type": margin_type,

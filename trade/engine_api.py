@@ -75,7 +75,7 @@ class TradeEngineAPI:
 
             symbol=req.symbol,
             quantity=req.quantity,
-            trade_price=req.trade_price,
+            trade_price=0,
             atr=req.atr,
             trade_type=TradeType(req.trade_type),
             margin_type=req.margin_type,

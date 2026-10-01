@@ -42,6 +42,7 @@ class ProcessExitRangeLong(ProcessExitBase):
             runtime,
             quote.current_datetime,
             current_price,
+            only_boundary="lower",
         )
 
         # RANGE下限を割った場合は、LONGポジションを終了する。

@@ -90,7 +90,6 @@ class TradeService:
             "strategy_type": "standard",
             "name": symbol_info["name"],
             "quantity": 100,
-            "trade_price": 0,
             "atr": 0.0,
             "trade_type": "margin",
             "margin_type": "day",
@@ -100,6 +99,7 @@ class TradeService:
 
         if saved_params:
             params.update(saved_params)
+        params.pop("trade_price", None)
 
         return params
 
@@ -129,7 +129,6 @@ class TradeService:
                 {
                     "strategy_type": req.strategy_type,
                     "quantity": req.quantity,
-                    "trade_price": req.trade_price,
                     "atr": req.atr,
                     "trade_type": req.trade_type,
                     "margin_type": req.margin_type,
@@ -170,9 +169,6 @@ class TradeService:
 
         if req.quantity is None or req.quantity < 100:
             return { "response_id": "TRADE_REGISTER_INVALID_QUANTITY" }
-
-        if req.trade_price is None or req.trade_price < 0:
-            return { "response_id": "TRADE_REGISTER_INVALID_TRADE_PRICE" }
 
         if req.atr is None or req.atr < 0.1:
             return { "response_id": "TRADE_REGISTER_INVALID_ATR" }
@@ -217,6 +213,7 @@ class TradeService:
                 # Trade Info
                 "quantity": trade["quantity"],
                 "trade_price": trade["trade_price"],
+                "entry_base_price": trade["entry_base_price"],
                 "atr": trade["atr"],
                 "trade_type": trade["trade_type"],
                 "margin_type": trade["margin_type"],

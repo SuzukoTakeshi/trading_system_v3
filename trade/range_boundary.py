@@ -1,14 +1,22 @@
 """RANGE allowed-boundary confirmation helpers."""
 
 
-def confirm_boundary_duration(trade, runtime, now, price):
+def confirm_boundary_duration(trade, runtime, now, price, only_boundary=None):
     """Return upper/lower after price stays beyond that boundary for the configured time."""
     duration_minutes = runtime.boundary_confirm_minutes or 1
     duration_seconds = float(duration_minutes) * 60
 
-    if runtime.range_upper_limit is not None and price > runtime.range_upper_limit:
+    if (
+        only_boundary in (None, "upper")
+        and runtime.range_upper_limit is not None
+        and price > runtime.range_upper_limit
+    ):
         boundary = "upper"
-    elif runtime.range_lower_limit is not None and price < runtime.range_lower_limit:
+    elif (
+        only_boundary in (None, "lower")
+        and runtime.range_lower_limit is not None
+        and price < runtime.range_lower_limit
+    ):
         boundary = "lower"
     else:
         runtime.boundary_outside_start_time = None

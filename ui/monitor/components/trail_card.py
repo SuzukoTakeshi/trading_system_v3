@@ -399,7 +399,7 @@ def render_trail_card(trade: dict):
             render_item("株数", f"{quantity}株" if quantity is not None else "")
 
         with trade_price_col:
-            render_item("開始価格", fmt_price(trade.get("trade_price")))
+            render_item("ENTRY判定基準価格", fmt_price(trade.get("entry_base_price")))
 
         with atr_col:
             render_item("ATR", f"{trade.get('atr'):,.1f}%")

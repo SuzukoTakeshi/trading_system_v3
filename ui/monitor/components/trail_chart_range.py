@@ -193,7 +193,12 @@ def render_range_chart(
         if latest_measurement_params
         else None
     )
-    if boundary_start_value and boundary_side in ("upper", "lower"):
+    latest_state = plot_df["state"].iloc[-1] if "state" in plot_df.columns else None
+    if (
+        boundary_start_value
+        and boundary_side in ("upper", "lower")
+        and latest_state in ("entry", "exit")
+    ):
         boundary_start = pd.to_datetime(
             boundary_start_value,
             errors="coerce",

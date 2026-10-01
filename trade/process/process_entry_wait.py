@@ -28,16 +28,8 @@ class ProcessEntryWait(ProcessBase):
         quote = trade.get_quote()
         current_price = quote.current_price
 
-        # 初回価格設定
-        #
-        # ENTRY判定の基準価格
-        #   trade_price=0   : 初回取得した市場価格
-        #   trade_price!=0  : Tradeに指定された開始価格
-        #
-        if trade.param.trade_price == 0:
-            trade.runtime.entry_base_price = current_price
-        else:
-            trade.runtime.entry_base_price = trade.param.trade_price
+        # ENTRY判定の基準価格は、初回取得した市場価格に固定する。
+        trade.runtime.entry_base_price = current_price
 
         # ENTRY判定開始時点の直前価格
         #

@@ -322,6 +322,7 @@ class TradeModel(BaseEntity):
             "quantity": self.param.quantity,
             "atr": self.param.atr,
             "trade_price": self.param.trade_price,
+            "entry_base_price": self.runtime.entry_base_price,
             "trade_type": self.param.trade_type.value,
             "margin_type": self.param.margin_type,
             "side": self.param.side.value,

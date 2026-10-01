@@ -102,7 +102,6 @@ def trade_panel():
             payload = {
                 "strategy_type": strategy_type,
                 "symbol": trade_params["symbol"],
-                "trade_price": trade_params["trade_price"],
                 "quantity": trade_params["quantity"],
                 "atr": trade_params["atr"],
                 "trade_type": trade_params["trade_type"],

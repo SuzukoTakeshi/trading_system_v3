@@ -22,7 +22,6 @@ class TradeRequestDTO(BaseModel):
     strategy_type: str
 
     symbol: str
-    trade_price: int
     quantity: int
     atr: float
     trade_type: TradeType

@@ -42,6 +42,7 @@ class ProcessExitRangeShort(ProcessExitBase):
             runtime,
             quote.current_datetime,
             current_price,
+            only_boundary="upper",
         )
 
         # RANGE上限を超えた場合は、SHORTポジションを終了する。
