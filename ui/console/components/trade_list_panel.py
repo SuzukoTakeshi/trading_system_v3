@@ -405,11 +405,14 @@ def trade_list_panel():
 
             # メッセージ
             exit_reason = row.get("exit_reason")
+            trade_message = row.get("message")
 
-            if exit_reason:
+            if trade_message and trade_message.startswith("RSS発注エラー"):
+                row["message"] = trade_message
+            elif exit_reason:
                 row["message"] = get_exit_reason_label(exit_reason, profit_loss)
             else:
-                row["message"] = row.get("message")
+                row["message"] = trade_message
 
             # ENTRY金額
             row["entry_price"] = (

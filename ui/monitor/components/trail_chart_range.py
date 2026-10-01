@@ -136,6 +136,7 @@ def render_range_chart(
         ),
         None,
     )
+    visible_end = plot_df["time"].max()
 
     if measurement_params:
         measurement_start = pd.to_datetime(
@@ -146,8 +147,6 @@ def render_range_chart(
             float(measurement_params["calculation_minutes"]),
             unit="m",
         )
-        visible_end = plot_df["time"].max()
-
         if pd.notna(measurement_start) and measurement_start < visible_end:
             ax.axvspan(
                 measurement_start,
@@ -179,6 +178,54 @@ def render_range_chart(
                     "facecolor": "white",
                     "edgecolor": "#64B5F6",
                     "alpha": 0.85,
+                },
+                zorder=5,
+            )
+
+
+    boundary_start_value = (
+        latest_measurement_params.get("boundary_outside_start_time")
+        if latest_measurement_params
+        else None
+    )
+    boundary_side = (
+        latest_measurement_params.get("boundary_outside_side")
+        if latest_measurement_params
+        else None
+    )
+    if boundary_start_value and boundary_side in ("upper", "lower"):
+        boundary_start = pd.to_datetime(
+            boundary_start_value,
+            errors="coerce",
+        )
+        boundary_minutes = float(
+            latest_measurement_params.get("boundary_confirm_minutes") or 1
+        )
+        elapsed_seconds = (
+            visible_end - boundary_start
+        ).total_seconds() if pd.notna(boundary_start) else None
+
+        if (
+            elapsed_seconds is not None
+            and 0 <= elapsed_seconds < boundary_minutes * 60
+        ):
+            boundary_label = "上限超過" if boundary_side == "upper" else "下限割れ"
+            elapsed_text = f"{int(elapsed_seconds)}/{int(boundary_minutes * 60)}秒"
+            ax.text(
+                0.5,
+                0.86,
+                f"RANGE境界確認中：{boundary_label} ({elapsed_text})",
+                transform=ax.transAxes,
+                ha="center",
+                va="top",
+                fontsize=8,
+                fontweight="bold",
+                color="#E65100",
+                bbox={
+                    "boxstyle": "round,pad=0.25",
+                    "facecolor": "white",
+                    "edgecolor": "#FFB74D",
+                    "alpha": 0.9,
                 },
                 zorder=5,
             )

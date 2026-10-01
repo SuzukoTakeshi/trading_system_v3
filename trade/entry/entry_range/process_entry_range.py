@@ -17,6 +17,7 @@ from trade.trade_enums import (
 )
 
 from trade.entry.process_entry_base import ProcessEntryBase
+from trade.range_boundary import confirm_boundary_duration
 
 
 
@@ -61,8 +62,19 @@ class ProcessEntryRange(ProcessEntryBase):
             self.notify(trade, "ENTRY RANGE START")
 
 
-        # RANGE継続判定
-        if not self.judge_range(trade, runtime, price):
+        # 許容境界の外に設定時間継続したことを判定
+        boundary = confirm_boundary_duration(
+            trade,
+            runtime,
+            quote.current_datetime,
+            price,
+        )
+        if boundary is not None and not self.judge_range(
+            trade,
+            runtime,
+            price,
+            boundary,
+        ):
             trade.change_state(TradeState.CLOSED)
             return False
 
@@ -188,42 +200,31 @@ class ProcessEntryRange(ProcessEntryBase):
     # ==================================================
     # RANGE判定
     # ==================================================
-    def judge_range(self, trade, runtime, price):
+    def judge_range(self, trade, runtime, price, boundary):
 
-        if price > runtime.range_upper_limit:
+        if boundary == "upper":
             message = (
-                "RANGE上限超過のためTrade終了 "
-                f"現在値={price} 上限={runtime.range_upper_limit}"
+                "RANGE上限超過が継続したためTrade終了 "
+                f"現在値={price} 上限={runtime.range_upper_limit} "
+                f"確認時間={runtime.boundary_confirm_minutes}分"
             )
-            trade.message = message
-            Log.event(
-                f"(#{trade.id}) {message}"
-            )
-            trade.add_timeline(
-                event="RANGE_END",
-                message=message,
-                current_price=price,
-            )
-            return False
-
-        if price < runtime.range_lower_limit:
+        elif boundary == "lower":
             message = (
-                "RANGE下限割れのためTrade終了 "
-                f"現在値={price} 下限={runtime.range_lower_limit}"
+                "RANGE下限割れが継続したためTrade終了 "
+                f"現在値={price} 下限={runtime.range_lower_limit} "
+                f"確認時間={runtime.boundary_confirm_minutes}分"
             )
-            trade.message = message
-            Log.event(
-                f"(#{trade.id}) {message}"
-            )
-            trade.add_timeline(
-                event="RANGE_END",
-                message=message,
-                current_price=price,
-            )
-            return False
+        else:
+            return True
 
-        # RANGE継続
-        return True
+        trade.message = message
+        Log.event(f"(#{trade.id}) {message}")
+        trade.add_timeline(
+            event="RANGE_END",
+            message=message,
+            current_price=price,
+        )
+        return False
 
 
     # ==================================================

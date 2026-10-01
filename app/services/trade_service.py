@@ -208,6 +208,8 @@ class TradeService:
                 "trade_id": trade["trade_id"],
 
                 "strategy_type": trade["strategy_type"],
+                "repeat_index": trade["repeat_index"],
+                "repeat_count": trade["repeat_count"],
 
                 "symbol": trade["symbol"],
                 "name": symbol["name"] if symbol else "",

@@ -32,6 +32,7 @@ class TradeRuntimeRangeModel:
         # EXIT
         self.exit_high_deviation_rate = None
         self.exit_low_deviation_rate = None
+        self.boundary_confirm_minutes = None
 
 
         # RANGEセッション開始時刻
@@ -48,6 +49,8 @@ class TradeRuntimeRangeModel:
 
         # 確定した区間単位のHIGH / LOW
         self.minute_history = []
+        self.boundary_outside_start_time = None
+        self.boundary_outside_side = None
 
         self.range_initialized = False
 
@@ -97,6 +100,7 @@ class TradeRuntimeRangeModel:
             "exit_low_deviation_rate": (
                 self.exit_low_deviation_rate
             ),
+            "boundary_confirm_minutes": self.boundary_confirm_minutes,
 
             "minute_start_time": (
                 self.minute_start_time.isoformat()
@@ -107,6 +111,12 @@ class TradeRuntimeRangeModel:
             "minute_high": self.minute_high,
             "minute_low": self.minute_low,
             "minute_history": self.minute_history,
+            "boundary_outside_start_time": (
+                self.boundary_outside_start_time.isoformat()
+                if self.boundary_outside_start_time
+                else None
+            ),
+            "boundary_outside_side": self.boundary_outside_side,
 
             "range_initialized": self.range_initialized,
 
@@ -144,6 +154,7 @@ class TradeRuntimeRangeModel:
         runtime.entry_low_deviation_rate = data.get("entry_low_deviation_rate")
         runtime.exit_high_deviation_rate = data.get("exit_high_deviation_rate")
         runtime.exit_low_deviation_rate = data.get("exit_low_deviation_rate")
+        runtime.boundary_confirm_minutes = data.get("boundary_confirm_minutes", 1)
         minute_start_time = data.get("minute_start_time")
         if minute_start_time:
             runtime.minute_start_time = datetime.fromisoformat(minute_start_time)
@@ -151,6 +162,12 @@ class TradeRuntimeRangeModel:
         runtime.minute_high = data.get("minute_high")
         runtime.minute_low = data.get("minute_low")
         runtime.minute_history = data.get("minute_history", [])
+        boundary_outside_start_time = data.get("boundary_outside_start_time")
+        if boundary_outside_start_time:
+            runtime.boundary_outside_start_time = datetime.fromisoformat(
+                boundary_outside_start_time
+            )
+        runtime.boundary_outside_side = data.get("boundary_outside_side")
 
         runtime.range_initialized = data.get("range_initialized", False)
 

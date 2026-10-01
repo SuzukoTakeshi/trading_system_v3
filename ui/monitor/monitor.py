@@ -164,19 +164,44 @@ def main():
                     # -------------------------
                     # Delete
                     # -------------------------
-                    trade_col, delete_col = st.columns([3, 1])
+                    trade_col, star_col, delete_col = st.columns([4, 3, 2])
 
                     with trade_col:
                         if target is not None:
                             strategy_type = target.get("strategy_type", "")
                             strategy_type_text = STRATEGY_TYPE_LABEL.get(strategy_type, "")
+                            repeat_text = ""
+                            if strategy_type == "range":
+                                repeat_index = target.get("repeat_index", 1)
+                                repeat_count = target.get("repeat_count", 1)
+                                repeat_text = f"({repeat_index}/{repeat_count})"
 
                             st.markdown(
-                                f'<div style="font-size:1.5rem; padding: 0px 5px;">'
-                                f'{strategy_type_text}'
+                                f'<div style="display:flex; justify-content:space-between; '
+                                f'align-items:center; font-size:1.5rem; padding:0px 5px;">'
+                                f'<span>{strategy_type_text} {repeat_text}</span>'
                                 f'</div>',
                                 unsafe_allow_html=True
                             )
+
+                    with star_col:
+                        if target is not None:
+                            profit_loss = trade.get("profit_loss")
+                            if profit_loss is not None:
+                                if profit_loss > 0:
+                                    star = "★"
+                                    if profit_loss > 1000:
+                                        star += "★"
+                                    if profit_loss > 10000:
+                                        star += "★"
+                                    st.markdown(
+                                        f'<div style="display:flex; justify-content:space-between; '
+                                        f'align-items:center; font-size:1.5rem; padding:0px 5px; '
+                                        f'color:yellow";'
+                                        f'<span>{star}</span>'
+                                        f'</div>',
+                                        unsafe_allow_html=True
+                                    )
 
                     with delete_col:
                         if st.button(

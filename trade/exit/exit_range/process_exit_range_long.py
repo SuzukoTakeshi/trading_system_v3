@@ -13,6 +13,7 @@ from core.logger import Log
 from trade.trade_enums import ExitReason
 
 from trade.exit.process_exit_base import ProcessExitBase
+from trade.range_boundary import confirm_boundary_duration
 
 
 class ProcessExitRangeLong(ProcessExitBase):
@@ -36,6 +37,35 @@ class ProcessExitRangeLong(ProcessExitBase):
         current_price = quote.current_price
 
         runtime = trade.runtime.strategy_runtime
+        boundary = confirm_boundary_duration(
+            trade,
+            runtime,
+            quote.current_datetime,
+            current_price,
+        )
+
+        # RANGE下限を割った場合は、LONGポジションを終了する。
+        if boundary == "lower":
+            message = (
+                "RANGE LOWER EXIT LONG: 許容境界外が継続 "
+                f"current_price={current_price} "
+                f"range_lower_limit={runtime.range_lower_limit} "
+                f"confirm_minutes={runtime.boundary_confirm_minutes}"
+            )
+            trade.message = message
+
+            Log.event(f"(#{trade.id}) {message}")
+            trade.add_timeline(
+                event="EXIT",
+                message=message,
+                current_price=current_price,
+            )
+            trade.runtime.set_exit(
+                current_price,
+                ExitReason.RANGE_BOUNDARY_EXIT,
+            )
+            self.notify(trade, "RANGE EXIT LONG")
+            return True
 
         # RANGE EXIT判定
         if current_price >= runtime.long_exit_upper:

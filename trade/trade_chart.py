@@ -137,6 +137,13 @@ def add_trade_chart_data(context, trade):
             ),
             "calculation_minutes": runtime.calculation_minutes,
             "range_initialized": runtime.range_initialized,
+            "boundary_confirm_minutes": runtime.boundary_confirm_minutes,
+            "boundary_outside_start_time": (
+                runtime.boundary_outside_start_time.isoformat()
+                if runtime.boundary_outside_start_time
+                else None
+            ),
+            "boundary_outside_side": runtime.boundary_outside_side,
             "range_high": runtime.range_high,
             "range_low": runtime.range_low,
             "long_entry_upper": runtime.long_entry_upper,

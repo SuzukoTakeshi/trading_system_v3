@@ -6,7 +6,8 @@
         "range.entry_high_deviation_rate": "HIGHからのENTRY判定乖離率（%）",
         "range.entry_low_deviation_rate": "LOWからのENTRY判定乖離率（%）",
         "range.exit_high_deviation_rate": "HIGHからのEXIT判定乖離率（%）",
-        "range.exit_low_deviation_rate": "LOWからのEXIT判定乖離率（%）"
+        "range.exit_low_deviation_rate": "LOWからのEXIT判定乖離率（%）",
+        "range.boundary_confirm_minutes": "許容境界の外に価格が継続する確認時間（分）"
     },
 
     "range": {
@@ -16,6 +17,7 @@
         "entry_high_deviation_rate": 30.0,
         "entry_low_deviation_rate": 30.0,
         "exit_high_deviation_rate": 30.0,
-        "exit_low_deviation_rate": 30.0
+        "exit_low_deviation_rate": 30.0,
+        "boundary_confirm_minutes": 1
     }
 }

@@ -173,6 +173,7 @@ class EntryState(str, Enum):
 #   MANUAL_EXIT: 手動決済
 #   STOP_LINE_EXIT: 損切ライン到達による決済
 #   RANGE_EXIT: RANGE条件による決済
+#   RANGE_BOUNDARY_EXIT: 固定RANGE境界逸脱による決済
 #
 class ExitReason(str, Enum):
     MARGIN_DAY_CLOSE = "margin_day_close"
@@ -181,3 +182,4 @@ class ExitReason(str, Enum):
     MANUAL_EXIT = "manual_exit"
     STOP_LINE_EXIT = "stop_line_exit"
     RANGE_EXIT = "range_exit"
+    RANGE_BOUNDARY_EXIT = "range_boundary_exit"

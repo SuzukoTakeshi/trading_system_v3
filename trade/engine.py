@@ -28,10 +28,13 @@ from core.logger import Log
 from core.exception import (
     ErrorScope,
 	ExcelArgumentError,
+    OrderResultError,
     QuoteNotFoundError,
+    SystemError,
 )
 
 from market.market_service import MarketService
+from market.order_enums import OrderState
 
 from trade.trade_enums import (
     EngineState,
@@ -460,6 +463,41 @@ class TradeEngine:
                 # SystemError
                 # ------------------------------------------
                 if isinstance(e, SystemError):
+
+                    # ------------------------------------------
+                    # RSS発注ID一覧の発注エラー
+                    #   Engineは継続し、該当Tradeのみ終了する。
+                    # ------------------------------------------
+                    if (
+                        isinstance(e, OrderResultError)
+                        and e.code == "ORDER_RESULT_ERROR"
+                    ):
+                        message = f"RSS発注エラーのためTrade終了: {e.message}"
+                        trade.error_message = e.message
+                        trade.message = message
+
+                        order = (
+                            trade.exit_order
+                            if trade.exit_order is not None
+                            and trade.exit_order.state == OrderState.SUBMITTED
+                            else trade.entry_order
+                        )
+                        if order is not None and order.state != OrderState.ERROR:
+                            order.change_state(OrderState.ERROR)
+
+                        Log.error(f"(#{trade.id}) {message}")
+                        trade.add_timeline(
+                            event="ERROR",
+                            message=message,
+                            current_price=(
+                                trade.get_quote().current_price
+                                if trade.get_quote() is not None
+                                else None
+                            ),
+                        )
+                        trade.change_state(TradeState.CLOSED)
+                        self._post_process(force_save=True)
+                        continue
 
                     Log.error(
                         f"(#{trade.id}) "

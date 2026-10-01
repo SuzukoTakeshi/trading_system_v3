@@ -315,6 +315,9 @@ class TradeModel(BaseEntity):
 
             "strategy_type": self.param.strategy_type,
 
+            "repeat_index": self.param.repeat_index,
+            "repeat_count": self.param.repeat_count,
+
             "symbol": self.param.symbol,
             "quantity": self.param.quantity,
             "atr": self.param.atr,

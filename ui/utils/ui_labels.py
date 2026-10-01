@@ -146,6 +146,7 @@ EXIT_REASON_LABEL = {
     "manual_exit": "手動決済",
     "stop_line_exit": "損切り",
     "range_exit": "RANGE完了",
+    "range_boundary_exit": "RANGE逸脱",
 }
 
 # ==========================================
@@ -183,6 +184,7 @@ TIMELINE_EVENT_LABEL = {
     "ENTRY": "エントリー",
     "ORDER": "注文",
     "EXIT": "決済",
+    "ERROR": "エラー",
     "RANGE_END": "RANGE終了",
     "ENGINE": "Engine",
 }

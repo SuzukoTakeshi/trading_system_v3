@@ -39,6 +39,7 @@ def create_range_runtime(params=None):
     runtime.entry_low_deviation_rate = range_config["entry_low_deviation_rate"]
     runtime.exit_high_deviation_rate = range_config["exit_high_deviation_rate"]
     runtime.exit_low_deviation_rate = range_config["exit_low_deviation_rate"]
+    runtime.boundary_confirm_minutes = range_config.get("boundary_confirm_minutes", 1)
 
     confirmed_range = trade_range_params.get("confirmed_range")
     if confirmed_range:
