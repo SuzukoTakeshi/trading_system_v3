@@ -81,19 +81,15 @@ def trade_panel():
         # ==================================================
 
         if strategy_type == "standard":
-
             trade_params = standard_panel()
 
         elif strategy_type == "pass":
-
             trade_params = pass_panel()
 
         elif strategy_type == "range":
-
             trade_params = range_panel()
 
         else:
-
             trade_params = standard_panel()
 
 
@@ -120,6 +116,8 @@ def trade_panel():
             # ==================================================
 
             if strategy_type == "range":
+
+                payload["repeat_count"] = trade_params["range_repeat_count"]
 
                 payload["params"] = {
                     "range": {

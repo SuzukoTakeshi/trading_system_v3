@@ -13,12 +13,14 @@ import streamlit as st
 
 from core.config_loader import Config
 from core.strategy_config_loader import StrategyConfig
+from core.strategy_range_config_loader import StrategyRangeConfig
 
 
 def config_panel(ctx):
 
     config = Config.instance().data
     strategy_config = StrategyConfig.instance().data
+    range_config_data = StrategyRangeConfig.instance().data
 
     config_description = config.get(
         "description",
@@ -26,6 +28,11 @@ def config_panel(ctx):
     )
 
     strategy_description = strategy_config.get(
+        "description",
+        {}
+    )
+
+    range_description = range_config_data.get(
         "description",
         {}
     )
@@ -689,3 +696,46 @@ def config_panel(ctx):
                         disabled=True,
                         key=f"{strategy_name}_chart_interval"
                     )
+
+        # ==========================================
+        # RANGE STRATEGY
+        # ==========================================
+
+        with st.expander(
+            "strategy_range_config.json",
+            expanded=True
+        ):
+
+            range_strategy = range_config_data.get(
+                "range",
+                {}
+            )
+
+            range_fields = (
+                ("Interval Minutes", "interval_minutes"),
+                ("Calculation Minutes", "calculation_minutes"),
+                ("Deviation Rate (%)", "deviation_rate"),
+                ("Entry High Deviation Rate (%)", "entry_high_deviation_rate"),
+                ("Entry Low Deviation Rate (%)", "entry_low_deviation_rate"),
+                ("Exit High Deviation Rate (%)", "exit_high_deviation_rate"),
+                ("Exit Low Deviation Rate (%)", "exit_low_deviation_rate"),
+            )
+
+            cols = st.columns(3)
+
+            for index, (label, key) in enumerate(range_fields):
+                with cols[index % len(cols)]:
+                    st.text_input(
+                        label,
+                        value=str(range_strategy.get(key, "")),
+                        disabled=True,
+                        key=f"range_config_{key}",
+                    )
+
+                    st.caption(
+                        range_description.get(
+                            f"range.{key}",
+                            "",
+                        )
+                    )
+

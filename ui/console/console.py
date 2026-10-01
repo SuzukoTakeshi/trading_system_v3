@@ -176,7 +176,7 @@ def main():
 
         if ctx.show_trade and ctx.show_auditor:
             col_main, col_trade, col_auditor = st.columns(
-                [9, 4, 2]
+                [8, 3, 2]
             )
 
             with col_main:
@@ -195,7 +195,7 @@ def main():
 
         elif ctx.show_trade:
             col_main, col_trade = st.columns(
-                [13, 3]
+                [10, 3]
             )
 
             with col_main:
@@ -213,7 +213,7 @@ def main():
 
         elif ctx.show_auditor:
             col_main, col_auditor = st.columns(
-                [13, 2]
+                [10, 2]
             )
 
             with col_main:

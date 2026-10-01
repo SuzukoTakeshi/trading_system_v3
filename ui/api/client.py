@@ -167,6 +167,16 @@ def resume_trade(trade_id):
 
 
 # ==========================================
+# Trade STOPライン変更
+# ==========================================
+def update_stop_price(trade_id, stop_price):
+    return post(
+        f"/trade/{trade_id}/stop",
+        json={"stop_price": stop_price},
+    )
+
+
+# ==========================================
 # Trade取消
 # ==========================================
 def cancel_trade(trade_id, force=False):

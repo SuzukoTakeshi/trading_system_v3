@@ -5,6 +5,8 @@ from datetime import datetime
 
 import streamlit as st
 
+from ui.api.client import get_error_message, update_stop_price
+
 from ui.utils.ui_labels import (
     SIDE_LABEL,
     STRATEGY_LABEL,
@@ -22,6 +24,33 @@ from ui.utils.formatters import (
     fmt_duration,
     fmt_r,
 )
+
+
+@st.dialog("損切ライン変更")
+def stop_price_dialog(trade_id, current_stop):
+
+    st.write(f"Trade #{trade_id} の損切ラインを変更します。")
+
+    with st.form(key=f"monitor_stop_form_{trade_id}"):
+        requested_stop = st.number_input(
+            "新しい損切ライン",
+            min_value=0.01,
+            value=float(current_stop),
+            step=0.1,
+            key=f"monitor_stop_input_{trade_id}",
+        )
+        submitted = st.form_submit_button("変更依頼", width="stretch")
+
+    if submitted:
+        try:
+            response = update_stop_price(trade_id, requested_stop)
+            if response.get("result") == "OK":
+                st.success(response.get("message", "STOPラインを変更しました。"))
+                st.rerun()
+            else:
+                st.error(response.get("message", "STOPライン変更に失敗しました。"))
+        except Exception as e:
+            st.error(get_error_message(e))
 
 
 def render_item(label, value):
@@ -345,7 +374,7 @@ def render_trail_card(trade: dict):
         # Message
         # ---------------------
 
-        message = trade.get("message", "-")
+        message = trade.get("message") or ""
         st.markdown(message)
 
         st.markdown(
@@ -449,7 +478,20 @@ def render_trail_card(trade: dict):
             render_item("取得日時", fmt_dt(trade.get("entry_time")))
 
         with stop_price_col:
-            render_item("損切ライン", fmt_price(trade.get("stop_price")))
+            stop_price = trade.get("stop_price")
+            stop_value_col, stop_edit_col = st.columns([5, 1])
+
+            with stop_value_col:
+                render_item("損切ライン", fmt_price(stop_price))
+
+            if trade.get("state") == "exit" and stop_price is not None:
+                with stop_edit_col:
+                    if st.button(
+                        "✏️",
+                        key=f"monitor_stop_edit_{trade['trade_id']}",
+                        help="損切ラインを変更",
+                    ):
+                        stop_price_dialog(trade["trade_id"], stop_price)
 
         with col4:
             render_item("", "")
@@ -519,7 +561,7 @@ def render_trail_card(trade: dict):
         )
 
         exit_reason = trade.get("exit_reason")
-        exit_reason_text = EXIT_REASON_LABEL.get(exit_reason, exit_reason)
+        exit_reason_text = EXIT_REASON_LABEL.get(exit_reason, exit_reason) or ""
 
         if profit_loss is None:
             profit_loss_text = ""

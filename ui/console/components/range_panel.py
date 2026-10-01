@@ -16,7 +16,7 @@ def range_panel():
     # 共通入力
     # ==================================================
 
-    trade_params = trade_common_panel()
+    trade_params = trade_common_panel(strategy_type="range")
 
 
     # ==================================================
@@ -30,7 +30,7 @@ def range_panel():
     # 計測間隔
     # ==================================================
 
-    title_col, data_col, _ = st.columns([1, 1, 1])
+    title_col, data_col, _ = st.columns([1, 1.2, 0.8])
 
     with title_col:
         st.write("計測間隔（分）")
@@ -51,7 +51,7 @@ def range_panel():
     # RANGE計測時間
     # ==================================================
 
-    title_col, data_col, _ = st.columns([1, 1, 1])
+    title_col, data_col, _ = st.columns([1, 1.2, 0.8])
 
     with title_col:
         st.write("RANGE計測時間（分）")
@@ -59,11 +59,31 @@ def range_panel():
     with data_col:
         calculation_minutes = st.number_input(
             "RANGE計測時間（分）",
-            min_value=0.1,
-            step=0.1,
+            min_value=1.0,
+            step=1.0,
             format="%.1f",
-            value=float(range_cfg["calculation_minutes"]),
+            value=5.0,
             key="trade_range_calculation_minutes",
+            label_visibility="collapsed",
+        )
+
+
+    # ==================================================
+    # ENTRY / EXIT 回数
+    # ==================================================
+
+    title_col, data_col, _ = st.columns([1, 1.2, 0.8])
+
+    with title_col:
+        st.write("ENTRY/EXIT回数")
+
+    with data_col:
+        repeat_count = st.number_input(
+            "ENTRY/EXIT回数",
+            min_value=1,
+            step=1,
+            value=1,
+            key="trade_range_repeat_count",
             label_visibility="collapsed",
         )
 
@@ -75,6 +95,7 @@ def range_panel():
     trade_params.update({
         "range_interval_minutes": interval_minutes,
         "range_calculation_minutes": calculation_minutes,
+        "range_repeat_count": repeat_count,
     })
 
     return trade_params

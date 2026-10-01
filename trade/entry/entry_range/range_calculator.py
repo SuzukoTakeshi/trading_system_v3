@@ -45,14 +45,14 @@ def update_range(runtime, price):
 
     # 同じ距離の場合は更新しない
 
-    Log.debug(
-        f"RANGE UPDATE "
-        f"price={price} "
-        f"high={runtime.range_high} "
-        f"high_count={runtime.high_count} "
-        f"low={runtime.range_low} "
-        f"low_count={runtime.low_count}"
-    )
+    # Log.debug(
+    #     f"RANGE UPDATE "
+    #     f"price={price} "
+    #     f"high={runtime.range_high} "
+    #     f"high_count={runtime.high_count} "
+    #     f"low={runtime.range_low} "
+    #     f"low_count={runtime.low_count}"
+    # )
 
 
 def _update_average(

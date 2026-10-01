@@ -177,6 +177,19 @@ class TradeService:
         if req.atr is None or req.atr < 0.1:
             return { "response_id": "TRADE_REGISTER_INVALID_ATR" }
 
+        repeat_count = getattr(req, "repeat_count", 1)
+        if repeat_count < 1:
+            return {
+                "response_id": "TRADE_REGISTER_INVALID_REPEAT_COUNT",
+                "message": "ENTRY/EXIT回数は1回以上を指定してください。",
+            }
+
+        if req.strategy_type != "range" and repeat_count != 1:
+            return {
+                "response_id": "TRADE_REGISTER_REPEAT_NOT_SUPPORTED",
+                "message": "ENTRY/EXIT回数の指定はRANGEのみ対応しています。",
+            }
+
         return None
 
 
@@ -293,6 +306,35 @@ class TradeService:
         )
 
     # ---------------------
+    # STOPライン変更
+    # ---------------------
+    def update_stop_price(self, trade_id, stop_price):
+
+        Log.debug(
+            f"(#{trade_id}) TRADE SERVICE UPDATE STOP PRICE stop_price={stop_price}"
+        )
+
+        result, message = self.trade_engine.api.update_stop_price(
+            trade_id,
+            stop_price,
+        )
+
+        if result:
+            return Response.ok(
+                response_id="TRADE_STOP_UPDATED",
+                message=f"(#{trade_id}) {message}",
+                data={
+                    "trade_id": trade_id,
+                    "stop_price": stop_price,
+                },
+            )
+
+        return Response.rejected(
+            response_id="TRADE_STOP_UPDATE_REJECTED",
+            message=message,
+        )
+
+    # ---------------------
     # Trade取消
     # ---------------------
     def cancel_trade(self, trade_id, force=False):
@@ -387,6 +429,7 @@ class TradeService:
                 or chart_data.get("stop_loss") != previous.get("stop_loss")
                 or chart_data.get("high_watermark") != previous.get("high_watermark")
                 or chart_data.get("low_watermark") != previous.get("low_watermark")
+                or chart_data.get("range_params") != previous.get("range_params")
                 or chart_data.get("entry_time") != previous.get("entry_time")
                 or chart_data.get("entry_price") != previous.get("entry_price")
                 or chart_data.get("exit_time") != previous.get("exit_time")

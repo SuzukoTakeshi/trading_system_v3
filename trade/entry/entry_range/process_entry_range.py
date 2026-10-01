@@ -18,7 +18,6 @@ from trade.trade_enums import (
 
 from trade.entry.process_entry_base import ProcessEntryBase
 
-from trade.entry.entry_range.range_calculator import update_range
 
 
 class ProcessEntryRange(ProcessEntryBase):
@@ -73,11 +72,6 @@ class ProcessEntryRange(ProcessEntryBase):
 
         if trade.param.side == SideType.SHORT:
             result = self.entry_short(trade, runtime, price)
-
-        # ENTRY成立しなかった場合のみRANGE更新
-        if not result:
-            update_range(runtime, price)
-            self._update_params(runtime)
 
         return result
 
@@ -165,6 +159,21 @@ class ProcessEntryRange(ProcessEntryBase):
         # RANGE / ENTRYパラメータ確定
         self._update_params(runtime)
 
+        range_params = trade.param.params.setdefault("range", {})
+        range_params["confirmed_range"] = {
+            key: getattr(runtime, key)
+            for key in (
+                "range_high",
+                "range_low",
+                "range_upper_limit",
+                "range_lower_limit",
+                "long_entry_upper",
+                "short_entry_lower",
+                "long_exit_upper",
+                "short_exit_lower",
+            )
+        }
+
         Log.event(
             f"(#{trade.id}) RANGE CONFIRMED "
             f"HIGH={runtime.range_high} "
@@ -182,16 +191,34 @@ class ProcessEntryRange(ProcessEntryBase):
     def judge_range(self, trade, runtime, price):
 
         if price > runtime.range_upper_limit:
+            message = (
+                "RANGE上限超過のためTrade終了 "
+                f"現在値={price} 上限={runtime.range_upper_limit}"
+            )
+            trade.message = message
             Log.event(
-                f"(#{trade.id}) RANGE END "
-                f"PRICE={price} UPPER={runtime.range_upper_limit}"
+                f"(#{trade.id}) {message}"
+            )
+            trade.add_timeline(
+                event="RANGE_END",
+                message=message,
+                current_price=price,
             )
             return False
 
         if price < runtime.range_lower_limit:
+            message = (
+                "RANGE下限割れのためTrade終了 "
+                f"現在値={price} 下限={runtime.range_lower_limit}"
+            )
+            trade.message = message
             Log.event(
-                f"(#{trade.id}) RANGE END "
-                f"PRICE={price} LOWER={runtime.range_lower_limit}"
+                f"(#{trade.id}) {message}"
+            )
+            trade.add_timeline(
+                event="RANGE_END",
+                message=message,
+                current_price=price,
             )
             return False
 

@@ -129,11 +129,12 @@ class TradeEngine:
         self.process_exit = ProcessExit(self.context, self.market)
         self.process_exit_request = ProcessExitRequest(self.context, self.market)
         self.process_exit_result = ProcessExitResult(self.context, self.market)
+        # External API (also used to create the next RANGE repeat Trade)
+        self.api = TradeEngineAPI(self)
+        self.context.trade_api = self.api
+
         self.process_completed = ProcessCompleted(self.context, self.market)
         self.process_asset = ProcessAsset(self.context, self.market)
-
-        # External API
-        self.api = TradeEngineAPI(self)
 
         self.context.notifier = Notifier()
 

@@ -118,6 +118,71 @@ def render_range_chart(
     t = plot_df["time"]
     price = plot_df["price_close"]
 
+    measurement_params = next(
+        (
+            item
+            for item in df["range_params"].dropna()
+            if isinstance(item, dict)
+            and item.get("session_start_time")
+            and item.get("calculation_minutes") is not None
+        ),
+        None,
+    )
+    latest_measurement_params = next(
+        (
+            item
+            for item in reversed(df["range_params"].dropna().tolist())
+            if isinstance(item, dict)
+        ),
+        None,
+    )
+
+    if measurement_params:
+        measurement_start = pd.to_datetime(
+            measurement_params["session_start_time"],
+            errors="coerce",
+        )
+        measurement_end = measurement_start + pd.to_timedelta(
+            float(measurement_params["calculation_minutes"]),
+            unit="m",
+        )
+        visible_end = plot_df["time"].max()
+
+        if pd.notna(measurement_start) and measurement_start < visible_end:
+            ax.axvspan(
+                measurement_start,
+                min(measurement_end, visible_end),
+                color="#64B5F6",
+                alpha=0.18,
+                label="RANGE計測時間帯",
+                zorder=0,
+            )
+
+        if (
+            latest_measurement_params
+            and latest_measurement_params.get("range_initialized") is False
+            and pd.notna(measurement_start)
+            and measurement_start <= visible_end < measurement_end
+        ):
+            ax.text(
+                0.5,
+                0.96,
+                "RANGE計測中",
+                transform=ax.transAxes,
+                ha="center",
+                va="top",
+                fontsize=8,
+                fontweight="bold",
+                color="#1565C0",
+                bbox={
+                    "boxstyle": "round,pad=0.25",
+                    "facecolor": "white",
+                    "edgecolor": "#64B5F6",
+                    "alpha": 0.85,
+                },
+                zorder=5,
+            )
+
     # ==================================================
     # PRICE
     # ==================================================
@@ -133,133 +198,39 @@ def render_range_chart(
     # RANGE
     # ==================================================
 
-    range_params = (
-        df["range_params"]
-        .dropna()
+    range_values = plot_df["range_params"].apply(
+        lambda value: value if isinstance(value, dict) else {}
     )
 
-    if not range_params.empty:
+    latest_range = next(
+        (
+            value
+            for value in reversed(range_values.tolist())
+            if value
+        ),
+        {},
+    )
 
-        latest_range = range_params.iloc[-1]
+    range_lines = (
+        ("range_high", "RANGE HIGH", "--", 0.7, "red"),
+        ("range_low", "RANGE LOW", "--", 0.7, "green"),
+        ("long_entry_upper", "LONG ENTRY", ":", 0.7, "green"),
+        ("short_entry_lower", "SHORT ENTRY", ":", 0.7, "red"),
+        ("range_upper_limit", "RANGE UPPER", "--", 0.5, "orange"),
+        ("range_lower_limit", "RANGE LOWER", "--", 0.5, "lime"),
+    )
 
-        if isinstance(
-            latest_range,
-            dict
-        ):
-
-            range_high = latest_range.get(
-                "range_high"
+    for key, label, linestyle, alpha, color in range_lines:
+        latest_value = latest_range.get(key)
+        if latest_value is not None:
+            ax.axhline(
+                latest_value,
+                linestyle=linestyle,
+                linewidth=1.0,
+                alpha=alpha,
+                color=color,
+                label=label,
             )
-
-            range_low = latest_range.get(
-                "range_low"
-            )
-
-            long_entry_upper = latest_range.get(
-                "long_entry_upper"
-            )
-
-            short_entry_lower = latest_range.get(
-                "short_entry_lower"
-            )
-
-            range_upper_limit = latest_range.get(
-                "range_upper_limit"
-            )
-
-            range_lower_limit = latest_range.get(
-                "range_lower_limit"
-            )
-
-            # ------------------------------------------
-            # RANGE HIGH
-            # ------------------------------------------
-
-            if range_high is not None:
-
-                ax.axhline(
-                    range_high,
-                    linestyle="--",
-                    linewidth=0.8,
-                    alpha=0.7,
-                    color="red",
-                    label="RANGE HIGH"
-                )
-
-            # ------------------------------------------
-            # RANGE LOW
-            # ------------------------------------------
-
-            if range_low is not None:
-
-                ax.axhline(
-                    range_low,
-                    linestyle="--",
-                    linewidth=0.8,
-                    alpha=0.7,
-                    color="green",
-                    label="RANGE LOW"
-                )
-
-            # ------------------------------------------
-            # LONG ENTRY
-            # ------------------------------------------
-
-            if long_entry_upper is not None:
-
-                ax.axhline(
-                    long_entry_upper,
-                    linestyle=":",
-                    linewidth=0.8,
-                    alpha=0.7,
-                    color="green",
-                    label="LONG ENTRY"
-                )
-
-            # ------------------------------------------
-            # SHORT ENTRY
-            # ------------------------------------------
-
-            if short_entry_lower is not None:
-
-                ax.axhline(
-                    short_entry_lower,
-                    linestyle=":",
-                    linewidth=0.8,
-                    alpha=0.7,
-                    color="red",
-                    label="SHORT ENTRY"
-                )
-
-            # ------------------------------------------
-            # RANGE UPPER
-            # ------------------------------------------
-
-            if range_upper_limit is not None:
-
-                ax.axhline(
-                    range_upper_limit,
-                    linestyle="--",
-                    linewidth=0.8,
-                    alpha=0.5,
-                    color="red",
-                    label="RANGE UPPER"
-                )
-
-            # ------------------------------------------
-            # RANGE LOWER
-            # ------------------------------------------
-
-            if range_lower_limit is not None:
-
-                ax.axhline(
-                    range_lower_limit,
-                    linestyle="--",
-                    linewidth=0.8,
-                    alpha=0.5,
-                    color="green",
-                    label="RANGE LOWER"
-                )
 
     # ==================================================
     # ENTRY
@@ -376,34 +347,10 @@ def render_range_chart(
         .dropna()
     )
 
-    if not range_params.empty:
-
-        latest_range = range_params.iloc[-1]
-
-        if isinstance(
-            latest_range,
-            dict
-        ):
-
-            for key in [
-                "range_high",
-                "range_low",
-                "long_entry_upper",
-                "short_entry_lower",
-                "range_upper_limit",
-                "range_lower_limit",
-            ]:
-
-                value = latest_range.get(
-                    key
-                )
-
-                if value is not None:
-
-                    y_values = pd.concat([
-                        y_values,
-                        pd.Series([value])
-                    ])
+    for key, *_ in range_lines:
+        value = latest_range.get(key)
+        if value is not None:
+            y_values = pd.concat([y_values, pd.Series([value])])
 
     if not y_values.empty:
 
@@ -452,7 +399,8 @@ def render_range_chart(
     )
 
     ax.legend(
-        fontsize=6
+        fontsize=6,
+        loc="upper left",
     )
 
     ax.grid(True)

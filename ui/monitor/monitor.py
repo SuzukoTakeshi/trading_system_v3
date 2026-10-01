@@ -13,6 +13,9 @@ from streamlit_autorefresh import st_autorefresh
 
 from ui.config import MONITOR_REFRESH_INTERVAL_MS
 
+from ui.utils.ui_labels import (
+    STRATEGY_TYPE_LABEL
+)
 
 # --------------------------------------
 # Components
@@ -99,7 +102,7 @@ def main():
     trail_chart_display = params.get("trail_chart", "1") == "1"
     timeline_display = params.get("timeline", "0") == "1"
 
-    trail_chart_display, timeline_display = render_header(
+    trail_chart_display, timeline_display, auto_refresh = render_header(
         state,
         trail_chart_display,
         timeline_display
@@ -161,7 +164,19 @@ def main():
                     # -------------------------
                     # Delete
                     # -------------------------
-                    _, delete_col = st.columns([3, 1])
+                    trade_col, delete_col = st.columns([3, 1])
+
+                    with trade_col:
+                        if target is not None:
+                            strategy_type = target.get("strategy_type", "")
+                            strategy_type_text = STRATEGY_TYPE_LABEL.get(strategy_type, "")
+
+                            st.markdown(
+                                f'<div style="font-size:1.5rem; padding: 0px 5px;">'
+                                f'{strategy_type_text}'
+                                f'</div>',
+                                unsafe_allow_html=True
+                            )
 
                     with delete_col:
                         if st.button(
@@ -254,10 +269,11 @@ def main():
     #
     # UIへの影響を避けるため、画面の最後に配置する。
     #
-    st_autorefresh(
-        interval=MONITOR_REFRESH_INTERVAL_MS,
-        key="trade_monitor_refresh",
-    )
+    if auto_refresh:
+        st_autorefresh(
+            interval=MONITOR_REFRESH_INTERVAL_MS,
+            key="trade_monitor_refresh",
+        )
 
 
 main()

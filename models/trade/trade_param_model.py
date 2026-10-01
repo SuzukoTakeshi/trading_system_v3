@@ -42,6 +42,10 @@ class TradeParamModel:
 
         # チャートデータ保存間隔
         chart_interval_seconds,
+
+        repeat_count=1,
+        repeat_index=1,
+        repeat_group_id=None,
     ):
 
         # 戦略タイプ
@@ -84,6 +88,11 @@ class TradeParamModel:
 
         self.chart_interval_seconds = chart_interval_seconds
 
+        # RANGE連続売買
+        self.repeat_count = repeat_count
+        self.repeat_index = repeat_index
+        self.repeat_group_id = repeat_group_id
+
         # MarketDes
         # 銘柄の市場情報
 
@@ -122,6 +131,10 @@ class TradeParamModel:
             "close_time": self.close_time,
 
             "chart_interval_seconds": self.chart_interval_seconds,
+
+            "repeat_count": self.repeat_count,
+            "repeat_index": self.repeat_index,
+            "repeat_group_id": self.repeat_group_id,
 
             # MarketDes
             "trading_unit": self.trading_unit,
@@ -166,4 +179,8 @@ class TradeParamModel:
             chart_interval_seconds=(
                 data.get("chart_interval_seconds", 5)
             ),
+
+            repeat_count=data.get("repeat_count", 1),
+            repeat_index=data.get("repeat_index", 1),
+            repeat_group_id=data.get("repeat_group_id"),
         )

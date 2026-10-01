@@ -14,6 +14,7 @@ from app.service import AppService
 from app.dto import (
     TradeRequestDTO,
     TradeIdsRequestDTO,
+    StopPriceRequestDTO,
 )
 
 app = FastAPI(title="Trading System")
@@ -104,6 +105,15 @@ def pause_trade(trade_id: int):
 def resume_trade(trade_id: int):
 
     return app_service.trade_service.resume_trade(trade_id)
+
+
+@app.post("/trade/{trade_id}/stop")
+def update_trade_stop(trade_id: int, req: StopPriceRequestDTO):
+
+    return app_service.trade_service.update_stop_price(
+        trade_id,
+        req.stop_price,
+    )
 
 
 @app.post("/trade/{trade_id}/cancel")

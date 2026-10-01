@@ -11,7 +11,7 @@
 
     "range": {
         "interval_minutes": 0.2,
-        "calculation_minutes": 1,
+        "calculation_minutes": 5,
         "deviation_rate": 50.0,
         "entry_high_deviation_rate": 30.0,
         "entry_low_deviation_rate": 30.0,

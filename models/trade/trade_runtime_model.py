@@ -25,7 +25,7 @@ from trade.entry.entry_range.range_runtime import create_range_runtime
 
 class TradeRuntimeModel:
 
-    def __init__(self, strategy_type=None):
+    def __init__(self, strategy_type=None, params=None):
 
         Log.create("TradeRuntimeModel")
 
@@ -121,7 +121,7 @@ class TradeRuntimeModel:
         self.strategy_runtime = None
 
         if strategy_type == "range":
-            self.strategy_runtime = create_range_runtime()
+            self.strategy_runtime = create_range_runtime(params)
 
 
     def to_dict(self):

@@ -130,6 +130,13 @@ def add_trade_chart_data(context, trade):
         runtime = trade.runtime.strategy_runtime
 
         range_params = {
+            "session_start_time": (
+                runtime.session_start_time.isoformat()
+                if runtime.session_start_time
+                else None
+            ),
+            "calculation_minutes": runtime.calculation_minutes,
+            "range_initialized": runtime.range_initialized,
             "range_high": runtime.range_high,
             "range_low": runtime.range_low,
             "long_entry_upper": runtime.long_entry_upper,

@@ -66,6 +66,10 @@ class TradeModel(BaseEntity):
         close_time,
         chart_interval_seconds,
 
+        repeat_count=1,
+        repeat_index=1,
+        repeat_group_id=None,
+
         generate_id=True,
     ):
         super().__init__(TRADE_ID_FILE, generate_id=generate_id)
@@ -115,10 +119,17 @@ class TradeModel(BaseEntity):
             close_enabled=close_enabled,
             close_time=close_time,
             chart_interval_seconds=chart_interval_seconds,
+
+            repeat_count=repeat_count,
+            repeat_index=repeat_index,
+            repeat_group_id=repeat_group_id,
         )
 
         # Trade実行中データ
-        self.runtime = TradeRuntimeModel( strategy_type=strategy_type)
+        self.runtime = TradeRuntimeModel(
+            strategy_type=strategy_type,
+            params=params,
+        )
 
         # Trade履歴
         self.timeline = []

@@ -32,7 +32,15 @@ class TradeRequestDTO(BaseModel):
 
     params: dict[str, Any] = {}
 
+    # RANGEで実行するENTRY/EXITの合計回数
+    repeat_count: int = 1
+
 
 class TradeIdsRequestDTO(BaseModel):
 
     trade_ids: list[int]
+
+
+class StopPriceRequestDTO(BaseModel):
+
+    stop_price: float

@@ -9,7 +9,7 @@ import streamlit as st
 from ui.api.client import get_trade_options, get_trade_params
 
 
-def trade_common_panel():
+def trade_common_panel(strategy_type="standard"):
 
     # ==================================================
     # 初期化
@@ -132,7 +132,7 @@ def trade_common_panel():
     # 数量
     # ==================================================
 
-    title_col, data_col, _ = st.columns([1, 1, 1])
+    title_col, data_col, _ = st.columns([1, 1.2, 0.8])
 
     with title_col:
         st.write("数量")
@@ -147,46 +147,51 @@ def trade_common_panel():
         )
 
 
-    # ==================================================
-    # 開始価格
-    # ==================================================
+    if strategy_type != "range":
+        # ==================================================
+        # 開始価格
+        # ==================================================
 
-    title_col, data_col, comment_col = st.columns([1, 1, 1])
+        title_col, data_col, comment_col = st.columns([1, 1.2, 0.8])
 
-    with title_col:
-        st.write("開始価格")
+        with title_col:
+            st.write("開始価格")
 
-    with data_col:
-        trade_price = st.number_input(
-            "開始価格",
-            min_value=0,
-            step=1,
-            key="trade_price",
-            label_visibility="collapsed",
-        )
+        with data_col:
+            trade_price = st.number_input(
+                "開始価格",
+                min_value=0,
+                step=1,
+                key="trade_price",
+                label_visibility="collapsed",
+            )
 
-    with comment_col:
-        st.write("市場価格とする場合0")
+        with comment_col:
+            st.write("市場価格とする場合0")
 
 
-    # ==================================================
-    # ATR
-    # ==================================================
+        # ==================================================
+        # ATR
+        # ==================================================
 
-    title_col, data_col, _ = st.columns([1, 1, 1])
+        title_col, data_col, _ = st.columns([1, 1.2, 0.8])
 
-    with title_col:
-        st.write("ATR (%)")
+        with title_col:
+            st.write("ATR (%)")
 
-    with data_col:
-        atr = st.number_input(
-            "ATR (%)",
-            min_value=0.1,
-            max_value=10.0,
-            step=0.1,
-            key="trade_atr",
-            label_visibility="collapsed",
-        )
+        with data_col:
+            atr = st.number_input(
+                "ATR (%)",
+                min_value=0.1,
+                max_value=10.0,
+                step=0.1,
+                key="trade_atr",
+                label_visibility="collapsed",
+            )
+    else:
+        # RANGEは現在値から計測を開始し、ATRをENTRY/EXIT判定に使わない。
+        trade_price = 0
+        atr = 1.0
 
 
     # ==================================================

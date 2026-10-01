@@ -13,6 +13,7 @@
 
 import streamlit as st
 
+from ui.config import MONITOR_REFRESH_INTERVAL_MS
 from ui.utils.formatters import format_datetime_jp
 
 
@@ -23,6 +24,7 @@ def render_header(
     state: dict,
     trail_chart_default: bool = True,
     timeline_default: bool = True,
+    auto_refresh_default: bool = True,
 ):
 
     running = state.get("running", False)
@@ -49,11 +51,12 @@ def render_header(
 
     with st.container(border=True):
 
-        cols = st.columns(
-            [8, 1.5, 1.5, 1.5, 1, 1, 2]
+        (col_title, col_running, col_trade, col_cash, _,
+         col_trail_chart_display, col_timeline_display, col_auto_refresh, col_update) = st.columns(
+            [2, 1, 1.5, 1.5, 5, 1.5, 1.5, 2, 2]
         )
 
-        with cols[0]:
+        with col_title:
             st.markdown(
                 f"""
                 <div style="line-height:1.5;">
@@ -63,21 +66,21 @@ def render_header(
                 unsafe_allow_html=True
             )
 
-        with cols[1]:
+        with col_trail_chart_display:
             trail_chart_display = st.toggle(
                 "Trail Chart",
                 value=trail_chart_default,
                 key="monitor_trail_chart",
             )
 
-        with cols[2]:
+        with col_timeline_display:
             timeline_display = st.toggle(
                 "Timeline",
                 value=timeline_default,
                 key="monitor_timeline",
             )
 
-        with cols[3]:
+        with col_running:
 
             if running:
                 engine_display = "🟢 稼働中"
@@ -93,7 +96,7 @@ def render_header(
                 unsafe_allow_html=True
             )
 
-        with cols[4]:
+        with col_trade:
             st.markdown(
                 f"""
                 <div style="line-height:1.5;">
@@ -103,7 +106,7 @@ def render_header(
                 unsafe_allow_html=True
             )
 
-        with cols[5]:
+        with col_cash:
             st.markdown(
                 f"""
                 <div style="line-height:1.5;">
@@ -113,7 +116,14 @@ def render_header(
                 unsafe_allow_html=True
             )
 
-        with cols[6]:
+        with col_auto_refresh:
+            auto_refresh = st.toggle(
+                f"AUTO REFRESH ({MONITOR_REFRESH_INTERVAL_MS / 1000:g}s)",
+                value=auto_refresh_default,
+                key="monitor_auto_refresh",
+            )
+
+        with col_update:
             st.markdown(
                 f"""
                 <div style="line-height:1.5;">
@@ -124,4 +134,4 @@ def render_header(
             )
 
 
-    return trail_chart_display, timeline_display
+    return trail_chart_display, timeline_display, auto_refresh

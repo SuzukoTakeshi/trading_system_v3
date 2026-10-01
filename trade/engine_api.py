@@ -8,6 +8,9 @@
 # ・Tradeの作成、取得、操作
 #
 
+import math
+from copy import deepcopy
+
 from core.logger import Log
 from core.exception import (
     StrategySideDisabledError,
@@ -88,7 +91,11 @@ class TradeEngineAPI:
             close_enabled=(strategy_cfg["exit"]["close"]["enabled"]),
             close_time=(strategy_cfg["exit"]["close"]["time"]),
             chart_interval_seconds=(strategy_cfg["chart"]["interval_seconds"]),
+            repeat_count=getattr(req, "repeat_count", 1),
         )
+
+        if trade.param.repeat_count > 1:
+            trade.param.repeat_group_id = trade.id
 
         self.context.trades[trade.id] = trade
 
@@ -148,6 +155,54 @@ class TradeEngineAPI:
             )
         )
 
+        self.context.notifier.notify_trade(trade, "TRADE CREATED")
+
+        return trade.id
+
+
+    def create_followup_trade(self, previous_trade):
+        """Create the next independent Trade in a RANGE repeat sequence."""
+        previous_param = previous_trade.param
+
+        trade = TradeModel(
+            strategy_type=previous_param.strategy_type,
+            symbol=previous_param.symbol,
+            quantity=previous_param.quantity,
+            trade_price=previous_param.trade_price,
+            atr=previous_param.atr,
+            trade_type=previous_param.trade_type,
+            margin_type=previous_param.margin_type,
+            side=previous_param.side,
+            strategy=previous_param.strategy,
+            params=deepcopy(previous_param.params),
+            initial_stop_delay_seconds=previous_param.initial_stop_delay_seconds,
+            stop_atr_multiplier=previous_param.stop_atr_multiplier,
+            trail_atr_multiplier=previous_param.trail_atr_multiplier,
+            time_enabled=previous_param.time_enabled,
+            time_limit_minutes=previous_param.time_limit_minutes,
+            close_enabled=previous_param.close_enabled,
+            close_time=previous_param.close_time,
+            chart_interval_seconds=previous_param.chart_interval_seconds,
+            repeat_count=previous_param.repeat_count,
+            repeat_index=previous_param.repeat_index + 1,
+            repeat_group_id=previous_param.repeat_group_id,
+        )
+
+        self.context.trades[trade.id] = trade
+        self._save_trade(trade)
+        Log.event(
+            f"(#{trade.id}) RANGE REPEAT TRADE CREATED "
+            f"group={trade.param.repeat_group_id} "
+            f"round={trade.param.repeat_index}/{trade.param.repeat_count}"
+        )
+        trade.add_timeline(
+            event="ENGINE",
+            message=(
+                f"RANGE REPEAT TRADE CREATED "
+                f"group={trade.param.repeat_group_id} "
+                f"round={trade.param.repeat_index}/{trade.param.repeat_count}"
+            ),
+        )
         self.context.notifier.notify_trade(trade, "TRADE CREATED")
 
         return trade.id
@@ -232,6 +287,59 @@ class TradeEngineAPI:
         self.context.notifier.notify_trade(trade, "TRADE RESUME")
 
         return True
+
+
+    # ==========================================
+    # STOPライン変更
+    # ==========================================
+    def update_stop_price(self, trade_id, stop_price):
+
+        trade = self.context.trades.get(trade_id)
+
+        if trade is None:
+            return False, f"Trade #{trade_id} が存在しません。"
+
+        if trade.state != TradeState.EXIT:
+            return False, f"Trade #{trade_id} はEXIT監視中ではありません。"
+
+        if trade.entry_order is None or trade.entry_order.result is None:
+            return False, f"Trade #{trade_id} はENTRY未約定です。"
+
+        if trade.runtime.stop_price is None:
+            return False, f"Trade #{trade_id} のSTOPラインはまだ設定されていません。"
+
+        if not math.isfinite(stop_price) or stop_price <= 0:
+            return False, "STOPラインには0より大きい数値を指定してください。"
+
+        quote = trade.get_quote()
+        if quote is None or quote.current_price is None:
+            return False, f"Trade #{trade_id} の現在値を取得できません。"
+
+        current_price = quote.current_price
+
+        if trade.param.side == SideType.LONG and stop_price >= current_price:
+            return False, "LONGのSTOPラインは現在値より下に指定してください。"
+
+        if trade.param.side == SideType.SHORT and stop_price <= current_price:
+            return False, "SHORTのSTOPラインは現在値より上に指定してください。"
+
+        previous_stop = trade.runtime.stop_price
+        trade.runtime.stop_price = stop_price
+
+        message = (
+            f"STOP LINE UPDATED side={trade.param.side.value} "
+            f"previous={previous_stop} new={stop_price} "
+            f"current_price={current_price}"
+        )
+        Log.event(f"(#{trade_id}) {message}")
+        trade.add_timeline(
+            event="STOP",
+            message=message,
+            current_price=current_price,
+        )
+        self._save_trade(trade)
+
+        return True, "STOPラインを変更しました。"
 
 
     # ==========================================

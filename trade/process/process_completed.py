@@ -67,6 +67,21 @@ class ProcessCompleted(ProcessBase):
 
         self._save_trade_history(trade)
 
+        # ==========================================
+        # RANGE連続売買
+        # ==========================================
+
+        if (
+            trade.param.strategy_type == "range"
+            and trade.param.repeat_index < trade.param.repeat_count
+        ):
+            next_trade_id = self.context.trade_api.create_followup_trade(trade)
+            Log.event(
+                f"(#{trade.id}) RANGE REPEAT NEXT "
+                f"trade_id={next_trade_id} "
+                f"round={trade.param.repeat_index + 1}/{trade.param.repeat_count}"
+            )
+
         return True
 
 

@@ -66,6 +66,15 @@ EVENT_LABEL = {
 EVENT_LABEL_UNKNOWN = "UNKNOWN"
 
 # ==================================================
+# Strategy Type
+# ==================================================
+STRATEGY_TYPE_LABEL = {
+    "standard": "🔵 STANDARD",
+    "pass": "🟣 PASS",
+    "range": "🟠 RANGE",
+}
+
+# ==================================================
 # 売買方向
 # ==================================================
 SIDE_LABEL = {
@@ -174,6 +183,7 @@ TIMELINE_EVENT_LABEL = {
     "ENTRY": "エントリー",
     "ORDER": "注文",
     "EXIT": "決済",
+    "RANGE_END": "RANGE終了",
     "ENGINE": "Engine",
 }
 TIMELINE_EVENT_UNKNOWN = "UNKNOWN"
