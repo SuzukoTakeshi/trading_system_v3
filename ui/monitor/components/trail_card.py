@@ -521,11 +521,11 @@ def render_trail_card(trade: dict):
 
             elif profit_loss > 0:
                 profit_loss_text = f"+¥{profit_loss:,.0f}"
-                profit_loss_color = "#00C853"
+                profit_loss_color = "#FF5252"
 
             elif profit_loss < 0:
                 profit_loss_text = f"-¥{abs(profit_loss):,.0f}"
-                profit_loss_color = "#FF5252"
+                profit_loss_color = "#00C853"
 
             else:
                 profit_loss_text = "¥0"
