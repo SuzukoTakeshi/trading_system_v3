@@ -274,7 +274,12 @@ def main():
                             render_standard_chart(
                                 target.get("chart_datas", []),
                                 target.get("symbol", ""),
-                                target.get("name", "")
+                                target.get("name", ""),
+                                exit_method=target.get("exit_method", "stop"),
+                                profit_target_percent=target.get(
+                                    "profit_target_percent",
+                                    0.1,
+                                ),
                             )
 
                     # -------------------------

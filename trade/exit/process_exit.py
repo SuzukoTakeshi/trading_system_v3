@@ -52,11 +52,10 @@ class ProcessExit(ProcessExitBase):
         self.quote = trade.get_quote()
 
         if trade.param.strategy_type == "standard":
-            if self.exit_stop.process(trade):
-                return True
-
-        if trade.param.strategy_type == "pass":
-            if self.exit_stop.process(trade):
+            if trade.param.exit_method == "profit":
+                if self.is_profit_target_hit(trade):
+                    return True
+            elif self.exit_stop.process(trade):
                 return True
 
         if trade.param.strategy_type == "range":
@@ -80,6 +79,40 @@ class ProcessExit(ProcessExitBase):
                 return True
 
         return False
+
+    def is_profit_target_hit(self, trade):
+        """ENTRY約定価格から指定率の利益が出たら決済する。"""
+        if trade.entry_order is None or trade.entry_order.result is None:
+            return False
+
+        entry_price = trade.entry_order.result.price
+        current_price = self.quote.current_price
+        target_rate = trade.param.profit_target_percent / 100
+
+        if trade.param.side.value == "long":
+            target_price = entry_price * (1 + target_rate)
+            hit = current_price >= target_price
+        else:
+            target_price = entry_price * (1 - target_rate)
+            hit = current_price <= target_price
+
+        if not hit:
+            return False
+
+        message = (
+            f"PROFIT TARGET EXIT side={trade.param.side.value} "
+            f"current_price={current_price} target={target_price} "
+            f"profit_target_percent={trade.param.profit_target_percent}%"
+        )
+        Log.event(f"(#{trade.id}) {message}")
+        trade.add_timeline(
+            event="EXIT",
+            message=message,
+            current_price=current_price,
+        )
+        trade.runtime.set_exit(current_price, ExitReason.PROFIT_TARGET_EXIT)
+        self.notify(trade, "PROFIT TARGET EXIT")
+        return True
 
     # ==========================================
     # 1日信用 強制手仕舞い

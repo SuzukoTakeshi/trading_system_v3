@@ -92,6 +92,16 @@ class TradeEngineAPI:
             close_time=(strategy_cfg["exit"]["close"]["time"]),
             chart_interval_seconds=(strategy_cfg["chart"]["interval_seconds"]),
             repeat_count=getattr(req, "repeat_count", 1),
+            entry_method=(
+                getattr(req, "entry_method", None)
+                or (
+                    "pullback_reversal"
+                    if req.strategy_type == "standard"
+                    else req.strategy_type
+                )
+            ),
+            exit_method=(getattr(req, "exit_method", None) or "stop"),
+            profit_target_percent=(getattr(req, "profit_target_percent", None) or 0.1),
         )
 
         if trade.param.repeat_count > 1:
@@ -186,6 +196,9 @@ class TradeEngineAPI:
             repeat_count=previous_param.repeat_count,
             repeat_index=previous_param.repeat_index + 1,
             repeat_group_id=previous_param.repeat_group_id,
+            entry_method=previous_param.entry_method,
+            exit_method=previous_param.exit_method,
+            profit_target_percent=previous_param.profit_target_percent,
         )
 
         self.context.trades[trade.id] = trade

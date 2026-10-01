@@ -14,7 +14,6 @@ from ui.api.client import (
 
 from ui.console import message_store
 from ui.console.components.standard_panel import standard_panel
-from ui.console.components.pass_panel import pass_panel
 from ui.console.components.range_panel import range_panel
 
 
@@ -49,7 +48,6 @@ def trade_panel():
 
             strategy_type_options = {
                 "STANDARD": "standard",
-                "PASS": "pass",
                 "RANGE": "range",
             }
 
@@ -83,9 +81,6 @@ def trade_panel():
         if strategy_type == "standard":
             trade_params = standard_panel()
 
-        elif strategy_type == "pass":
-            trade_params = pass_panel()
-
         elif strategy_type == "range":
             trade_params = range_panel()
 
@@ -109,6 +104,13 @@ def trade_panel():
                 "side": trade_params["side"],
                 "strategy": trade_params["strategy"],
             }
+
+            if strategy_type == "standard":
+                payload["entry_method"] = trade_params["entry_method"]
+                payload["exit_method"] = trade_params["exit_method"]
+                payload["profit_target_percent"] = trade_params[
+                    "profit_target_percent"
+                ]
 
             # ==================================================
             # RANGEパラメータ

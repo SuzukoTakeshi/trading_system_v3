@@ -181,5 +181,6 @@ class ExitReason(str, Enum):
     CLOSE_EXIT = "close_exit"
     MANUAL_EXIT = "manual_exit"
     STOP_LINE_EXIT = "stop_line_exit"
+    PROFIT_TARGET_EXIT = "profit_target_exit"
     RANGE_EXIT = "range_exit"
     RANGE_BOUNDARY_EXIT = "range_boundary_exit"

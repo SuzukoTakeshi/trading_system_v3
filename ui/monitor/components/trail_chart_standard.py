@@ -1,7 +1,7 @@
 #
 # ui/monitor_components/trail_chart_standard.py
 #
-# STANDARD / PASS Monitor グラフ表示
+# STANDARD Monitor グラフ表示
 #
 
 import streamlit as st
@@ -17,7 +17,9 @@ rcParams["font.family"] = "Meiryo"
 def render_standard_chart(
     trail_history: list,
     symbol: str = "",
-    name: str = ""
+    name: str = "",
+    exit_method: str = "stop",
+    profit_target_percent: float = 0.1,
 ):
 
     if not trail_history:
@@ -134,6 +136,20 @@ def render_standard_chart(
     high = plot_df["high_watermark"]
     low = plot_df["low_watermark"]
     stop = plot_df["stop_loss"]
+    show_stop = exit_method != "profit"
+    profit_target_price = None
+
+    entry_rows = df[df["entry_price"].notna()]
+    if exit_method == "profit" and not entry_rows.empty:
+        entry_price_for_target = entry_rows.iloc[0]["entry_price"]
+        if side == "LONG":
+            profit_target_price = entry_price_for_target * (
+                1 + profit_target_percent / 100
+            )
+        elif side == "SHORT":
+            profit_target_price = entry_price_for_target * (
+                1 - profit_target_percent / 100
+            )
 
     # ==================================================
     # PRICE
@@ -171,17 +187,18 @@ def render_standard_chart(
             alpha=0.15
         )
 
-        lower = stop.where(
-            stop <= price,
-            price
-        )
+        if show_stop:
+            lower = stop.where(
+                stop <= price,
+                price
+            )
 
-        ax.fill_between(
-            t,
-            lower,
-            price,
-            alpha=0.15
-        )
+            ax.fill_between(
+                t,
+                lower,
+                price,
+                alpha=0.15
+            )
 
     # ==================================================
     # SHORT
@@ -208,57 +225,65 @@ def render_standard_chart(
             alpha=0.15
         )
 
-        upper = stop.where(
-            stop >= price,
-            price
-        )
+        if show_stop:
+            upper = stop.where(
+                stop >= price,
+                price
+            )
 
-        ax.fill_between(
-            t,
-            price,
-            upper,
-            alpha=0.15
-        )
+            ax.fill_between(
+                t,
+                price,
+                upper,
+                alpha=0.15
+            )
 
     # ==================================================
     # STOP
     # ==================================================
 
-    ax.plot(
-        t,
-        stop,
-        label="STOP",
-        linewidth=1,
-        color="red"
-    )
-
-    stop_rows = df[
-        df["stop_loss"].notna()
-    ]
-
-    if not stop_rows.empty:
-
-        latest_stop = (
-            stop_rows.iloc[-1]["stop_loss"]
+    if show_stop:
+        ax.plot(
+            t,
+            stop,
+            label="STOP",
+            linewidth=1,
+            color="red"
         )
 
-        if pd.notna(latest_stop):
+        stop_rows = df[
+            df["stop_loss"].notna()
+        ]
 
-            ax.axhline(
-                latest_stop,
-                linestyle="--",
-                linewidth=0.8,
-                alpha=0.7,
-                color="red"
+        if not stop_rows.empty:
+
+            latest_stop = (
+                stop_rows.iloc[-1]["stop_loss"]
             )
+
+            if pd.notna(latest_stop):
+
+                ax.axhline(
+                    latest_stop,
+                    linestyle="--",
+                    linewidth=0.8,
+                    alpha=0.7,
+                    color="red"
+                )
+
+    elif profit_target_price is not None:
+        ax.axhline(
+            profit_target_price,
+            linestyle="--",
+            linewidth=1,
+            alpha=0.9,
+            color="green",
+            label=f"PROFIT TARGET ({profit_target_percent:g}%)",
+        )
 
     # ==================================================
     # ENTRY
     # ==================================================
-
-    entry_rows = df[
-        df["entry_price"].notna()
-    ]
 
     if not entry_rows.empty:
 
@@ -366,16 +391,23 @@ def render_standard_chart(
         "price_close",
         "high_watermark",
         "low_watermark",
-        "stop_loss",
         "entry_price",
         "exit_price",
     ]
 
-    y_values = (
-        plot_df[y_columns]
-        .stack()
-        .dropna()
-    )
+    if show_stop:
+        y_columns.append("stop_loss")
+
+    if profit_target_price is not None:
+        y_values = pd.concat(
+            [
+                plot_df[y_columns].stack().dropna(),
+                pd.Series([profit_target_price]),
+            ],
+            ignore_index=True,
+        )
+    else:
+        y_values = plot_df[y_columns].stack().dropna()
 
     if not y_values.empty:
 

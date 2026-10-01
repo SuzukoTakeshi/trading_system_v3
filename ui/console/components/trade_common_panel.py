@@ -375,6 +375,68 @@ def trade_common_panel(strategy_type="standard"):
         else:
             side_str = None
 
+    entry_method = strategy_type
+    exit_method = "stop"
+    profit_target_percent = 0.1
+
+    if strategy_type == "standard":
+        entry_method_key = f"trade_entry_method_{strategy_type}"
+        exit_method_key = f"trade_exit_method_{strategy_type}"
+        if entry_method_key not in st.session_state:
+            st.session_state[entry_method_key] = "immediate"
+        elif st.session_state[entry_method_key] == "standard":
+            st.session_state[entry_method_key] = "pullback_reversal"
+        if exit_method_key not in st.session_state:
+            st.session_state[exit_method_key] = "stop"
+        profit_target_key = "trade_profit_target_percent_v5"
+
+        title_col, data_col = st.columns([1, 2])
+        with title_col:
+            st.write("ENTRY判定")
+        with data_col:
+            entry_method = st.selectbox(
+                "ENTRY判定",
+                ["immediate", "pullback_reversal"],
+                format_func=lambda value: {
+                    "immediate": "即時",
+                    "pullback_reversal": "押し目・反転",
+                }[value],
+                key=entry_method_key,
+                label_visibility="collapsed",
+            )
+
+        title_col, data_col = st.columns([1, 2])
+        with title_col:
+            st.write("EXIT判定")
+        with data_col:
+            exit_method = st.selectbox(
+                "EXIT判定",
+                ["stop", "profit"],
+                format_func=lambda value: {
+                    "stop": "STOP",
+                    "profit": "利確(%)",
+                }[value],
+                key=exit_method_key,
+                label_visibility="collapsed",
+            )
+
+        if exit_method == "profit":
+            title_col, data_col = st.columns([1, 2])
+            with title_col:
+                st.write("利確率 (%)")
+            with data_col:
+                profit_target_percent = st.number_input(
+                    "利確率 (%)",
+                    min_value=0.01,
+                    max_value=100.0,
+                    value=0.1,
+                    step=0.1,
+                    key=profit_target_key,
+                    label_visibility="collapsed",
+                )
+        else:
+            profit_target_percent = 0.1
+
 
     # ==================================================
     # 戻り値
@@ -388,4 +450,7 @@ def trade_common_panel(strategy_type="standard"):
         "margin_type": margin_type,
         "strategy": strategy,
         "side": side_str,
+        "entry_method": entry_method,
+        "exit_method": exit_method,
+        "profit_target_percent": profit_target_percent,
     }

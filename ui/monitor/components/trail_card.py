@@ -454,6 +454,32 @@ def render_trail_card(trade: dict):
         with space_col:
             render_item("", "")
 
+        if trade.get("strategy_type") == "standard":
+            entry_method_text = {
+                "pullback_reversal": "押し目・反転",
+                "immediate": "即時",
+            }.get(trade.get("entry_method"), "-")
+            exit_method = trade.get("exit_method")
+            exit_method_text = {
+                "stop": "STOP",
+                "profit": "利確(%)",
+            }.get(exit_method, "-")
+            profit_target_percent = trade.get("profit_target_percent")
+            profit_text = (
+                f"{profit_target_percent:g}%"
+                if exit_method == "profit"
+                and isinstance(profit_target_percent, (int, float))
+                else "-"
+            )
+
+            entry_method_col, exit_method_col, profit_col, _ = st.columns(4)
+            with entry_method_col:
+                render_item("ENTRY判定", entry_method_text)
+            with exit_method_col:
+                render_item("EXIT判定", exit_method_text)
+            with profit_col:
+                render_item("利確率", profit_text)
+
         # ---------------------
         # 取得
         # ---------------------

@@ -204,6 +204,9 @@ class TradeService:
                 "trade_id": trade["trade_id"],
 
                 "strategy_type": trade["strategy_type"],
+                "entry_method": trade.get("entry_method"),
+                "exit_method": trade.get("exit_method"),
+                "profit_target_percent": trade.get("profit_target_percent"),
                 "repeat_index": trade["repeat_index"],
                 "repeat_count": trade["repeat_count"],
 

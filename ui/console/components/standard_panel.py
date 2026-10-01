@@ -13,6 +13,6 @@ def standard_panel():
     # 共通入力
     # ==================================================
 
-    trade_params = trade_common_panel()
+    trade_params = trade_common_panel(strategy_type="standard")
 
     return trade_params

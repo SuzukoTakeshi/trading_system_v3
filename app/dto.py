@@ -34,6 +34,11 @@ class TradeRequestDTO(BaseModel):
     # RANGEで実行するENTRY/EXITの合計回数
     repeat_count: int = 1
 
+    # STANDARDで選択するENTRY/EXIT判定方式
+    entry_method: Optional[str] = None
+    exit_method: Optional[str] = None
+    profit_target_percent: Optional[float] = None
+
 
 class TradeIdsRequestDTO(BaseModel):
 

@@ -46,10 +46,24 @@ class TradeParamModel:
         repeat_count=1,
         repeat_index=1,
         repeat_group_id=None,
+        entry_method=None,
+        exit_method="stop",
+        profit_target_percent=0.1,
     ):
 
         # 戦略タイプ
         self.strategy_type = strategy_type
+
+        # RANGE以外のENTRY/EXIT判定方式
+        if entry_method == "standard":
+            entry_method = "pullback_reversal"
+        self.entry_method = entry_method or (
+            "pullback_reversal"
+            if strategy_type == "standard"
+            else strategy_type
+        )
+        self.exit_method = exit_method or "stop"
+        self.profit_target_percent = profit_target_percent or 0.1
 
         # 銘柄
         self.symbol = symbol
@@ -110,6 +124,9 @@ class TradeParamModel:
 
         return {
             "strategy_type": self.strategy_type,
+            "entry_method": self.entry_method,
+            "exit_method": self.exit_method,
+            "profit_target_percent": self.profit_target_percent,
 
             "symbol": self.symbol,
             "quantity": self.quantity,
@@ -157,6 +174,9 @@ class TradeParamModel:
 
         return cls(
             strategy_type=data.get("strategy_type", "standard"),
+            entry_method=data.get("entry_method"),
+            exit_method=data.get("exit_method", "stop"),
+            profit_target_percent=data.get("profit_target_percent", 0.1),
 
             symbol=data.get("symbol"),
             quantity=data.get("quantity"),

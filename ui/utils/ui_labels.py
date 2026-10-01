@@ -70,7 +70,6 @@ EVENT_LABEL_UNKNOWN = "UNKNOWN"
 # ==================================================
 STRATEGY_TYPE_LABEL = {
     "standard": "🔵 STANDARD",
-    "pass": "🟣 PASS",
     "range": "🟠 RANGE",
 }
 
@@ -145,6 +144,7 @@ EXIT_REASON_LABEL = {
     "close_exit": "指定時刻決済",
     "manual_exit": "手動決済",
     "stop_line_exit": "損切り",
+    "profit_target_exit": "利確",
     "range_exit": "RANGE完了",
     "range_boundary_exit": "RANGE逸脱",
 }

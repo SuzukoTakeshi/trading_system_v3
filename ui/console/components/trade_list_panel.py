@@ -376,7 +376,6 @@ def trade_list_panel():
             # トレード条件
             row["strategy_type"] = {
                 "standard": "STANDARD",
-                "pass": "PASS",
                 "range": "RANGE",
             }.get(
                 row.get("strategy_type", ""),
