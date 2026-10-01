@@ -344,7 +344,7 @@ def render_trail_card(trade: dict):
                     current_profit_loss_text = (
                         f"-¥{abs(current_profit_loss):,.0f}"
                     )
-                    expected_profit_loss_color = "#00C853"
+                    current_profit_loss_color = "#00C853"
 
                 else:
                     current_profit_loss_text = "¥0"
