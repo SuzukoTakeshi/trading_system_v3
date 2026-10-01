@@ -298,13 +298,13 @@ def render_trail_card(trade: dict):
                     expected_profit_loss_text = (
                         f"+¥{expected_profit_loss:,.0f}"
                     )
-                    expected_profit_loss_color = "#00C853"
+                    expected_profit_loss_color = "#FF5252"
 
                 elif expected_profit_loss < 0:
                     expected_profit_loss_text = (
                         f"-¥{abs(expected_profit_loss):,.0f}"
                     )
-                    expected_profit_loss_color = "#FF5252"
+                    expected_profit_loss_color = "#00C853"
 
                 else:
                     expected_profit_loss_text = "¥0"
@@ -338,13 +338,13 @@ def render_trail_card(trade: dict):
                     current_profit_loss_text = (
                         f"+¥{current_profit_loss:,.0f}"
                     )
-                    current_profit_loss_color = "#00C853"
+                    current_profit_loss_color = "#FF5252"
 
                 elif current_profit_loss < 0:
                     current_profit_loss_text = (
                         f"-¥{abs(current_profit_loss):,.0f}"
                     )
-                    current_profit_loss_color = "#FF5252"
+                    expected_profit_loss_color = "#00C853"
 
                 else:
                     current_profit_loss_text = "¥0"
