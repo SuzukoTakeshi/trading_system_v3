@@ -17,6 +17,7 @@ from core.logger import Log
 
 from trade.entry.entry_standard.process_entry_standard import ProcessEntryStandard
 from trade.entry.entry_range.process_entry_range import ProcessEntryRange
+from trade.entry.process_entry_trend import ProcessEntryTrend
 
 class ProcessEntry:
 
@@ -29,6 +30,7 @@ class ProcessEntry:
 
         self.entry_standard = ProcessEntryStandard(context, market)
         self.entry_range = ProcessEntryRange(context, market)
+        self.entry_trend = ProcessEntryTrend()
 
     # ==========================================
     # ENTRY判定
@@ -42,6 +44,10 @@ class ProcessEntry:
                 return self.entry_standard.process(trade)
             if trade.param.entry_method == "immediate":
                 return True
+
+        if trade.param.strategy_type == "trend":
+            self.entry_trend.update(trade)
+            return False
 
         if trade.param.strategy_type == "range":
             return self.entry_range.process(trade)

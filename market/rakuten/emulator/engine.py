@@ -197,7 +197,7 @@ class EmulatorEngine:
 
         # TradeRequestDTO形式へ変換
         req = {
-            "strategy_type": "standard",
+            "strategy_type": trade.get("strategy_type", "standard"),
 
             "symbol": str(trade["symbol"]),
             "quantity": trade["quantity"],

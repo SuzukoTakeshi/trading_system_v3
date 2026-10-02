@@ -31,17 +31,28 @@ from ui.utils.formatters import (
 
 
 @st.dialog("損切ライン変更")
-def stop_price_dialog(trade_id, current_stop):
+def stop_price_dialog(trade_id, current_stop, entry_price):
 
     st.write(f"Trade #{trade_id} の損切ラインを変更します。")
+
+    input_key = f"monitor_stop_input_{trade_id}"
+    if input_key not in st.session_state:
+        st.session_state[input_key] = float(current_stop)
+
+    if entry_price is not None:
+        if st.button(
+            "取得価格を入力",
+            key=f"monitor_stop_use_entry_price_{trade_id}",
+            help=f"取得価格 {fmt_price(entry_price)} を損切ラインに入力します",
+        ):
+            st.session_state[input_key] = float(entry_price)
 
     with st.form(key=f"monitor_stop_form_{trade_id}"):
         requested_stop = st.number_input(
             "新しい損切ライン",
             min_value=0.01,
-            value=float(current_stop),
             step=0.1,
-            key=f"monitor_stop_input_{trade_id}",
+            key=input_key,
         )
         submitted = st.form_submit_button("変更依頼", width="stretch")
 
@@ -567,7 +578,11 @@ def render_trail_card(trade: dict):
                             key=f"monitor_stop_edit_{trade['trade_id']}",
                             help="損切ラインを変更",
                         ):
-                            stop_price_dialog(trade["trade_id"], stop_price)
+                            stop_price_dialog(
+                                trade["trade_id"],
+                                stop_price,
+                                trade.get("entry_price"),
+                            )
 
         with col4:
             render_item("", "")

@@ -71,6 +71,7 @@ EVENT_LABEL_UNKNOWN = "UNKNOWN"
 STRATEGY_TYPE_LABEL = {
     "standard": "🔵 STANDARD",
     "range": "🟠 RANGE",
+    "trend": "📈 TREND",
 }
 
 # ==================================================
@@ -186,6 +187,7 @@ TIMELINE_EVENT_LABEL = {
     "EXIT": "決済",
     "ERROR": "エラー",
     "RANGE_END": "RANGE終了",
+    "TREND": "トレンド",
     "ENGINE": "Engine",
 }
 TIMELINE_EVENT_UNKNOWN = "UNKNOWN"

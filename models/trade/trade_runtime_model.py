@@ -117,6 +117,12 @@ class TradeRuntimeModel:
         # 利確方式で使う固定の利確価格
         self.profit_target_price = None
 
+        # 1分足トレンド判定
+        self.trend_current_bar = None
+        self.trend_history = []
+        self.trend_direction = "warming_up"
+        self.trend_last_quote_key = None
+
         # EXIT理由
         self.exit_reason: ExitReason | None = None
 
@@ -157,6 +163,10 @@ class TradeRuntimeModel:
 
             "stop_price": self.stop_price,
             "profit_target_price": self.profit_target_price,
+            "trend_current_bar": self.trend_current_bar,
+            "trend_history": self.trend_history,
+            "trend_direction": self.trend_direction,
+            "trend_last_quote_key": self.trend_last_quote_key,
 
             # Enum → JSON
             "exit_reason": (
@@ -214,6 +224,10 @@ class TradeRuntimeModel:
 
         runtime.stop_price = data.get("stop_price")
         runtime.profit_target_price = data.get("profit_target_price")
+        runtime.trend_current_bar = data.get("trend_current_bar")
+        runtime.trend_history = data.get("trend_history", [])
+        runtime.trend_direction = data.get("trend_direction", "warming_up")
+        runtime.trend_last_quote_key = data.get("trend_last_quote_key")
 
         # JSON → Enum
         exit_reason_str = data.get("exit_reason")

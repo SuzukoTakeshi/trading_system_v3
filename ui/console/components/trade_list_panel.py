@@ -377,6 +377,7 @@ def trade_list_panel():
             row["strategy_type"] = {
                 "standard": "STANDARD",
                 "range": "RANGE",
+                "trend": "TREND",
             }.get(
                 row.get("strategy_type", ""),
                 row.get("strategy_type", ""),
