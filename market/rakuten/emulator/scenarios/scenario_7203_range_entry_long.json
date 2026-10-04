@@ -65,7 +65,7 @@
             { "price": 3055.0 },
 
             {
-                "comment": "=== 1分経過待ち ==="
+                "comment": "=== 60秒経過待ち ==="
             },
 
             { "sleep": 60 },
@@ -74,9 +74,7 @@
                 "comment": "=== RANGE計測終了 ==="
             },
             { "price": 3040.0 },
-
-            { "end": true },
-
+           
             {
                 "comment": "=== 計測終了後 RANGE更新 HIGH側 ==="
             },
@@ -90,6 +88,10 @@
             },
             { "price": 3045.0 },
             { "price": 3050.0 },
+
+
+            { "end": true },
+
 
             {
                 "comment": "=== LONG ENTRY位置へ ==="

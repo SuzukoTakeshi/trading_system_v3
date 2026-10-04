@@ -72,6 +72,7 @@ STRATEGY_TYPE_LABEL = {
     "standard": "🔵 STANDARD",
     "range": "🟠 RANGE",
     "trend": "📈 TREND",
+    "trend2": "📈 TREND2",
 }
 
 # ==================================================

@@ -88,6 +88,11 @@ class ScenarioCreator:
         param = trade.param
 
         trade_data = {
+            "strategy_type": getattr(
+                param.strategy_type,
+                "value",
+                param.strategy_type,
+            ),
             "symbol": param.symbol,
             "trade_price": param.trade_price,
             "quantity": param.quantity,
@@ -96,6 +101,11 @@ class ScenarioCreator:
             "margin_type": param.margin_type,
             "side": param.side,
             "strategy": param.strategy,
+            "params": param.params or {},
+            "repeat_count": param.repeat_count,
+            "entry_method": param.entry_method,
+            "exit_method": param.exit_method,
+            "profit_target_percent": param.profit_target_percent,
         }
 
         # ==========================================

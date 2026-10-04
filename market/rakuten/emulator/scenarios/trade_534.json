@@ -1,0 +1,291 @@
+{
+    "trade": {
+        "strategy_type": "standard",
+        "symbol": "6702",
+        "trade_price": 0,
+        "quantity": 100,
+        "atr": 1.0,
+        "trade_type": "margin",
+        "margin_type": "day",
+        "side": "long",
+        "strategy": "daytrade",
+        "params": {},
+        "repeat_count": 1,
+        "entry_method": "immediate",
+        "exit_method": "stop",
+        "profit_target_percent": 0.1
+    },
+    "market": {
+        "mode": "scenario",
+        "interval": 2.0,
+        "scenario": [
+            {
+                "price": 4042.0
+            },
+            {
+                "price": 4040.0,
+                "comment": "STATE created -> entry_wait"
+            },
+            {
+                "price": 4040.0,
+                "comment": "STATE entry_wait -> entry"
+            },
+            {
+                "price": 4040.0,
+                "comment": "STATE entry -> entry_request"
+            },
+            {
+                "price": 4040.0,
+                "comment": "STATE entry_request -> entry_result"
+            },
+            {
+                "price": 4038.0,
+                "comment": "STATE entry_result -> exit"
+            },
+            {
+                "price": 4037.9,
+                "comment": "INITIAL STOP entry=4037.9 stop=3977.3315000000002"
+            },
+            {
+                "price": 4038.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4038.0"
+            },
+            {
+                "price": 4039.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4039.0"
+            },
+            {
+                "price": 4040.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4040.0"
+            },
+            {
+                "price": 4043.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4043.0"
+            },
+            {
+                "price": 4046.0
+            },
+            {
+                "price": 4038.0,
+                "comment": "STOP LINE UPDATED side=long previous=3977.3315000000002 new=4020.0 current_price=4038.0"
+            },
+            {
+                "price": 4044.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4044.0"
+            },
+            {
+                "price": 4046.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4046.0"
+            },
+            {
+                "price": 4047.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4047.0"
+            },
+            {
+                "price": 4049.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4049.0"
+            },
+            {
+                "price": 4052.0
+            },
+            {
+                "price": 4050.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4050.0"
+            },
+            {
+                "price": 4051.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4051.0"
+            },
+            {
+                "price": 4052.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4052.0"
+            },
+            {
+                "price": 4051.0
+            },
+            {
+                "price": 4053.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4053.0"
+            },
+            {
+                "price": 4055.0
+            },
+            {
+                "price": 4054.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4054.0"
+            },
+            {
+                "price": 4056.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4056.0"
+            },
+            {
+                "price": 4057.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4057.0"
+            },
+            {
+                "price": 4058.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4058.0"
+            },
+            {
+                "price": 4052.0
+            },
+            {
+                "price": 4050.0
+            },
+            {
+                "price": 4042.0
+            },
+            {
+                "price": 4038.0
+            },
+            {
+                "price": 4035.0
+            },
+            {
+                "price": 4038.0
+            },
+            {
+                "price": 4038.0
+            },
+            {
+                "price": 4037.0
+            },
+            {
+                "price": 4036.0
+            },
+            {
+                "price": 4042.0
+            },
+            {
+                "price": 4047.0
+            },
+            {
+                "price": 4043.0
+            },
+            {
+                "price": 4041.0
+            },
+            {
+                "price": 4042.0
+            },
+            {
+                "price": 4038.0
+            },
+            {
+                "price": 4041.0
+            },
+            {
+                "price": 4039.0
+            },
+            {
+                "price": 4047.0
+            },
+            {
+                "price": 4049.0
+            },
+            {
+                "price": 4052.0
+            },
+            {
+                "price": 4051.0
+            },
+            {
+                "price": 4049.0
+            },
+            {
+                "price": 4052.0
+            },
+            {
+                "price": 4053.0
+            },
+            {
+                "price": 4054.0
+            },
+            {
+                "price": 4051.0
+            },
+            {
+                "price": 4051.0
+            },
+            {
+                "price": 4056.0
+            },
+            {
+                "price": 4058.0
+            },
+            {
+                "price": 4060.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=4060.0"
+            },
+            {
+                "price": 4057.0
+            },
+            {
+                "price": 4057.0
+            },
+            {
+                "price": 4051.0
+            },
+            {
+                "price": 4046.0
+            },
+            {
+                "price": 4045.0
+            },
+            {
+                "price": 4045.0
+            },
+            {
+                "price": 4045.0
+            },
+            {
+                "price": 4047.0
+            },
+            {
+                "price": 4047.0
+            },
+            {
+                "price": 4046.0
+            },
+            {
+                "price": 4046.0
+            },
+            {
+                "price": 4046.0
+            },
+            {
+                "price": 4046.0
+            },
+            {
+                "price": 4047.0
+            },
+            {
+                "price": 4046.0
+            },
+            {
+                "price": 4044.0
+            },
+            {
+                "price": 4040.0
+            },
+            {
+                "price": 4040.0
+            },
+            {
+                "price": 4040.0,
+                "comment": "STATE exit -> exit_request"
+            },
+            {
+                "price": 4040.0,
+                "comment": "STATE exit_request -> exit_result"
+            },
+            {
+                "price": 4040.0,
+                "comment": "STATE exit_result -> completed"
+            },
+            {
+                "end": true
+            }
+        ]
+    }
+}

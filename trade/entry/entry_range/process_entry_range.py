@@ -136,10 +136,10 @@ class ProcessEntryRange(ProcessEntryBase):
             }
         )
 
-        Log.event(
-            f"(#{trade.id}) RANGE INTERVAL "
-            f"HIGH={runtime.minute_high} LOW={runtime.minute_low}"
-        )
+        # Log.event(
+        #     f"(#{trade.id}) RANGE INTERVAL "
+        #     f"HIGH={runtime.minute_high} LOW={runtime.minute_low}"
+        # )
 
         # RANGE HIGH / LOW
         runtime.range_high = max(

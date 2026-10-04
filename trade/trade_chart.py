@@ -206,6 +206,13 @@ def add_trade_chart_data(context, trade):
             last.state = state
 
             last.range_params = range_params
+            last.trend_direction = trade.runtime.trend_direction
+            trend_bar = trade.runtime.trend_current_bar or {}
+            last.trend_high = trend_bar.get("high")
+            last.trend_low = trend_bar.get("low")
+            last.trend_moving_average = (
+                trade.runtime.trend_moving_average
+            )
 
             return
 
@@ -244,6 +251,14 @@ def add_trade_chart_data(context, trade):
         price_close=current_price,
 
         range_params=range_params,
+        trend_direction=trade.runtime.trend_direction,
+        trend_high=(
+            (trade.runtime.trend_current_bar or {}).get("high")
+        ),
+        trend_low=(
+            (trade.runtime.trend_current_bar or {}).get("low")
+        ),
+        trend_moving_average=trade.runtime.trend_moving_average,
     )
 
     context.cache.trade_chart_datas.setdefault(

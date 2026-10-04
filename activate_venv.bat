@@ -36,6 +36,7 @@ echo.
 echo [Emulator]
 echo.
 echo python -m market.rakuten.emulator.main scenario_7203.json 1
+echo python -m market.rakuten.emulator.main scenario_7203_range_entry_long.json 1
 echo.
 echo   第1引数 : Scenarioファイル
 echo   第2引数 : Trade作成

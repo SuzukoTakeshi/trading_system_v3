@@ -19,9 +19,9 @@ from core.logger import Log
 from trade.trade_enums import ExitReason
 
 from models.trade.trade_runtime_range_model import TradeRuntimeRangeModel
+from models.trade.trade_runtime_trend_model import TradeRuntimeTrendModel
 
 from trade.entry.entry_range.range_runtime import create_range_runtime
-
 
 class TradeRuntimeModel:
 
@@ -122,6 +122,9 @@ class TradeRuntimeModel:
         self.trend_history = []
         self.trend_direction = "warming_up"
         self.trend_last_quote_key = None
+        self.trend_moving_average = None
+        self.trend_up_score = 0
+        self.trend_down_score = 0
 
         # EXIT理由
         self.exit_reason: ExitReason | None = None
@@ -131,6 +134,9 @@ class TradeRuntimeModel:
 
         if strategy_type == "range":
             self.strategy_runtime = create_range_runtime(params)
+
+        elif strategy_type == "trend2":
+            self.strategy_runtime = TradeRuntimeTrendModel()
 
 
     def to_dict(self):
@@ -167,6 +173,9 @@ class TradeRuntimeModel:
             "trend_history": self.trend_history,
             "trend_direction": self.trend_direction,
             "trend_last_quote_key": self.trend_last_quote_key,
+            "trend_moving_average": self.trend_moving_average,
+            "trend_up_score": self.trend_up_score,
+            "trend_down_score": self.trend_down_score,
 
             # Enum → JSON
             "exit_reason": (
@@ -228,6 +237,9 @@ class TradeRuntimeModel:
         runtime.trend_history = data.get("trend_history", [])
         runtime.trend_direction = data.get("trend_direction", "warming_up")
         runtime.trend_last_quote_key = data.get("trend_last_quote_key")
+        runtime.trend_moving_average = data.get("trend_moving_average")
+        runtime.trend_up_score = data.get("trend_up_score", 0)
+        runtime.trend_down_score = data.get("trend_down_score", 0)
 
         # JSON → Enum
         exit_reason_str = data.get("exit_reason")
@@ -237,19 +249,23 @@ class TradeRuntimeModel:
         # Strategy固有Runtime
         runtime.strategy_runtime = None
 
-        strategy_runtime_data = data.get(
-            "strategy_runtime"
-        )
+        strategy_runtime_data = data.get("strategy_runtime")
 
-        if (
-            strategy_type == "range"
-            and strategy_runtime_data is not None
-        ):
-            runtime.strategy_runtime = (
-                TradeRuntimeRangeModel.from_dict(
-                    strategy_runtime_data
+        if strategy_runtime_data is not None:
+
+            if strategy_type == "range":
+                runtime.strategy_runtime = (
+                    TradeRuntimeRangeModel.from_dict(
+                        strategy_runtime_data
+                    )
                 )
-            )
+
+            elif strategy_type == "trend2":
+                runtime.strategy_runtime = (
+                    TradeRuntimeTrendModel.from_dict(
+                        strategy_runtime_data
+                    )
+                )
 
         return runtime
 

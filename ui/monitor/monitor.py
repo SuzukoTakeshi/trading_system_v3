@@ -24,6 +24,7 @@ from ui.monitor.components.header import render_header
 from ui.monitor.components.trail_card import render_trail_card
 from ui.monitor.components.trail_chart_standard import render_standard_chart
 from ui.monitor.components.trail_chart_range import render_range_chart
+from ui.monitor.components.trail_chart_trend import render_trend_chart
 from ui.monitor.components.timeline_card import render_timeline_card
 
 # --------------------------------------
@@ -128,7 +129,7 @@ def main():
     trades = get_trades()
 
     chart_datas = get_trade_chart_datas(trade_ids)
-
+    #st.write(chart_datas)
 
     # --------------------------------------
     # Display
@@ -158,8 +159,17 @@ def main():
                             target["chart_datas"] = (
                                 chart_datas.get(str(trade_id), [])
                             )
+                            target["trend_bars"] = trade.get("trend_bars", [])
+                            target["trend_short_moving_averages"] = trade.get(
+                                "trend_short_moving_averages", []
+                            )
+                            target["trend_medium_moving_averages"] = trade.get(
+                                "trend_medium_moving_averages", []
+                            )
+                            target["trend_long_moving_averages"] = trade.get(
+                                "trend_long_moving_averages", []
+                            )
                             break
-
 
                     # -------------------------
                     # Delete
@@ -270,6 +280,25 @@ def main():
                                 target.get("symbol", ""),
                                 target.get("name", "")
                             )
+                        elif strategy_type == "trend2":
+                            # render_trend_chart(
+                            #     target.get("chart_datas", []),
+                            #     target.get("symbol", ""),
+                            #     target.get("name", "")
+                            # )
+                            # ★★★★★TREND2テストでは、通常チャート処理で追加された最後のデータを除外
+                            price_datas = target.get("chart_datas", [])
+                            if price_datas:
+                                price_datas = price_datas[:-1]
+                            render_trend_chart(
+                                price_datas,
+                                target.get("trend_bars", []),
+                                target.get("trend_short_moving_averages", []),
+                                target.get("trend_medium_moving_averages", []),
+                                target.get("trend_long_moving_averages", []),
+                                target.get("symbol", ""),
+                                target.get("name", "")
+                            )
                         else:
                             render_standard_chart(
                                 target.get("chart_datas", []),
@@ -279,6 +308,7 @@ def main():
                                 profit_target_price=target.get(
                                     "profit_target_price"
                                 ),
+                                show_trend=(strategy_type == "trend"),
                             )
 
                     # -------------------------
@@ -303,6 +333,29 @@ def main():
             interval=MONITOR_REFRESH_INTERVAL_MS,
             key="trade_monitor_refresh",
         )
+
+    # Streamlit URL-encodes commas assigned through st.query_params.
+    # Keep the comma-separated trade_ids readable in the browser URL.
+    st.iframe(
+        """
+        <script>
+        const parentWindow = window.parent;
+        const currentUrl = parentWindow.location.href;
+        const readableUrl = currentUrl.replace(
+            /([?&]trade_ids=)([^&#]*)/i,
+            (match, prefix, value) => prefix + value.replace(/%2c/gi, ",")
+        );
+        if (readableUrl !== currentUrl) {
+            parentWindow.history.replaceState(
+                parentWindow.history.state,
+                "",
+                readableUrl
+            );
+        }
+        </script>
+        """,
+        height=1,
+    )
 
 
 main()

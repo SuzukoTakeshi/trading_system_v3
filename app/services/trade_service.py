@@ -252,6 +252,20 @@ class TradeService:
                 # System
                 "created_at": trade["created_at"],
 
+                "trend_bars": trade.get("trend_bars", []),
+
+                "trend_short_moving_averages": (
+                    trade.get("trend_short_moving_averages", [])
+                ),
+
+                "trend_medium_moving_averages": (
+                    trade.get("trend_medium_moving_averages", [])
+                ),
+
+                "trend_long_moving_averages": (
+                    trade.get("trend_long_moving_averages", [])
+                ),
+
                 # Timeline
                 "timeline": trade["timeline"],
             })

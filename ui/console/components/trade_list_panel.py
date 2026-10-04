@@ -378,6 +378,7 @@ def trade_list_panel():
                 "standard": "STANDARD",
                 "range": "RANGE",
                 "trend": "TREND",
+                "trend2": "TREND2",
             }.get(
                 row.get("strategy_type", ""),
                 row.get("strategy_type", ""),

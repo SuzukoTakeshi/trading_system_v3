@@ -1,0 +1,335 @@
+{
+    "trade": {
+        "strategy_type": "standard",
+        "symbol": "6613",
+        "trade_price": 0,
+        "quantity": 100,
+        "atr": 0.5,
+        "trade_type": "margin",
+        "margin_type": "day",
+        "side": "long",
+        "strategy": "daytrade",
+        "params": {},
+        "repeat_count": 1,
+        "entry_method": "immediate",
+        "exit_method": "stop",
+        "profit_target_percent": 0.1
+    },
+    "market": {
+        "mode": "scenario",
+        "interval": 2.0,
+        "scenario": [
+            {
+                "price": 2248.0
+            },
+            {
+                "price": 2246.0,
+                "comment": "STATE created -> entry_wait"
+            },
+            {
+                "price": 2246.0,
+                "comment": "STATE entry_wait -> entry"
+            },
+            {
+                "price": 2245.0,
+                "comment": "STATE entry -> entry_request"
+            },
+            {
+                "price": 2247.0,
+                "comment": "STATE entry_request -> entry_result"
+            },
+            {
+                "price": 2248.0,
+                "comment": "STATE entry_result -> exit"
+            },
+            {
+                "price": 2248.0,
+                "comment": "INITIAL STOP entry=2248.0 stop=2231.14"
+            },
+            {
+                "price": 2251.0
+            },
+            {
+                "price": 2249.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2249.0"
+            },
+            {
+                "price": 2250.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2250.0"
+            },
+            {
+                "price": 2251.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2251.0"
+            },
+            {
+                "price": 2253.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2253.0"
+            },
+            {
+                "price": 2254.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2254.0"
+            },
+            {
+                "price": 2254.0,
+                "comment": "STOP UPDATE LONG current_price=2254.0 stop=2231.52"
+            },
+            {
+                "price": 2255.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2255.0"
+            },
+            {
+                "price": 2255.0,
+                "comment": "STOP UPDATE LONG current_price=2255.0 stop=2232.52"
+            },
+            {
+                "price": 2253.0
+            },
+            {
+                "price": 2256.0
+            },
+            {
+                "price": 2256.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2256.0"
+            },
+            {
+                "price": 2256.0,
+                "comment": "STOP UPDATE LONG current_price=2256.0 stop=2233.52"
+            },
+            {
+                "price": 2257.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2257.0"
+            },
+            {
+                "price": 2257.0,
+                "comment": "STOP UPDATE LONG current_price=2257.0 stop=2234.52"
+            },
+            {
+                "price": 2261.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2261.0"
+            },
+            {
+                "price": 2261.0,
+                "comment": "STOP UPDATE LONG current_price=2261.0 stop=2238.52"
+            },
+            {
+                "price": 2263.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2263.0"
+            },
+            {
+                "price": 2263.0,
+                "comment": "STOP UPDATE LONG current_price=2263.0 stop=2240.52"
+            },
+            {
+                "price": 2265.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2265.0"
+            },
+            {
+                "price": 2265.0,
+                "comment": "STOP UPDATE LONG current_price=2265.0 stop=2242.52"
+            },
+            {
+                "price": 2266.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2266.0"
+            },
+            {
+                "price": 2266.0,
+                "comment": "STOP UPDATE LONG current_price=2266.0 stop=2243.52"
+            },
+            {
+                "price": 2267.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2267.0"
+            },
+            {
+                "price": 2267.0,
+                "comment": "STOP UPDATE LONG current_price=2267.0 stop=2244.52"
+            },
+            {
+                "price": 2263.0
+            },
+            {
+                "price": 2265.0
+            },
+            {
+                "price": 2270.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2270.0"
+            },
+            {
+                "price": 2270.0,
+                "comment": "STOP UPDATE LONG current_price=2270.0 stop=2247.52"
+            },
+            {
+                "price": 2268.0
+            },
+            {
+                "price": 2270.0
+            },
+            {
+                "price": 2265.0
+            },
+            {
+                "price": 2271.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2271.0"
+            },
+            {
+                "price": 2271.0,
+                "comment": "STOP UPDATE LONG current_price=2271.0 stop=2248.52"
+            },
+            {
+                "price": 2274.0
+            },
+            {
+                "price": 2272.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2272.0"
+            },
+            {
+                "price": 2272.0,
+                "comment": "STOP UPDATE LONG current_price=2272.0 stop=2249.52"
+            },
+            {
+                "price": 2274.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2274.0"
+            },
+            {
+                "price": 2274.0,
+                "comment": "STOP UPDATE LONG current_price=2274.0 stop=2251.52"
+            },
+            {
+                "price": 2270.0
+            },
+            {
+                "price": 2273.0
+            },
+            {
+                "price": 2274.0
+            },
+            {
+                "price": 2270.0
+            },
+            {
+                "price": 2275.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2275.0"
+            },
+            {
+                "price": 2275.0,
+                "comment": "STOP UPDATE LONG current_price=2275.0 stop=2252.52"
+            },
+            {
+                "price": 2267.0
+            },
+            {
+                "price": 2270.0
+            },
+            {
+                "price": 2271.0
+            },
+            {
+                "price": 2266.0
+            },
+            {
+                "price": 2271.0
+            },
+            {
+                "price": 2273.0
+            },
+            {
+                "price": 2291.0
+            },
+            {
+                "price": 2280.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2280.0"
+            },
+            {
+                "price": 2280.0,
+                "comment": "STOP UPDATE LONG current_price=2280.0 stop=2257.52"
+            },
+            {
+                "price": 2284.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2284.0"
+            },
+            {
+                "price": 2284.0,
+                "comment": "STOP UPDATE LONG current_price=2284.0 stop=2261.52"
+            },
+            {
+                "price": 2286.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2286.0"
+            },
+            {
+                "price": 2286.0,
+                "comment": "STOP UPDATE LONG current_price=2286.0 stop=2263.52"
+            },
+            {
+                "price": 2287.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2287.0"
+            },
+            {
+                "price": 2287.0,
+                "comment": "STOP UPDATE LONG current_price=2287.0 stop=2264.52"
+            },
+            {
+                "price": 2289.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2289.0"
+            },
+            {
+                "price": 2289.0,
+                "comment": "STOP UPDATE LONG current_price=2289.0 stop=2266.52"
+            },
+            {
+                "price": 2291.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2291.0"
+            },
+            {
+                "price": 2291.0,
+                "comment": "STOP UPDATE LONG current_price=2291.0 stop=2268.52"
+            },
+            {
+                "price": 2286.0
+            },
+            {
+                "price": 2292.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2292.0"
+            },
+            {
+                "price": 2292.0,
+                "comment": "STOP UPDATE LONG current_price=2292.0 stop=2269.52"
+            },
+            {
+                "price": 2299.0
+            },
+            {
+                "price": 2299.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2299.0"
+            },
+            {
+                "price": 2299.0,
+                "comment": "STOP UPDATE LONG current_price=2299.0 stop=2276.52"
+            },
+            {
+                "price": 2304.0,
+                "comment": "STOP HIGH UPDATE LONG current_price=2304.0"
+            },
+            {
+                "price": 2304.0,
+                "comment": "STOP UPDATE LONG current_price=2304.0 stop=2281.52"
+            },
+            {
+                "price": 2302.0
+            },
+            {
+                "price": 2302.0,
+                "comment": "STATE exit -> exit_request"
+            },
+            {
+                "price": 2305.0,
+                "comment": "STATE exit_request -> exit_result"
+            },
+            {
+                "price": 2302.0,
+                "comment": "STATE exit_result -> completed"
+            },
+            {
+                "end": true
+            }
+        ]
+    }
+}

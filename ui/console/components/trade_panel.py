@@ -16,6 +16,7 @@ from ui.console import message_store
 from ui.console.components.standard_panel import standard_panel
 from ui.console.components.range_panel import range_panel
 from ui.console.components.trend_panel import trend_panel
+from ui.console.components.trend2_panel import trend2_panel
 
 
 def trade_panel():
@@ -51,6 +52,7 @@ def trade_panel():
                 "STANDARD": "standard",
                 "RANGE": "range",
                 "TREND": "trend",
+                "TREND2": "trend2",
             }
 
             condition_values = list(strategy_type_options.values())
@@ -89,6 +91,9 @@ def trade_panel():
 
         elif strategy_type == "trend":
             trade_params = trend_panel()
+
+        elif strategy_type == "trend2":
+            trade_params = trend2_panel()
 
         else:
             trade_params = standard_panel()

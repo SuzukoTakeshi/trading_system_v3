@@ -292,6 +292,31 @@ def render_trail_card(trade: dict):
                 unsafe_allow_html=True
             )
 
+        if trade.get("strategy_type") == "trend":
+            trend_status = {
+                "warming_up": ("計測中", "#9E9E9E"),
+                "up": ("上昇トレンド", "#2E7D32"),
+                "down": ("下降トレンド", "#C62828"),
+                "range": ("レンジ", "#A66B00"),
+            }
+            status_text, status_color = trend_status.get(
+                trade.get("trend_direction"),
+                trend_status["warming_up"],
+            )
+            st.markdown(
+                f'<div style="font-weight:bold; padding:4px 0;">'
+                f'TREND判定状況: '
+                f'<span style="color:{status_color};">{status_text}</span>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+            up_score = trade.get("trend_up_score", 0)
+            down_score = trade.get("trend_down_score", 0)
+            st.caption(
+                f"トレンドスコア　上昇 {up_score}/80　下降 {down_score}/80 "
+                "（判定目安: 60点）"
+            )
+
         with expected_profit_col:
 
             entry_price = trade.get("entry_price")

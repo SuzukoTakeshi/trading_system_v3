@@ -12,20 +12,16 @@
     },
     "market": {
         "mode": "scenario",
-        "interval": 1.0,
+        "interval": 2.0,
         "scenario": [
             { "comment": "=== TREND判定: 下降トレンド ===" },
-            { "comment": "4本の確定1分足で高値・安値が連続して切り下がる" },
+            { "comment": "約2秒ごとに価格更新。小さな戻りを挟みながら下降" },
             { "price": 3040.0 },
-            { "sleep": 61 },
-            { "price": 3030.0 },
-            { "sleep": 61 },
-            { "price": 3020.0 },
-            { "sleep": 61 },
-            { "price": 3010.0 },
-            { "sleep": 61 },
-            { "price": 3000.0 },
-            { "sleep": 15 },
+            { "price": 3037.0 }, { "price": 3039.0 }, { "price": 3035.0 }, { "price": 3038.0 }, { "price": 3034.0 }, { "price": 3036.0 },
+            { "price": 3030.0 }, { "price": 3027.0 }, { "price": 3029.0 }, { "price": 3025.0 }, { "price": 3028.0 }, { "price": 3024.0 }, { "price": 3026.0 },
+            { "price": 3020.0 }, { "price": 3017.0 }, { "price": 3019.0 }, { "price": 3015.0 }, { "price": 3018.0 }, { "price": 3014.0 }, { "price": 3016.0 },
+            { "price": 3010.0 }, { "price": 3007.0 }, { "price": 3009.0 }, { "price": 3005.0 }, { "price": 3008.0 }, { "price": 3004.0 }, { "price": 3006.0 },
+            { "price": 3000.0 }, { "price": 2997.0 }, { "price": 2999.0 }, { "price": 2995.0 }, { "price": 2998.0 }, { "price": 2994.0 }, { "price": 2996.0 },
             { "end": true }
         ]
     }

@@ -1,0 +1,69 @@
+{
+    "trade": {
+        "strategy_type": "standard",
+        "symbol": "8136",
+        "trade_price": 0,
+        "quantity": 200,
+        "atr": 0.5,
+        "trade_type": "margin",
+        "margin_type": "day",
+        "side": "long",
+        "strategy": "daytrade",
+        "params": {},
+        "repeat_count": 1,
+        "entry_method": "immediate",
+        "exit_method": "stop",
+        "profit_target_percent": 0.1
+    },
+    "market": {
+        "mode": "scenario",
+        "interval": 2.0,
+        "scenario": [
+            {
+                "price": 1184.5
+            },
+            {
+                "price": 1185.0,
+                "comment": "STATE created -> entry_wait"
+            },
+            {
+                "price": 1185.0,
+                "comment": "STATE entry_wait -> entry"
+            },
+            {
+                "price": 1185.0,
+                "comment": "STATE entry -> entry_request"
+            },
+            {
+                "price": 1185.0,
+                "comment": "STATE entry_request -> entry_result"
+            },
+            {
+                "price": 1185.0,
+                "comment": "STATE entry_result -> exit"
+            },
+            {
+                "price": 1185.3,
+                "comment": "INITIAL STOP entry=1185.3 stop=1176.41025"
+            },
+            {
+                "price": 1184.5
+            },
+            {
+                "price": 1184.5,
+                "comment": "STATE exit -> exit_request"
+            },
+            {
+                "price": 1184.5,
+                "comment": "STATE exit_request -> exit_result"
+            },
+            {
+                "price": 1184.5,
+                "comment": "STATE exit_result -> completed"
+            },
+            {
+                "end": true
+            }
+        ]
+    }
+}
