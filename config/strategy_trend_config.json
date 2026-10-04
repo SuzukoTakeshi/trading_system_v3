@@ -5,14 +5,31 @@
         "trend.short_ma_bars": "短期移動平均を計算する足数",
         "trend.medium_ma_bars": "中期移動平均を計算する足数",
         "trend.long_ma_bars": "長期移動平均を計算する足数",
-        "trend.history_bars": "判定用に保持する確定足数"
+        "trend.history_bars": "判定用に保持する確定足数",
+        "trend.ma_position_score": "移動平均の位置関係によるスコア",
+        "trend.ma_slope_score": "移動平均の傾きによるスコア",
+
+        "trend.price_change_bars": "価格変化率を比較する確定足数",
+        "trend.price_change_rate_1": "価格変化スコアの第1基準となる変化率（%）",
+        "trend.price_change_rate_2": "価格変化スコアの第2基準となる変化率（%）",
+        "trend.price_change_rate_3": "価格変化スコアの第3基準となる変化率（%）"
     },
     "trend": {
         "bar_interval_minutes": 0.25,
         "structure_bars": 3,
+
         "short_ma_bars": 5,
         "medium_ma_bars": 20,
         "long_ma_bars": 60,
-        "history_bars": 100
+
+        "history_bars": 100,
+
+        "ma_position_score": 15,
+        "ma_slope_score": 5,
+
+        "price_change_bars": 8,
+        "price_change_rate_1": 0.2,
+        "price_change_rate_2": 0.5,
+        "price_change_rate_3": 1.0
     }
 }

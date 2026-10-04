@@ -39,6 +39,9 @@ class StrategyTrendConfig:
 
         history_bars = int(trend["history_bars"])
 
+        ma_position_score = int(trend["ma_position_score"])
+        ma_slope_score = int(trend["ma_slope_score"])
+
         if bar_interval_minutes <= 0:
             raise ValueError("trend.bar_interval_minutes must be greater than 0")
 
@@ -53,6 +56,16 @@ class StrategyTrendConfig:
 
         if long_ma_bars < 1:
             raise ValueError("trend.long_ma_bars must be at least 1")
+
+        if ma_position_score < 0:
+            raise ValueError(
+                "trend.ma_position_score must be at least 0"
+            )
+
+        if ma_slope_score < 0:
+            raise ValueError(
+                "trend.ma_slope_score must be at least 0"
+            )
 
         minimum_history = max(
             structure_bars,

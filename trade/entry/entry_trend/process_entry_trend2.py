@@ -11,6 +11,10 @@ from trade.entry.process_entry_base import ProcessEntryBase
 from models.trade.trade_chart_model import TradeChartModel
 from models.trade.trend_bar_model import TrendBarModel
 
+from trade.trade_enums import (
+    TradeState
+)
+
 class ProcessEntryTrend2(ProcessEntryBase):
 
     def __init__(self, context, market):
@@ -40,6 +44,7 @@ class ProcessEntryTrend2(ProcessEntryBase):
             microsecond=0,
         )
 
+        # UP
         base_prices = [
             1000, 1002, 1001, 1004, 1006,
             1005, 1008, 1010, 1009, 1012,
@@ -54,12 +59,108 @@ class ProcessEntryTrend2(ProcessEntryBase):
             1065, 1068, 1070, 1069, 1072,
             1074, 1073, 1076, 1078, 1077,
         ]
-
         prices = [
             price + offset
             for offset in range(0, 1600, 100)
             for price in base_prices
         ]
+
+        # DOWN
+        base_prices = [
+            1060, 1058, 1059, 1056, 1054,
+            1055, 1052, 1050, 1051, 1048,
+            1046, 1047, 1044, 1042, 1043,
+            1040, 1038, 1039, 1036, 1034,
+            1035, 1032, 1030, 1031, 1028,
+            1026, 1027, 1024, 1022, 1023,
+            1020, 1018, 1019, 1016, 1014,
+            1015, 1012, 1010, 1011, 1008,
+            1006, 1007, 1004, 1002, 1003,
+            1000, 998, 999, 996, 994,
+            995, 992, 990, 991, 988,
+            986, 987, 984, 982, 983,
+        ]
+        prices = [
+            price + 2000 - offset
+            for offset in range(0, 1600, 100)
+            for price in base_prices
+        ]
+
+        # RANGE
+        base_prices = [
+            1000, 1001, 999, 1000, 1001,
+            999, 1000, 1001, 999, 1000,
+            1001, 999, 1000, 1001, 999,
+            1000, 1001, 999, 1000, 1001,
+            999, 1000, 1001, 999, 1000,
+            1001, 999, 1000, 1001, 999,
+            1000, 1001, 999, 1000, 1001,
+            999, 1000, 1001, 999, 1000,
+            1001, 999, 1000, 1001, 999,
+            1000, 1001, 999, 1000, 1001,
+            999, 1000, 1001, 999, 1000,
+            1001, 999, 1000, 1001, 999,
+            1000, 1001, 999, 1000, 1001,
+            999, 1000, 1001, 999, 1000,
+        ]
+        prices = [
+            price
+            for offset in range(0, 1600, 100)
+            for price in base_prices
+        ]
+
+        # UNDEFINED テスト
+        # 価格変化は強い下落、直近の高安構造は強い上昇
+        # → PRICE CHANGE -30 と STRUCTURE +40 が衝突して UNDEFINED
+
+        bar_prices = [
+            # 長期上昇
+            1000 + i * 70 for i in range(60)
+        ]
+
+        bar_prices += [
+            # ここから直近9本
+            5000, 4800, 4500, 4200, 3900,
+            3600, 3800, 4000, 4200,
+        ]
+
+        prices = []
+
+        # 1本 = 15秒
+        for price in bar_prices:
+            prices.extend([price] * 15)
+
+        # 最後の足を確定させるための1秒
+        prices.append(4200)# UNDEFINED テスト
+        # 価格変化は強い下落、直近の高安構造は強い上昇
+        # → PRICE CHANGE -30 と STRUCTURE +40 が衝突して UNDEFINED
+
+        bar_prices = [
+            # 長期上昇
+            1000 + i * 70 for i in range(60)
+        ]
+
+        bar_prices += [
+            # ここから直近9本
+            5000, 4800, 4500, 4200, 3900,
+            3600, 3800, 4000, 4200,
+        ]
+
+        prices = []
+
+        # 1本 = 15秒
+        for price in bar_prices:
+            prices.extend([price] * 15)
+
+        # 最後の足を確定させるための1秒
+        prices.append(4200)
+
+
+        Log.debug(
+            f"TREND TEST PRICES "
+            f"first={prices[:5]} "
+            f"last={prices[-10:]}"
+        )
 
         chart_data_list = self.context.cache.trade_chart_datas.setdefault(
             trade.id,
@@ -96,6 +197,28 @@ class ProcessEntryTrend2(ProcessEntryBase):
                 current_time,
             )
 
+
+        Log.debug(
+            f"TREND TEST BARS "
+            f"count={len(trend_runtime.bars)} "
+            f"last_closes={[bar.close for bar in trend_runtime.bars[-5:]]}"
+        )
+
+        if trend_runtime.current_bar is not None:
+            Log.debug(
+                f"TREND TEST CURRENT BAR "
+                f"time={trend_runtime.current_bar.time} "
+                f"open={trend_runtime.current_bar.open} "
+                f"high={trend_runtime.current_bar.high} "
+                f"low={trend_runtime.current_bar.low} "
+                f"close={trend_runtime.current_bar.close}"
+            )
+
+        # print("TREND2 CHART DATA")
+        # for data in chart_data_list:
+        #     print(data.time, data.price_close)
+
+
         # MA計算
         (
             trend_runtime.short_moving_averages,
@@ -105,10 +228,12 @@ class ProcessEntryTrend2(ProcessEntryBase):
             trend_runtime.bars
         )
 
-        # print("TREND2 CHART DATA")
-        # for data in chart_data_list:
-        #     print(data.time, data.price_close)
-
+        # MAスコア：±30
+        ma_score = self.calculate_ma_score(
+            trend_runtime.short_moving_averages,
+            trend_runtime.medium_moving_averages,
+            trend_runtime.long_moving_averages,
+        )
         # Log.debug(
         #     f"TREND MA "
         #     f"short={len(trend_runtime.short_moving_averages)} "
@@ -116,6 +241,46 @@ class ProcessEntryTrend2(ProcessEntryBase):
         #     f"long={len(trend_runtime.long_moving_averages)}"
         # )
 
+        # 価格変化スコア：±30
+        price_change_score = self.calculate_price_change_score(
+            trend_runtime.bars
+        )
+
+        # 高値・安値構造スコア：±40
+        structure_score = self.calculate_structure_score(
+            trend_runtime.bars
+        )
+
+
+        # 合計スコア
+        total_score = (
+            ma_score
+            + price_change_score
+            + structure_score
+        )
+        Log.debug(
+            f"TREND TOTAL SCORE "
+            f"ma={ma_score} "
+            f"price_change={price_change_score} "
+            f"structure={structure_score} "
+            f"total={total_score}"
+        )
+
+
+        trend_direction = self.determine_trend(
+            ma_score,
+            price_change_score,
+            structure_score,
+            total_score,
+        )
+
+        Log.debug(
+            f"TREND DIRECTION "
+            f"direction={trend_direction} "
+            f"total={total_score}"
+        )
+
+        trade.change_state(TradeState.CLOSED)
         return False
 
 
@@ -256,3 +421,275 @@ class ProcessEntryTrend2(ProcessEntryBase):
             medium_moving_averages,
             long_moving_averages,
         )
+
+    # ============================================================
+    # MAスコア
+    # ============================================================
+    def calculate_ma_score(
+        self,
+        short_moving_averages,
+        medium_moving_averages,
+        long_moving_averages,
+    ):
+        # スコア基準値をJSONから取得
+        position_base_score = int(
+            self.config.get("ma_position_score", 15)
+        )
+
+        slope_base_score = int(
+            self.config.get("ma_slope_score", 5)
+        )
+
+        # MAデータ不足の場合
+        if (
+            len(short_moving_averages) < 2
+            or len(medium_moving_averages) < 2
+            or len(long_moving_averages) < 2
+        ):
+            Log.debug("TREND MA SCORE skipped: insufficient data")
+            return 0
+
+        # 最新のMA
+        short = short_moving_averages[-1]["value"]
+        medium = medium_moving_averages[-1]["value"]
+        long = long_moving_averages[-1]["value"]
+
+        # MAの位置関係
+        position_score = 0
+
+        if short > medium > long:
+            position_score = position_base_score
+        elif short < medium < long:
+            position_score = -position_base_score
+
+        # MAの傾き
+        slope_score = 0
+
+        for moving_averages in (
+            short_moving_averages,
+            medium_moving_averages,
+            long_moving_averages,
+        ):
+            if len(moving_averages) < 2:
+                continue
+
+            current = moving_averages[-1]["value"]
+            previous = moving_averages[-2]["value"]
+
+            if current > previous:
+                slope_score += slope_base_score
+            elif current < previous:
+                slope_score -= slope_base_score
+
+        ma_score = position_score + slope_score
+
+        Log.debug(
+            f"TREND MA POSITION score={position_score}"
+        )
+
+        Log.debug(
+            f"TREND MA SLOPE "
+            f"short={'UP' if short_moving_averages[-1]['value'] > short_moving_averages[-2]['value'] else 'DOWN' if short_moving_averages[-1]['value'] < short_moving_averages[-2]['value'] else 'FLAT'} "
+            f"medium={'UP' if medium_moving_averages[-1]['value'] > medium_moving_averages[-2]['value'] else 'DOWN' if medium_moving_averages[-1]['value'] < medium_moving_averages[-2]['value'] else 'FLAT'} "
+            f"long={'UP' if long_moving_averages[-1]['value'] > long_moving_averages[-2]['value'] else 'DOWN' if long_moving_averages[-1]['value'] < long_moving_averages[-2]['value'] else 'FLAT'} "
+            f"score={slope_score}"
+        )
+
+        Log.debug(
+            f"TREND MA SCORE={ma_score}"
+        )
+
+        return ma_score
+
+
+    # ============================================================
+    # 価格変化スコア
+    # ============================================================
+    def calculate_price_change_score(self, bars):
+
+        comparison_bars = int(
+            self.config.get("price_change_bars", 8)
+        )
+
+        rate_1 = float(
+            self.config.get("price_change_rate_1", 0.2)
+        )
+
+        rate_2 = float(
+            self.config.get("price_change_rate_2", 0.5)
+        )
+
+        rate_3 = float(
+            self.config.get("price_change_rate_3", 1.0)
+        )
+
+        # 比較に必要なデータが不足
+        if len(bars) <= comparison_bars:
+            Log.debug(
+                "TREND PRICE CHANGE skipped: insufficient data"
+            )
+            return 0
+
+        current_price = bars[-1].close
+        previous_price = bars[-1 - comparison_bars].close
+
+        if (
+            current_price is None
+            or previous_price is None
+            or previous_price == 0
+        ):
+            Log.debug(
+                "TREND PRICE CHANGE skipped: invalid price"
+            )
+            return 0
+
+        # 価格変化率（%）
+        price_change_rate = (
+            (current_price - previous_price)
+            / previous_price
+            * 100
+        )
+
+        # スコア判定
+        if price_change_rate >= rate_3:
+            score = 30
+        elif price_change_rate >= rate_2:
+            score = 20
+        elif price_change_rate >= rate_1:
+            score = 10
+        elif price_change_rate <= -rate_3:
+            score = -30
+        elif price_change_rate <= -rate_2:
+            score = -20
+        elif price_change_rate <= -rate_1:
+            score = -10
+        else:
+            score = 0
+
+        Log.debug(
+            f"TREND PRICE CHANGE "
+            f"current={current_price} "
+            f"previous={previous_price} "
+            f"rate={price_change_rate:.3f}% "
+            f"score={score}"
+        )
+
+        return score
+
+    # ============================================================
+    # 高値・安値構造スコア（最大±40点）
+    # ============================================================
+    def calculate_structure_score(self, bars):
+
+        structure_bars = int(
+            self.config.get("structure_bars", 3)
+        )
+
+        if len(bars) < structure_bars:
+            Log.debug(
+                "TREND STRUCTURE skipped: insufficient data"
+            )
+            return 0
+
+        recent_bars = bars[-structure_bars:]
+
+        highs = [bar.high for bar in recent_bars]
+        lows = [bar.low for bar in recent_bars]
+
+        # 高値・安値の連続した方向を判定
+        high_directions = [
+            1 if highs[i] > highs[i - 1]
+            else -1 if highs[i] < highs[i - 1]
+            else 0
+            for i in range(1, len(highs))
+        ]
+
+        low_directions = [
+            1 if lows[i] > lows[i - 1]
+            else -1 if lows[i] < lows[i - 1]
+            else 0
+            for i in range(1, len(lows))
+        ]
+
+        score = 0
+
+        # 高値・安値がすべて切り上がり
+        if (
+            all(direction == 1 for direction in high_directions)
+            and all(direction == 1 for direction in low_directions)
+        ):
+            score = 40
+
+        # 高値・安値がすべて切り下がり
+        elif (
+            all(direction == -1 for direction in high_directions)
+            and all(direction == -1 for direction in low_directions)
+        ):
+            score = -40
+
+        # 直近の高値・安値がともに切り上がり
+        elif (
+            high_directions[-1] == 1
+            and low_directions[-1] == 1
+        ):
+            score = 20
+
+        # 直近の高値・安値がともに切り下がり
+        elif (
+            high_directions[-1] == -1
+            and low_directions[-1] == -1
+        ):
+            score = -20
+
+        Log.debug(
+            f"TREND STRUCTURE "
+            f"highs={highs} "
+            f"lows={lows} "
+            f"score={score}"
+        )
+
+        return score
+
+
+    # ============================================================
+    # トレンド判定: UP / DOWN / RANGE / UNDEFINED
+    # ============================================================
+    def determine_trend(
+        self,
+        ma_score,
+        price_change_score,
+        structure_score,
+        total_score,
+    ):
+        # 強いスコア同士の方向対立を確認
+        scores = [
+            ma_score,
+            price_change_score,
+            structure_score,
+        ]
+
+        for i in range(len(scores)):
+            for j in range(i + 1, len(scores)):
+                first = scores[i]
+                second = scores[j]
+
+                if (
+                    abs(first) >= 20
+                    and abs(second) >= 20
+                    and first * second < 0
+                ):
+                    return "UNDEFINED"
+
+        # 上昇方向の一致数
+        up_count = sum(score > 0 for score in scores)
+
+        # 下降方向の一致数
+        down_count = sum(score < 0 for score in scores)
+
+        if total_score >= 30 and up_count >= 2:
+            return "UP"
+
+        if total_score <= -30 and down_count >= 2:
+            return "DOWN"
+
+        return "RANGE"
