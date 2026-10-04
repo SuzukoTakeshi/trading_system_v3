@@ -1,35 +1,62 @@
 {
     "description": {
         "trend.bar_interval_minutes": "トレンド判定に使う足の間隔（分）",
-        "trend.structure_bars": "高値・安値の切り上がり／切り下がりを比較する確定足数",
-        "trend.short_ma_bars": "短期移動平均を計算する足数",
-        "trend.medium_ma_bars": "中期移動平均を計算する足数",
-        "trend.long_ma_bars": "長期移動平均を計算する足数",
         "trend.history_bars": "判定用に保持する確定足数",
-        "trend.ma_position_score": "移動平均の位置関係によるスコア",
-        "trend.ma_slope_score": "移動平均の傾きによるスコア",
 
-        "trend.price_change_bars": "価格変化率を比較する確定足数",
-        "trend.price_change_rate_1": "価格変化スコアの第1基準となる変化率（%）",
-        "trend.price_change_rate_2": "価格変化スコアの第2基準となる変化率（%）",
-        "trend.price_change_rate_3": "価格変化スコアの第3基準となる変化率（%）"
+        "trend.structure.bars": "高値・安値構造を比較する確定足数",
+        "trend.structure.full_score": "高値・安値が連続して切り上がる／切り下がる場合のスコア",
+        "trend.structure.partial_score": "直近の高値・安値が同方向の場合のスコア",
+
+        "trend.moving_average.short_bars": "短期移動平均の足数",
+        "trend.moving_average.medium_bars": "中期移動平均の足数",
+        "trend.moving_average.long_bars": "長期移動平均の足数",
+        "trend.moving_average.position_score": "移動平均の位置関係によるスコア",
+        "trend.moving_average.slope_score": "移動平均の傾きによるスコア",
+
+        "trend.price_change.bars": "価格変化率を比較する確定足数",
+        "trend.price_change.rate_1": "価格変化スコアの第1基準となる変化率（%）",
+        "trend.price_change.rate_2": "価格変化スコアの第2基準となる変化率（%）",
+        "trend.price_change.rate_3": "価格変化スコアの第3基準となる変化率（%）",
+        "trend.price_change.score_1": "第1基準に達した場合のスコア",
+        "trend.price_change.score_2": "第2基準に達した場合のスコア",
+        "trend.price_change.score_3": "第3基準に達した場合のスコア",
+
+        "trend.decision.conflict_score_threshold": "方向対立を判定するスコアの基準値",
+        "trend.decision.direction_score_threshold": "UP／DOWNを判定する合計スコアの基準値",
+        "trend.decision.agreement_count": "方向判定に必要なスコアの一致数"
     },
     "trend": {
         "bar_interval_minutes": 0.25,
-        "structure_bars": 3,
-
-        "short_ma_bars": 5,
-        "medium_ma_bars": 20,
-        "long_ma_bars": 60,
-
         "history_bars": 100,
 
-        "ma_position_score": 15,
-        "ma_slope_score": 5,
+        "structure": {
+            "bars": 3,
+            "full_score": 40,
+            "partial_score": 20
+        },
 
-        "price_change_bars": 8,
-        "price_change_rate_1": 0.2,
-        "price_change_rate_2": 0.5,
-        "price_change_rate_3": 1.0
+        "moving_average": {
+            "short_bars": 5,
+            "medium_bars": 20,
+            "long_bars": 60,
+            "position_score": 15,
+            "slope_score": 5
+        },
+
+        "price_change": {
+            "bars": 8,
+            "rate_1": 0.2,
+            "rate_2": 0.5,
+            "rate_3": 1.0,
+            "score_1": 10,
+            "score_2": 20,
+            "score_3": 30
+        },
+
+        "decision": {
+            "conflict_score_threshold": 20,
+            "direction_score_threshold": 30,
+            "agreement_count": 2
+        }
     }
 }

@@ -280,13 +280,13 @@ def main():
                                 target.get("symbol", ""),
                                 target.get("name", "")
                             )
-                        elif strategy_type == "trend2":
+                        elif strategy_type == "trend":
                             # render_trend_chart(
                             #     target.get("chart_datas", []),
                             #     target.get("symbol", ""),
                             #     target.get("name", "")
                             # )
-                            # ★★★★★TREND2テストでは、通常チャート処理で追加された最後のデータを除外
+                            # ★★★★★TRENDテストでは、通常チャート処理で追加された最後のデータを除外
                             price_datas = target.get("chart_datas", [])
                             if price_datas:
                                 price_datas = price_datas[:-1]
@@ -308,7 +308,6 @@ def main():
                                 profit_target_price=target.get(
                                     "profit_target_price"
                                 ),
-                                show_trend=(strategy_type == "trend"),
                             )
 
                     # -------------------------

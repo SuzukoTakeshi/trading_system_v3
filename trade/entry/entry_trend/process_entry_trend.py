@@ -1,359 +1,681 @@
-
 #
-# trade/entry/process_entry_trend.py
+# trade/entry/entry_trand/process_entry_trend.py
 #
-# TREND取引のためのトレンド判定処理
-# 1分足などの価格データから、上昇・下降・レンジを判定する。
-# このクラスは、トレンドの表示・分析を担当する（売買注文は行わない）。
-#
-
 from datetime import datetime, timedelta
 
 from core.logger import Log
 from core.strategy_trend_config_loader import StrategyTrendConfig
 
+from trade.entry.process_entry_base import ProcessEntryBase
 
-class ProcessEntryTrend:
+from models.trade.trade_chart_model import TradeChartModel
+from models.trade.trend_bar_model import TrendBarModel
 
-    def __init__(self):
-        # トレンド判定用の設定を読み込む
+from trade.trade_enums import (
+    TradeState
+)
+
+class ProcessEntryTrend(ProcessEntryBase):
+
+    def __init__(self, context, market):
+        super().__init__(context, market)
+
+        Log.create("ProcessEntryTrend")
+
         self.config = StrategyTrendConfig.instance().get_trend()
 
-        # 1本の足を何分単位で作成するか
-        # 例：1.0なら1分足、0.2なら12秒足
-        self.bar_interval_minutes = float(
-            self.config["bar_interval_minutes"]
+        Log.event(
+            f"TREND CONFIG "
+            f"bar_interval_minutes={self.config['bar_interval_minutes']} "
+            f"history_bars={self.config['history_bars']} "
+            f"structure={self.config['structure']} "
+            f"moving_average={self.config['moving_average']} "
+            f"price_change={self.config['price_change']} "
+            f"decision={self.config['decision']}"
         )
 
-        # 高値・安値の構造を調べるときに使う足の本数
-        self.structure_bars = int(self.config["structure_bars"])
 
-        # 移動平均の計算に使う足の本数
-        self.short_ma_bars = int(
-            self.config["short_ma_bars"]
-        )
+    def process(self, trade):
 
-        # 保存する過去の足の最大本数
-        self.history_limit = int(self.config["history_bars"])
-
-
-    def update(self, trade):
-        # 現在の株価情報を取得
-        quote = trade.get_quote()
-
-        # 株価が取得できない場合は、判定を保留する
-        if quote is None or quote.current_price is None:
-            return "warming_up"
-
-        # 株価情報に含まれる時刻を使う
-        # 時刻がなければPCの現在時刻を使う
-        current_time = quote.current_datetime or datetime.now()
-
-        # タイムゾーン情報を取り除く
-        current_time = current_time.replace(tzinfo=None)
-
-        # 当日の午前0時を基準時刻として作成
-        day_start = current_time.replace(
-            hour=0,
+        start_time = datetime.now().replace(
+            hour=10,
             minute=0,
             second=0,
             microsecond=0,
         )
 
-        # 足の時間間隔を秒に変換する
-        # 例：1分なら60秒
-        # 1秒未満にならないようにする
-        interval_seconds = max(1, round(self.bar_interval_minutes * 60))
+        test = "UP"
+        # test = "DOWN"
+        # test = "RANGE"
+        # test = "UNDEFINED"
 
-        # 午前0時から現在まで何秒経過したか
-        seconds_since_day_start = (current_time - day_start).total_seconds()
+        # UP
+        if test == "UP":
+            base_prices = [
+                1000, 1002, 1001, 1004, 1006,
+                1005, 1008, 1010, 1009, 1012,
+                1014, 1013, 1016, 1018, 1017,
+                1020, 1022, 1021, 1024, 1026,
+                1025, 1028, 1030, 1029, 1032,
+                1034, 1033, 1036, 1038, 1037,
+                1040, 1042, 1041, 1044, 1046,
+                1045, 1048, 1050, 1049, 1052,
+                1054, 1053, 1056, 1058, 1057,
+                1060, 1062, 1061, 1064, 1066,
+                1065, 1068, 1070, 1069, 1072,
+                1074, 1073, 1076, 1078, 1077,
+            ]
+            prices = [
+                price + offset
+                for offset in range(0, 1600, 100)
+                for price in base_prices
+            ]
 
-        # 現在時刻が属する足の開始位置を計算
-        # 例：1分足なら10:01:45は10:01:00の足に属する
-        bar_offset_seconds = (
-            int(seconds_since_day_start // interval_seconds)
-            * interval_seconds
+        # DOWN
+        if test == "DOWN":
+            base_prices = [
+                1060, 1058, 1059, 1056, 1054,
+                1055, 1052, 1050, 1051, 1048,
+                1046, 1047, 1044, 1042, 1043,
+                1040, 1038, 1039, 1036, 1034,
+                1035, 1032, 1030, 1031, 1028,
+                1026, 1027, 1024, 1022, 1023,
+                1020, 1018, 1019, 1016, 1014,
+                1015, 1012, 1010, 1011, 1008,
+                1006, 1007, 1004, 1002, 1003,
+                1000, 998, 999, 996, 994,
+                995, 992, 990, 991, 988,
+                986, 987, 984, 982, 983,
+            ]
+            prices = [
+                price + 2000 - offset
+                for offset in range(0, 1600, 100)
+                for price in base_prices
+            ]
+
+        # RANGE
+        if test == "RANGE":
+            base_prices = [
+                1000, 1001, 999, 1000, 1001,
+                999, 1000, 1001, 999, 1000,
+                1001, 999, 1000, 1001, 999,
+                1000, 1001, 999, 1000, 1001,
+                999, 1000, 1001, 999, 1000,
+                1001, 999, 1000, 1001, 999,
+                1000, 1001, 999, 1000, 1001,
+                999, 1000, 1001, 999, 1000,
+                1001, 999, 1000, 1001, 999,
+                1000, 1001, 999, 1000, 1001,
+                999, 1000, 1001, 999, 1000,
+                1001, 999, 1000, 1001, 999,
+                1000, 1001, 999, 1000, 1001,
+                999, 1000, 1001, 999, 1000,
+            ]
+            prices = [
+                price
+                for offset in range(0, 1600, 100)
+                for price in base_prices
+            ]
+
+        # UNDEFINED テスト
+        # 価格変化は強い下落、直近の高安構造は強い上昇
+        # → PRICE CHANGE -30 と STRUCTURE +40 が衝突して UNDEFINED
+        if test == "UNDEFINED":
+            bar_prices = [
+                # 長期上昇
+                1000 + i * 70 for i in range(60)
+            ]
+
+            bar_prices += [
+                # ここから直近9本
+                5000, 4800, 4500, 4200, 3900,
+                3600, 3800, 4000, 4200,
+            ]
+
+            prices = []
+
+            # 1本 = 15秒
+            for price in bar_prices:
+                prices.extend([price] * 15)
+
+            # 最後の足を確定させるための1秒
+            prices.append(4200)
+
+
+        Log.debug(
+            f"TREND TEST PRICES "
+            f"first={prices[:5]} "
+            f"last={prices[-10:]}"
         )
-        bar_time = day_start + timedelta(seconds=bar_offset_seconds)
 
-        # 現在株価を数値に変換
-        price = float(quote.current_price)
+        chart_data_list = self.context.cache.trade_chart_datas.setdefault(
+            trade.id,
+            []
+        )
 
-        # この取引の状態や過去の足を保持している領域
-        runtime = trade.runtime
+        # テスト用データなので既存データをクリア
+        chart_data_list.clear()
 
-        # RSSから受け取った時刻と株価を組み合わせる
-        # エンジンが同じ古い株価を繰り返し読んだ場合、
-        # 同じデータを何度も処理しないための識別キー
-        quote_key = f"{bar_time.date()}|{quote.current_time}|{price}"
+        trend_runtime = trade.runtime.strategy_runtime
 
-        # 前回と同じデータなら、判定をやり直さず現在の方向を返す
-        if runtime.trend_last_quote_key == quote_key:
-            return runtime.trend_direction
+        # テスト用データなのでTREND Runtimeもクリア
+        trend_runtime.current_bar = None
+        trend_runtime.bars.clear()
 
-        # 今回のデータを処理済みとして記録
-        runtime.trend_last_quote_key = quote_key
+        for i, price in enumerate(prices):
 
-        # 現在形成中の足を取得
-        current_bar = runtime.trend_current_bar
+            current_time = start_time + timedelta(seconds=i)
 
-        # まだ足が一つも作られていない場合
-        if current_bar is None:
-            # 現在時刻に対応する新しい足を作成
-            runtime.trend_current_bar = self._new_bar(bar_time, price)
+            chart_data = TradeChartModel(
+                time=current_time,
 
-            # 現在までの足を使って移動平均を計算
-            runtime.trend_moving_average = self._get_moving_average(runtime)
+                price_open=price,
+                price_high=price,
+                price_low=price,
+                price_close=price,
+            )
 
-            # 現在の方向を記録
-            # 初期状態では通常 warming_up になる
-            self._record_direction(
+            chart_data_list.append(chart_data)
+
+            self.update_trend_bar(
                 trade,
-                runtime.trend_direction,
+                price,
+                current_time,
+            )
+
+
+        Log.debug(
+            f"TREND TEST BARS "
+            f"count={len(trend_runtime.bars)} "
+            f"last_closes={[bar.close for bar in trend_runtime.bars[-5:]]}"
+        )
+
+        if trend_runtime.current_bar is not None:
+            Log.debug(
+                f"TREND TEST CURRENT BAR "
+                f"time={trend_runtime.current_bar.time} "
+                f"open={trend_runtime.current_bar.open} "
+                f"high={trend_runtime.current_bar.high} "
+                f"low={trend_runtime.current_bar.low} "
+                f"close={trend_runtime.current_bar.close}"
+            )
+
+        # print("TREND CHART DATA")
+        # for data in chart_data_list:
+        #     print(data.time, data.price_close)
+
+
+        # MA計算
+        (
+            trend_runtime.short_moving_averages,
+            trend_runtime.medium_moving_averages,
+            trend_runtime.long_moving_averages,
+        ) = self.calculate_moving_averages(
+            trend_runtime.bars
+        )
+
+        # MAスコア：±30
+        ma_score = self.calculate_ma_score(
+            trend_runtime.short_moving_averages,
+            trend_runtime.medium_moving_averages,
+            trend_runtime.long_moving_averages,
+        )
+        # Log.debug(
+        #     f"TREND MA "
+        #     f"short={len(trend_runtime.short_moving_averages)} "
+        #     f"medium={len(trend_runtime.medium_moving_averages)} "
+        #     f"long={len(trend_runtime.long_moving_averages)}"
+        # )
+
+        # 価格変化スコア：±30
+        price_change_score = self.calculate_price_change_score(
+            trend_runtime.bars
+        )
+
+        # 高値・安値構造スコア：±40
+        structure_score = self.calculate_structure_score(
+            trend_runtime.bars
+        )
+
+
+        # 合計スコア
+        total_score = (
+            ma_score
+            + price_change_score
+            + structure_score
+        )
+        Log.debug(
+            f"TREND TOTAL SCORE "
+            f"ma={ma_score} "
+            f"price_change={price_change_score} "
+            f"structure={structure_score} "
+            f"total={total_score}"
+        )
+
+
+        trend_direction = self.determine_trend(
+            ma_score,
+            price_change_score,
+            structure_score,
+            total_score,
+        )
+
+        Log.debug(
+            f"TREND DIRECTION "
+            f"direction={trend_direction} "
+            f"total={total_score}"
+        )
+
+        trade.change_state(TradeState.CLOSED)
+        return False
+
+
+    def update_trend_bar(self, trade, price, current_time):
+
+        trend_runtime = trade.runtime.strategy_runtime
+
+        interval_seconds = int(
+            self.config["bar_interval_minutes"] * 60
+        )
+
+        # 00:00:00からの経過秒
+        seconds_from_midnight = (
+            current_time.hour * 3600
+            + current_time.minute * 60
+            + current_time.second
+        )
+
+        # このPriceが属するバーの開始位置
+        bar_start_seconds = (
+            seconds_from_midnight // interval_seconds
+        ) * interval_seconds
+
+        bar_start_time = current_time.replace(
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+        ) + timedelta(seconds=bar_start_seconds)
+
+        # まだ現在バーがない
+        if trend_runtime.current_bar is None:
+
+            trend_runtime.current_bar = TrendBarModel(
+                time=bar_start_time,
+                open=price,
+                high=price,
+                low=price,
+                close=price,
+            )
+
+            return
+
+        # 同じ15秒区間
+        if trend_runtime.current_bar.time == bar_start_time:
+
+            trend_runtime.current_bar.high = max(
+                trend_runtime.current_bar.high,
                 price,
             )
-            return runtime.trend_direction
 
-        # 保存している現在の足の開始時刻を取得
-        current_bar_time = datetime.fromisoformat(current_bar["time"])
+            trend_runtime.current_bar.low = min(
+                trend_runtime.current_bar.low,
+                price,
+            )
 
-        # 今回の株価が現在の足と同じ時間帯に属している場合
-        if bar_time <= current_bar_time:
-            # 足の高値を更新
-            # これまでの高値と今回の株価を比較し、高い方を残す
-            current_bar["high"] = max(current_bar["high"], price)
+            trend_runtime.current_bar.close = price
 
-            # 足の安値を更新
-            # これまでの安値と今回の株価を比較し、低い方を残す
-            current_bar["low"] = min(current_bar["low"], price)
+            return
 
-            # 終値は最新の株価で更新
-            current_bar["close"] = price
+        # 新しい15秒区間に入った
+        # → 現在バーを確定
+        trend_runtime.bars.append(
+            trend_runtime.current_bar
+        )
 
+        # 保持する確定足数
+        history_bars = self.config["history_bars"]
+
+        if len(trend_runtime.bars) > history_bars:
+            trend_runtime.bars = (
+                trend_runtime.bars[-history_bars:]
+            )
+
+        # 新しいバーを開始
+        trend_runtime.current_bar = TrendBarModel(
+            time=bar_start_time,
+            open=price,
+            high=price,
+            low=price,
+            close=price,
+        )
+
+
+    def calculate_moving_averages(self, bars):
+
+        moving_average = self.config["moving_average"]
+
+        short_period = moving_average["short_bars"]
+        medium_period = moving_average["medium_bars"]
+        long_period = moving_average["long_bars"]
+
+        def calculate(period):
+
+            moving_averages = []
+
+            if len(bars) < period:
+                return moving_averages
+
+            for i in range(period - 1, len(bars)):
+
+                window = bars[
+                    i - period + 1 : i + 1
+                ]
+
+                closes = [
+                    bar.close
+                    for bar in window
+                    if bar.close is not None
+                ]
+
+                if len(closes) != period:
+                    continue
+
+                average = sum(closes) / period
+
+                moving_averages.append({
+                    "time": bars[i].time,
+                    "value": average,
+                })
+
+            return moving_averages
+
+        short_moving_averages = calculate(short_period)
+        medium_moving_averages = calculate(medium_period)
+        long_moving_averages = calculate(long_period)
+
+        return (
+            short_moving_averages,
+            medium_moving_averages,
+            long_moving_averages,
+        )
+
+    # ============================================================
+    # MAスコア
+    # ============================================================
+    def calculate_ma_score(
+        self,
+        short_moving_averages,
+        medium_moving_averages,
+        long_moving_averages,
+    ):
+        # スコア基準値をJSONから取得
+        moving_average = self.config["moving_average"]
+
+        position_base_score = moving_average["position_score"]
+        slope_base_score = moving_average["slope_score"]
+
+        # MAデータ不足の場合
+        if (
+            len(short_moving_averages) < 2
+            or len(medium_moving_averages) < 2
+            or len(long_moving_averages) < 2
+        ):
+            Log.debug("TREND MA SCORE skipped: insufficient data")
+            return 0
+
+        # 最新のMA
+        short = short_moving_averages[-1]["value"]
+        medium = medium_moving_averages[-1]["value"]
+        long = long_moving_averages[-1]["value"]
+
+        # MAの位置関係
+        position_score = 0
+
+        if short > medium > long:
+            position_score = position_base_score
+        elif short < medium < long:
+            position_score = -position_base_score
+
+        # MAの傾き
+        slope_score = 0
+
+        for moving_averages in (
+            short_moving_averages,
+            medium_moving_averages,
+            long_moving_averages,
+        ):
+            if len(moving_averages) < 2:
+                continue
+
+            current = moving_averages[-1]["value"]
+            previous = moving_averages[-2]["value"]
+
+            if current > previous:
+                slope_score += slope_base_score
+            elif current < previous:
+                slope_score -= slope_base_score
+
+        ma_score = position_score + slope_score
+
+        Log.debug(
+            f"TREND MA POSITION score={position_score}"
+        )
+
+        Log.debug(
+            f"TREND MA SLOPE "
+            f"short={'UP' if short_moving_averages[-1]['value'] > short_moving_averages[-2]['value'] else 'DOWN' if short_moving_averages[-1]['value'] < short_moving_averages[-2]['value'] else 'FLAT'} "
+            f"medium={'UP' if medium_moving_averages[-1]['value'] > medium_moving_averages[-2]['value'] else 'DOWN' if medium_moving_averages[-1]['value'] < medium_moving_averages[-2]['value'] else 'FLAT'} "
+            f"long={'UP' if long_moving_averages[-1]['value'] > long_moving_averages[-2]['value'] else 'DOWN' if long_moving_averages[-1]['value'] < long_moving_averages[-2]['value'] else 'FLAT'} "
+            f"score={slope_score}"
+        )
+
+        Log.debug(
+            f"TREND MA SCORE={ma_score}"
+        )
+
+        return ma_score
+
+
+    # ============================================================
+    # 価格変化スコア
+    # ============================================================
+    def calculate_price_change_score(self, bars):
+
+        price_change = self.config["price_change"]
+
+        comparison_bars = price_change["bars"]
+
+        rate_1 = price_change["rate_1"]
+        rate_2 = price_change["rate_2"]
+        rate_3 = price_change["rate_3"]
+
+        score_1 = price_change["score_1"]
+        score_2 = price_change["score_2"]
+        score_3 = price_change["score_3"]
+
+        # 比較に必要なデータが不足
+        if len(bars) <= comparison_bars:
+            Log.debug(
+                "TREND PRICE CHANGE skipped: insufficient data"
+            )
+            return 0
+
+        current_price = bars[-1].close
+        previous_price = bars[-1 - comparison_bars].close
+
+        if (
+            current_price is None
+            or previous_price is None
+            or previous_price == 0
+        ):
+            Log.debug(
+                "TREND PRICE CHANGE skipped: invalid price"
+            )
+            return 0
+
+        # 価格変化率（%）
+        price_change_rate = (
+            (current_price - previous_price)
+            / previous_price
+            * 100
+        )
+
+        # スコア判定
+        if price_change_rate >= rate_3:
+            score = score_3
+        elif price_change_rate >= rate_2:
+            score = score_2
+        elif price_change_rate >= rate_1:
+            score = score_1
+        elif price_change_rate <= -rate_3:
+            score = -score_3
+        elif price_change_rate <= -rate_2:
+            score = -score_2
+        elif price_change_rate <= -rate_1:
+            score = -score_1
         else:
-            # 時間が次の足に進んだ場合
-            # これまで形成していた足を確定し、過去データに追加
-            runtime.trend_history.append(current_bar)
+            score = 0
 
-            # 過去の足が増えすぎないよう、最新の指定本数だけ残す
-            runtime.trend_history = runtime.trend_history[-self.history_limit:]
-
-            # 新しい時間帯の足を作成
-            runtime.trend_current_bar = self._new_bar(bar_time, price)
-
-        # 最新の足データを使って移動平均を更新
-        runtime.trend_moving_average = self._get_moving_average(runtime)
-
-        # 過去の確定足を使ってトレンドを判定
-        direction = self._classify(runtime.trend_history)
-
-        # 各条件の成立分を合計した方向別スコアを保存
-        runtime.trend_up_score, runtime.trend_down_score = (
-            self._calculate_scores(runtime.trend_history)
+        Log.debug(
+            f"TREND PRICE CHANGE "
+            f"current={current_price} "
+            f"previous={previous_price} "
+            f"rate={price_change_rate:.3f}% "
+            f"score={score}"
         )
 
-        # 判定結果を取引情報やログに反映
-        self._record_direction(trade, direction, price)
+        return score
 
-        return direction
+    # ============================================================
+    # 高値・安値構造スコア（最大±40点）
+    # ============================================================
+    def calculate_structure_score(self, bars):
 
+        structure = self.config["structure"]
 
-    def _classify(self, bars):
-        # 判定に必要な最低限の足数を求める
-        # 移動平均の傾きを比較するため、もう1本分の過去データが必要
-        minimum_bars = max(
-            self.structure_bars,
-            self.short_ma_bars,
-        ) + 1
+        structure_bars = structure["bars"]
+        full_score = structure["full_score"]
+        partial_score = structure["partial_score"]
 
-        # 足数が足りなければ、まだ判定できない
-        if len(bars) < minimum_bars:
-            return "warming_up"
+        if len(bars) < structure_bars:
+            Log.debug(
+                "TREND STRUCTURE skipped: insufficient data"
+            )
+            return 0
 
-        # 高値・安値の構造を調べる対象として、直近の足を取り出す
-        recent_structure = bars[-self.structure_bars:]
+        recent_bars = bars[-structure_bars:]
 
-        # 高値が1本前より高い状態が、すべての足で続いているか
-        # 例：100 → 102 → 105 なら True
-        higher_highs = all(
-            recent_structure[index]["high"]
-            > recent_structure[index - 1]["high"]
-            for index in range(1, len(recent_structure))
-        )
+        highs = [bar.high for bar in recent_bars]
+        lows = [bar.low for bar in recent_bars]
 
-        # 安値が1本前より高い状態が、すべての足で続いているか
-        # 例：98 → 99 → 101 なら True
-        higher_lows = all(
-            recent_structure[index]["low"]
-            > recent_structure[index - 1]["low"]
-            for index in range(1, len(recent_structure))
-        )
-
-        # 高値が1本前より低い状態が、すべての足で続いているか
-        # 例：110 → 107 → 104 なら True
-        lower_highs = all(
-            recent_structure[index]["high"]
-            < recent_structure[index - 1]["high"]
-            for index in range(1, len(recent_structure))
-        )
-
-        # 安値が1本前より低い状態が、すべての足で続いているか
-        # 例：105 → 102 → 99 なら True
-        lower_lows = all(
-            recent_structure[index]["low"]
-            < recent_structure[index - 1]["low"]
-            for index in range(1, len(recent_structure))
-        )
-
-        # 移動平均の現在側の計算対象を取り出す
-        recent_average_bars = bars[-self.short_ma_bars:]
-
-        # 移動平均の比較対象となる、1本前までの足を取り出す
-        prior_average_bars = bars[
-            -self.short_ma_bars - 1:-1
+        # 高値・安値の連続した方向を判定
+        high_directions = [
+            1 if highs[i] > highs[i - 1]
+            else -1 if highs[i] < highs[i - 1]
+            else 0
+            for i in range(1, len(highs))
         ]
 
-        # 直近の終値の平均を計算
-        recent_average = (
-            sum(bar["close"] for bar in recent_average_bars)
-            / len(recent_average_bars)
+        low_directions = [
+            1 if lows[i] > lows[i - 1]
+            else -1 if lows[i] < lows[i - 1]
+            else 0
+            for i in range(1, len(lows))
+        ]
+
+        score = 0
+
+        # 高値・安値がすべて切り上がり
+        if (
+            all(direction == 1 for direction in high_directions)
+            and all(direction == 1 for direction in low_directions)
+        ):
+            score = full_score
+
+        # 高値・安値がすべて切り下がり
+        elif (
+            all(direction == -1 for direction in high_directions)
+            and all(direction == -1 for direction in low_directions)
+        ):
+            score = -full_score
+
+        # 直近の高値・安値がともに切り上がり
+        elif (
+            high_directions[-1] == 1
+            and low_directions[-1] == 1
+        ):
+            score = partial_score
+
+        # 直近の高値・安値がともに切り下がり
+        elif (
+            high_directions[-1] == -1
+            and low_directions[-1] == -1
+        ):
+            score = -partial_score
+
+        Log.debug(
+            f"TREND STRUCTURE "
+            f"highs={highs} "
+            f"lows={lows} "
+            f"score={score}"
         )
 
-        # 1本前までの終値の平均を計算
-        prior_average = (
-            sum(bar["close"] for bar in prior_average_bars)
-            / len(prior_average_bars)
-        )
-
-        # 高値も安値も切り上がり、移動平均も上昇していれば上昇判定
-        if higher_highs and higher_lows and recent_average > prior_average:
-            return "up"
-
-        # 高値も安値も切り下がり、移動平均も下降していれば下降判定
-        if lower_highs and lower_lows and recent_average < prior_average:
-            return "down"
-
-        # 上昇・下降の条件を満たさない場合はレンジ判定
-        return "range"
+        return score
 
 
-    def _calculate_scores(self, bars):
-        """判定条件ごとに成立分だけ加点し、上昇・下降を別々に返す。"""
-        minimum_bars = max(
-            self.structure_bars,
-            self.short_ma_bars,
-        ) + 1
-        if len(bars) < minimum_bars:
-            return 0, 0
+    # ============================================================
+    # トレンド判定: UP / DOWN / RANGE / UNDEFINED
+    # ============================================================
+    def determine_trend(
+        self,
+        ma_score,
+        price_change_score,
+        structure_score,
+        total_score,
+    ):
 
-        recent_structure = bars[-self.structure_bars:]
-        higher_highs = all(
-            recent_structure[index]["high"]
-            > recent_structure[index - 1]["high"]
-            for index in range(1, len(recent_structure))
-        )
-        higher_lows = all(
-            recent_structure[index]["low"]
-            > recent_structure[index - 1]["low"]
-            for index in range(1, len(recent_structure))
-        )
-        lower_highs = all(
-            recent_structure[index]["high"]
-            < recent_structure[index - 1]["high"]
-            for index in range(1, len(recent_structure))
-        )
-        lower_lows = all(
-            recent_structure[index]["low"]
-            < recent_structure[index - 1]["low"]
-            for index in range(1, len(recent_structure))
-        )
+        decision = self.config["decision"]
 
-        recent_average = sum(
-            bar["close"] for bar in bars[-self.short_ma_bars:]
-        ) / self.short_ma_bars
-        prior_average = sum(
-            bar["close"]
-            for bar in bars[-self.short_ma_bars - 1:-1]
-        ) / self.short_ma_bars
-        rising_average = recent_average > prior_average
-        falling_average = recent_average < prior_average
+        conflict_threshold = decision["conflict_score_threshold"]
+        direction_threshold = decision["direction_score_threshold"]
+        agreement_count = decision["agreement_count"]
 
-        up_score = (
-            (30 if higher_highs else 0)
-            + (30 if higher_lows else 0)
-            + (20 if rising_average else 0)
-        )
-        down_score = (
-            (30 if lower_highs else 0)
-            + (30 if lower_lows else 0)
-            + (20 if falling_average else 0)
-        )
-        return up_score, down_score
+        # 強いスコア同士の方向対立を確認
+        scores = [
+            ma_score,
+            price_change_score,
+            structure_score,
+        ]
 
+        for i in range(len(scores)):
+            for j in range(i + 1, len(scores)):
+                first = scores[i]
+                second = scores[j]
 
-    def _get_moving_average(self, runtime):
-        # 確定済みの過去足をコピー
-        bars = list(runtime.trend_history)
+                if (
+                    abs(first) >= conflict_threshold
+                    and abs(second) >= conflict_threshold
+                    and first * second < 0
+                ):
+                    return "UNDEFINED"
 
-        # 現在形成中の足があれば、計算対象に追加
-        if runtime.trend_current_bar is not None:
-            bars.append(runtime.trend_current_bar)
+        # 上昇方向の一致数
+        up_count = sum(score > 0 for score in scores)
 
-        # 移動平均の計算に必要な足数が足りなければ None
-        if len(bars) < self.short_ma_bars:
-            return None
+        # 下降方向の一致数
+        down_count = sum(score < 0 for score in scores)
 
-        # 最新の指定本数を取り出す
-        recent = bars[-self.short_ma_bars:]
+        if (
+            total_score >= direction_threshold
+            and up_count >= agreement_count
+        ):
+            return "UP"
 
-        # 最新の指定本数の終値を平均して返す
-        return sum(bar["close"] for bar in recent) / len(recent)
+        if (
+            total_score <= -direction_threshold
+            and down_count >= agreement_count
+        ):
+            return "DOWN"
 
-
-    @staticmethod
-    def _new_bar(bar_time, price):
-        # 新しい足を作る
-        # 最初の株価を高値・安値・終値すべてに設定
-        return {
-            "time": bar_time.isoformat(),
-            "high": price,
-            "low": price,
-            "close": price,
-        }
-
-
-    @staticmethod
-    def _record_direction(trade, direction, current_price):
-        # 取引状態から前回のトレンド判定を取得
-        runtime = trade.runtime
-        previous = runtime.trend_direction
-
-        # 今回の判定結果を保存
-        runtime.trend_direction = direction
-
-        # 内部コードを画面やログ向けの日本語に変換
-        direction_text = {
-            "up": "上昇トレンド",
-            "down": "下降トレンド",
-            "range": "レンジ",
-            "warming_up": "計測中",
-        }[direction]
-
-        # 取引のメッセージ欄に現在の判定を表示
-        message = f"トレンド判定: {direction_text}"
-        trade.message = message
-
-        # 前回から判定が変化した場合だけ、イベントとして記録
-        if previous != direction:
-            # ログに状態変化と現在株価を記録
-            Log.event(
-                f"(#{trade.id}) TREND STATE {previous} -> {direction} "
-                f"current_price={current_price}"
-            )
-
-            # 取引のタイムラインにも状態変化を追加
-            trade.add_timeline(
-                event="TREND",
-                message=message,
-                current_price=current_price,
-            )
+        return "RANGE"

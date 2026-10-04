@@ -43,10 +43,6 @@ class TradeChartModel:
         price_close=None,
 
         range_params=None,
-        trend_direction=None,
-        trend_high=None,
-        trend_low=None,
-        trend_moving_average=None,
     ):
 
         self.time = time or datetime.now()
@@ -73,10 +69,6 @@ class TradeChartModel:
 
         # RANGE
         self.range_params = range_params
-        self.trend_direction = trend_direction
-        self.trend_high = trend_high
-        self.trend_low = trend_low
-        self.trend_moving_average = trend_moving_average
         # {
         #     "range_high": 3060.0,
         #     "range_low": 2975.0,
@@ -132,10 +124,6 @@ class TradeChartModel:
 
             # RANGE
             "range_params": self.range_params,
-            "trend_direction": self.trend_direction,
-            "trend_high": self.trend_high,
-            "trend_low": self.trend_low,
-            "trend_moving_average": self.trend_moving_average,
         }
 
 
@@ -188,8 +176,4 @@ class TradeChartModel:
 
             # RANGE
             range_params=data.get("range_params"),
-            trend_direction=data.get("trend_direction"),
-            trend_high=data.get("trend_high"),
-            trend_low=data.get("trend_low"),
-            trend_moving_average=data.get("trend_moving_average"),
         )

@@ -117,15 +117,6 @@ class TradeRuntimeModel:
         # 利確方式で使う固定の利確価格
         self.profit_target_price = None
 
-        # 1分足トレンド判定
-        self.trend_current_bar = None
-        self.trend_history = []
-        self.trend_direction = "warming_up"
-        self.trend_last_quote_key = None
-        self.trend_moving_average = None
-        self.trend_up_score = 0
-        self.trend_down_score = 0
-
         # EXIT理由
         self.exit_reason: ExitReason | None = None
 
@@ -135,7 +126,7 @@ class TradeRuntimeModel:
         if strategy_type == "range":
             self.strategy_runtime = create_range_runtime(params)
 
-        elif strategy_type == "trend2":
+        elif strategy_type == "trend":
             self.strategy_runtime = TradeRuntimeTrendModel()
 
 
@@ -169,13 +160,6 @@ class TradeRuntimeModel:
 
             "stop_price": self.stop_price,
             "profit_target_price": self.profit_target_price,
-            "trend_current_bar": self.trend_current_bar,
-            "trend_history": self.trend_history,
-            "trend_direction": self.trend_direction,
-            "trend_last_quote_key": self.trend_last_quote_key,
-            "trend_moving_average": self.trend_moving_average,
-            "trend_up_score": self.trend_up_score,
-            "trend_down_score": self.trend_down_score,
 
             # Enum → JSON
             "exit_reason": (
@@ -233,13 +217,6 @@ class TradeRuntimeModel:
 
         runtime.stop_price = data.get("stop_price")
         runtime.profit_target_price = data.get("profit_target_price")
-        runtime.trend_current_bar = data.get("trend_current_bar")
-        runtime.trend_history = data.get("trend_history", [])
-        runtime.trend_direction = data.get("trend_direction", "warming_up")
-        runtime.trend_last_quote_key = data.get("trend_last_quote_key")
-        runtime.trend_moving_average = data.get("trend_moving_average")
-        runtime.trend_up_score = data.get("trend_up_score", 0)
-        runtime.trend_down_score = data.get("trend_down_score", 0)
 
         # JSON → Enum
         exit_reason_str = data.get("exit_reason")
@@ -260,7 +237,7 @@ class TradeRuntimeModel:
                     )
                 )
 
-            elif strategy_type == "trend2":
+            elif strategy_type == "trend":
                 runtime.strategy_runtime = (
                     TradeRuntimeTrendModel.from_dict(
                         strategy_runtime_data

@@ -324,67 +324,6 @@ class TradeModel(BaseEntity):
             "exit_method": self.param.exit_method,
             "profit_target_percent": self.param.profit_target_percent,
 
-            "trend_direction": self.runtime.trend_direction,
-            "trend_up_score": self.runtime.trend_up_score,
-            "trend_down_score": self.runtime.trend_down_score,
-
-            "trend_bars": (
-                [
-                    bar.to_dict()
-                    for bar in self.runtime.strategy_runtime.bars
-                ]
-                if (
-                    self.param.strategy_type == "trend2"
-                    and self.runtime.strategy_runtime is not None
-                )
-                else []
-            ),
-
-            "trend_short_moving_averages": (
-                [
-                    {
-                        "time": ma["time"].isoformat(),
-                        "value": ma["value"],
-                    }
-                    for ma in self.runtime.strategy_runtime.short_moving_averages
-                ]
-                if (
-                    self.param.strategy_type == "trend2"
-                    and self.runtime.strategy_runtime is not None
-                )
-                else []
-            ),
-
-            "trend_medium_moving_averages": (
-                [
-                    {
-                        "time": ma["time"].isoformat(),
-                        "value": ma["value"],
-                    }
-                    for ma in self.runtime.strategy_runtime.medium_moving_averages
-                ]
-                if (
-                    self.param.strategy_type == "trend2"
-                    and self.runtime.strategy_runtime is not None
-                )
-                else []
-            ),
-
-            "trend_long_moving_averages": (
-                [
-                    {
-                        "time": ma["time"].isoformat(),
-                        "value": ma["value"],
-                    }
-                    for ma in self.runtime.strategy_runtime.long_moving_averages
-                ]
-                if (
-                    self.param.strategy_type == "trend2"
-                    and self.runtime.strategy_runtime is not None
-                )
-                else []
-            ),
-
             "repeat_index": self.param.repeat_index,
             "repeat_count": self.param.repeat_count,
 
@@ -501,6 +440,63 @@ class TradeModel(BaseEntity):
             "message": self.message,
 
             "pause_flag": self.pause_flag,
+
+            "trend_bars": (
+                [
+                    bar.to_dict()
+                    for bar in self.runtime.strategy_runtime.bars
+                ]
+                if (
+                    self.param.strategy_type == "trend"
+                    and self.runtime.strategy_runtime is not None
+                )
+                else []
+            ),
+
+            "trend_short_moving_averages": (
+                [
+                    {
+                        "time": ma["time"].isoformat(),
+                        "value": ma["value"],
+                    }
+                    for ma in self.runtime.strategy_runtime.short_moving_averages
+                ]
+                if (
+                    self.param.strategy_type == "trend"
+                    and self.runtime.strategy_runtime is not None
+                )
+                else []
+            ),
+
+            "trend_medium_moving_averages": (
+                [
+                    {
+                        "time": ma["time"].isoformat(),
+                        "value": ma["value"],
+                    }
+                    for ma in self.runtime.strategy_runtime.medium_moving_averages
+                ]
+                if (
+                    self.param.strategy_type == "trend"
+                    and self.runtime.strategy_runtime is not None
+                )
+                else []
+            ),
+
+            "trend_long_moving_averages": (
+                [
+                    {
+                        "time": ma["time"].isoformat(),
+                        "value": ma["value"],
+                    }
+                    for ma in self.runtime.strategy_runtime.long_moving_averages
+                ]
+                if (
+                    self.param.strategy_type == "trend"
+                    and self.runtime.strategy_runtime is not None
+                )
+                else []
+            ),
 
             # Timeline
             "timeline": self.timeline,

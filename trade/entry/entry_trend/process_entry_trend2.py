@@ -214,7 +214,7 @@ class ProcessEntryTrend2(ProcessEntryBase):
                 f"close={trend_runtime.current_bar.close}"
             )
 
-        # print("TREND2 CHART DATA")
+        # print("TREND CHART DATA")
         # for data in chart_data_list:
         #     print(data.time, data.price_close)
 
