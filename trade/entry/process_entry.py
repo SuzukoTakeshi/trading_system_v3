@@ -19,6 +19,9 @@ from trade.entry.entry_standard.process_entry_standard import ProcessEntryStanda
 from trade.entry.entry_range.process_entry_range import ProcessEntryRange
 from trade.entry.entry_trend.process_entry_trend import ProcessEntryTrend
 
+from trade.trend.trend_test import TrendTest
+from trade.trade_enums import TradeState
+
 class ProcessEntry:
 
     def __init__(self, context, market):
@@ -31,6 +34,8 @@ class ProcessEntry:
         self.entry_standard = ProcessEntryStandard(context, market)
         self.entry_range = ProcessEntryRange(context, market)
         self.entry_trend = ProcessEntryTrend(context, market)
+
+        self.trend_test = TrendTest(context)
 
 
     # ==========================================
@@ -51,5 +56,16 @@ class ProcessEntry:
 
         if trade.param.strategy_type == "trend":
             return self.entry_trend.process(trade)
+
+        if trade.param.strategy_type == "trend_test":
+            self.trend_test.run(
+                trade,
+                test_type=trade.param.params.get(
+                    "trend_test_type",
+                    "UP",
+                ),
+            )
+            trade.change_state(TradeState.CLOSED)
+            return False
 
         return False

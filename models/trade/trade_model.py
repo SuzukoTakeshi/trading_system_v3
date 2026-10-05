@@ -447,7 +447,7 @@ class TradeModel(BaseEntity):
                     for bar in self.runtime.strategy_runtime.bars
                 ]
                 if (
-                    self.param.strategy_type == "trend"
+                    self.param.strategy_type in ("trend", "trend_test")
                     and self.runtime.strategy_runtime is not None
                 )
                 else []
@@ -462,7 +462,7 @@ class TradeModel(BaseEntity):
                     for ma in self.runtime.strategy_runtime.short_moving_averages
                 ]
                 if (
-                    self.param.strategy_type == "trend"
+                    self.param.strategy_type in ("trend", "trend_test")
                     and self.runtime.strategy_runtime is not None
                 )
                 else []
@@ -477,7 +477,7 @@ class TradeModel(BaseEntity):
                     for ma in self.runtime.strategy_runtime.medium_moving_averages
                 ]
                 if (
-                    self.param.strategy_type == "trend"
+                    self.param.strategy_type in ("trend", "trend_test")
                     and self.runtime.strategy_runtime is not None
                 )
                 else []
@@ -492,7 +492,7 @@ class TradeModel(BaseEntity):
                     for ma in self.runtime.strategy_runtime.long_moving_averages
                 ]
                 if (
-                    self.param.strategy_type == "trend"
+                    self.param.strategy_type in ("trend", "trend_test")
                     and self.runtime.strategy_runtime is not None
                 )
                 else []

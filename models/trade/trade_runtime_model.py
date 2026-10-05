@@ -126,7 +126,7 @@ class TradeRuntimeModel:
         if strategy_type == "range":
             self.strategy_runtime = create_range_runtime(params)
 
-        elif strategy_type == "trend":
+        elif strategy_type in ("trend", "trend_test"):
             self.strategy_runtime = TradeRuntimeTrendModel()
 
 
@@ -237,7 +237,7 @@ class TradeRuntimeModel:
                     )
                 )
 
-            elif strategy_type == "trend":
+            elif strategy_type in ("trend", "trend_test"):
                 runtime.strategy_runtime = (
                     TradeRuntimeTrendModel.from_dict(
                         strategy_runtime_data

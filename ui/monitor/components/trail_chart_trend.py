@@ -1,6 +1,10 @@
 #
 # ui/monitor/components/trail_chart_trend.py
 #
+# ・OHLC → 全部描画
+# ・Price → 最大約300点に間引き
+# ・SMA → 変更なし
+# ・TREND判定 → 変更なし
 
 import streamlit as st
 import pandas as pd
@@ -34,11 +38,18 @@ def render_trend_chart(
 
             df["time"] = pd.to_datetime(df["time"])
 
+            # 最大約300点に間引き
+            max_points = 300
+            step = max(1, len(df) // max_points)
+            price_df = df.iloc[::step]
+
             ax.plot(
-                df["time"],
-                df["price_close"],
+                price_df["time"],
+                price_df["price_close"],
                 label="Price",
+                linewidth=0.8,
             )
+
 
     # --------------------------------------
     # 15秒 OHLC

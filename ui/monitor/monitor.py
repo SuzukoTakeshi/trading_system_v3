@@ -280,7 +280,7 @@ def main():
                                 target.get("symbol", ""),
                                 target.get("name", "")
                             )
-                        elif strategy_type == "trend":
+                        elif strategy_type in ("trend", "trend_test"):
                             # render_trend_chart(
                             #     target.get("chart_datas", []),
                             #     target.get("symbol", ""),
