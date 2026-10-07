@@ -82,7 +82,8 @@ class TrendAnalyzer:
             total_score,
         )
 
-        Log.debug(
+        Log.trace(
+            "TREND",
             f"TREND ANALYSIS "
             f"direction={trend_direction} "
             f"ma={ma_score} "
@@ -178,7 +179,7 @@ class TrendAnalyzer:
             or len(medium_moving_averages) < 2
             or len(long_moving_averages) < 2
         ):
-            Log.debug("TREND MA SCORE skipped: insufficient data")
+            Log.trend("TREND MA SCORE skipped: insufficient data")
             return 0
 
         # --------------------------------------
@@ -226,11 +227,13 @@ class TrendAnalyzer:
 
         ma_score = position_score + slope_score
 
-        Log.debug(
+        Log.trace(
+            "TREND",
             f"TREND MA POSITION score={position_score}"
         )
 
-        Log.debug(
+        Log.trace(
+            "TREND",
             f"TREND MA SLOPE "
             f"short={'UP' if short_moving_averages[-1]['value'] > short_moving_averages[-2]['value'] else 'DOWN' if short_moving_averages[-1]['value'] < short_moving_averages[-2]['value'] else 'FLAT'} "
             f"medium={'UP' if medium_moving_averages[-1]['value'] > medium_moving_averages[-2]['value'] else 'DOWN' if medium_moving_averages[-1]['value'] < medium_moving_averages[-2]['value'] else 'FLAT'} "
@@ -238,7 +241,7 @@ class TrendAnalyzer:
             f"score={slope_score}"
         )
 
-        Log.debug(f"TREND MA SCORE={ma_score}")
+        Log.trend(f"TREND MA SCORE={ma_score}")
 
         return ma_score
 
@@ -265,7 +268,8 @@ class TrendAnalyzer:
 
         # 比較に必要なデータが不足
         if len(bars) <= comparison_bars:
-            Log.debug(
+            Log.trace(
+                "TREND",
                 "TREND PRICE CHANGE skipped: insufficient data"
             )
             return 0
@@ -278,7 +282,8 @@ class TrendAnalyzer:
             or previous_price is None
             or previous_price == 0
         ):
-            Log.debug(
+            Log.trace(
+                "TREND",
                 "TREND PRICE CHANGE skipped: invalid price"
             )
             return 0
@@ -313,7 +318,8 @@ class TrendAnalyzer:
         else:
             score = 0
 
-        Log.debug(
+        Log.trace(
+            "TREND",
             f"TREND PRICE CHANGE "
             f"current={current_price} "
             f"previous={previous_price} "
@@ -339,7 +345,7 @@ class TrendAnalyzer:
         partial_score = structure["partial_score"]
 
         if len(bars) < structure_bars:
-            Log.debug(
+            Log.trend(
                 "TREND STRUCTURE skipped: insufficient data"
             )
             return 0
@@ -412,7 +418,8 @@ class TrendAnalyzer:
         ):
             score = -partial_score
 
-        Log.debug(
+        Log.trace(
+            "TREND",
             f"TREND STRUCTURE "
             f"highs={highs} "
             f"lows={lows} "

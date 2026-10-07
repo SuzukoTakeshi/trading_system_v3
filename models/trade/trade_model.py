@@ -415,6 +415,7 @@ class TradeModel(BaseEntity):
 
             "stop_price": self.runtime.stop_price,
             "profit_target_price": self.runtime.profit_target_price,
+            "profit_target_enabled": self.runtime.profit_target_enabled,
 
             "exit_reason": (
                 self.runtime.exit_reason.value

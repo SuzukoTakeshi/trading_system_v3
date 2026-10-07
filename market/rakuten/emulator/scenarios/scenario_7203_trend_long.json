@@ -1,0 +1,317 @@
+{
+    "trade": {
+        "symbol": 7203,
+        "trade_price": 0,
+        "quantity": 100,
+        "atr": 1.0,
+        "trade_type": "margin",
+        "margin_type": "day",
+        "side": "long",
+        "strategy": "scalping"
+    },
+
+    "market": {
+        "mode": "scenario",
+        "interval": 2.0,
+        "scenario": [
+            {
+                "comment": [
+                    "=== TREND ENTRY -> EXIT TEST ===",
+                    "Strategy : SCALPING",
+                    "Side     : LONG",
+                    "TREND    : RANGE -> UP -> DOWN",
+                    "ENTRY    : UP",
+                    "EXIT     : DOWN"
+                ]
+            },
+
+            {
+                "comment": "開始"
+            },
+
+            { "price": 1000.0 },
+            { "price": 1002.0 },
+            { "price": 1001.0 },
+            { "price": 1004.0 },
+            { "price": 1006.0 },
+            { "price": 1005.0 },
+            { "price": 1008.0 },
+            { "price": 1010.0 },
+            { "price": 1009.0 },
+            { "price": 1012.0 },
+
+            { "price": 1014.0 },
+            { "price": 1013.0 },
+            { "price": 1016.0 },
+            { "price": 1018.0 },
+            { "price": 1017.0 },
+            { "price": 1020.0 },
+            { "price": 1022.0 },
+            { "price": 1021.0 },
+            { "price": 1024.0 },
+            { "price": 1026.0 },
+
+            { "price": 1025.0 },
+            { "price": 1028.0 },
+            { "price": 1030.0 },
+            { "price": 1029.0 },
+            { "price": 1032.0 },
+            { "price": 1034.0 },
+            { "price": 1033.0 },
+            { "price": 1036.0 },
+            { "price": 1038.0 },
+            { "price": 1037.0 },
+
+            { "price": 1040.0 },
+            { "price": 1042.0 },
+            { "price": 1041.0 },
+            { "price": 1044.0 },
+            { "price": 1046.0 },
+            { "price": 1045.0 },
+            { "price": 1048.0 },
+            { "price": 1050.0 },
+            { "price": 1049.0 },
+            { "price": 1052.0 },
+
+            { "price": 1054.0 },
+            { "price": 1053.0 },
+            { "price": 1056.0 },
+            { "price": 1058.0 },
+            { "price": 1057.0 },
+            { "price": 1060.0 },
+            { "price": 1062.0 },
+            { "price": 1061.0 },
+            { "price": 1064.0 },
+            { "price": 1066.0 },
+
+            { "price": 1065.0 },
+            { "price": 1068.0 },
+            { "price": 1070.0 },
+            { "price": 1069.0 },
+            { "price": 1072.0 },
+            { "price": 1074.0 },
+            { "price": 1073.0 },
+            { "price": 1076.0 },
+            { "price": 1078.0 },
+            { "price": 1077.0 },
+
+            { "price": 1080.0 },
+            { "price": 1082.0 },
+            { "price": 1081.0 },
+            { "price": 1084.0 },
+
+            {
+                "comment": "ここまで RANGE"
+            },
+
+            {
+                "comment": "ここから UP判定"
+            },
+
+            { "price": 1086.0 },
+
+            {
+                "comment": "1086 -> UP判定 / LONG ENTRY"
+            },
+
+            { "price": 1085.0 },
+            { "price": 1088.0 },
+            { "price": 1090.0 },
+            { "price": 1089.0 },
+            { "price": 1092.0 },
+
+            { "price": 1094.0 },
+            { "price": 1093.0 },
+            { "price": 1096.0 },
+            { "price": 1098.0 },
+            { "price": 1097.0 },
+            { "price": 1100.0 },
+
+            { "price": 1102.0 },
+            { "price": 1101.0 },
+            { "price": 1104.0 },
+            { "price": 1106.0 },
+
+            { "price": 1105.0 },
+            { "price": 1108.0 },
+            { "price": 1110.0 },
+            { "price": 1109.0 },
+            { "price": 1112.0 },
+            { "price": 1114.0 },
+
+            { "price": 1113.0 },
+            { "price": 1116.0 },
+            { "price": 1118.0 },
+            { "price": 1117.0 },
+            { "price": 1120.0 },
+
+            { "price": 1122.0 },
+            { "price": 1121.0 },
+            { "price": 1124.0 },
+            { "price": 1126.0 },
+            { "price": 1125.0 },
+            { "price": 1128.0 },
+
+            { "price": 1130.0 },
+            { "price": 1129.0 },
+            { "price": 1132.0 },
+            { "price": 1134.0 },
+            { "price": 1133.0 },
+            { "price": 1136.0 },
+
+            { "price": 1138.0 },
+            { "price": 1137.0 },
+            { "price": 1140.0 },
+            { "price": 1142.0 },
+            { "price": 1141.0 },
+            { "price": 1144.0 },
+
+            { "price": 1146.0 },
+            { "price": 1145.0 },
+            { "price": 1148.0 },
+            { "price": 1150.0 },
+            { "price": 1149.0 },
+            { "price": 1152.0 },
+
+            { "price": 1154.0 },
+            { "price": 1153.0 },
+            { "price": 1156.0 },
+            { "price": 1158.0 },
+            { "price": 1157.0 },
+
+            { "price": 1160.0 },
+            { "price": 1162.0 },
+            { "price": 1161.0 },
+            { "price": 1164.0 },
+            { "price": 1166.0 },
+
+            {
+                "comment": "UP継続中"
+            },
+
+            {
+                "comment": "ここからさらに上昇"
+            },
+
+            { "price": 1220.0 },
+            { "price": 1222.0 },
+            { "price": 1221.0 },
+            { "price": 1224.0 },
+            { "price": 1226.0 },
+            { "price": 1225.0 },
+            { "price": 1228.0 },
+            { "price": 1230.0 },
+            { "price": 1229.0 },
+            { "price": 1232.0 },
+
+            { "price": 1234.0 },
+            { "price": 1233.0 },
+            { "price": 1236.0 },
+            { "price": 1238.0 },
+            { "price": 1237.0 },
+            { "price": 1240.0 },
+            { "price": 1242.0 },
+            { "price": 1241.0 },
+            { "price": 1244.0 },
+            { "price": 1246.0 },
+
+            {
+                "comment": "UP継続 / LONG保有中"
+            },
+
+            { "price": 1245.0 },
+            { "price": 1248.0 },
+            { "price": 1250.0 },
+            { "price": 1249.0 },
+            { "price": 1252.0 },
+            { "price": 1254.0 },
+            { "price": 1253.0 },
+            { "price": 1256.0 },
+            { "price": 1258.0 },
+            { "price": 1257.0 },
+
+            { "price": 1260.0 },
+            { "price": 1262.0 },
+            { "price": 1261.0 },
+            { "price": 1264.0 },
+            { "price": 1266.0 },
+
+            {
+                "comment": "ここから下降開始"
+            },
+
+            { "price": 1265.0 },
+            { "price": 1262.0 },
+            { "price": 1263.0 },
+            { "price": 1260.0 },
+            { "price": 1258.0 },
+            { "price": 1259.0 },
+            { "price": 1256.0 },
+            { "price": 1254.0 },
+            { "price": 1255.0 },
+            { "price": 1252.0 },
+
+            { "price": 1250.0 },
+            { "price": 1248.0 },
+            { "price": 1249.0 },
+            { "price": 1246.0 },
+            { "price": 1244.0 },
+            { "price": 1245.0 },
+            { "price": 1242.0 },
+            { "price": 1240.0 },
+            { "price": 1241.0 },
+            { "price": 1238.0 },
+
+            {
+                "comment": "ここから TREND 下降"
+            },
+
+            { "price": 1236.0 },
+            { "price": 1234.0 },
+            { "price": 1235.0 },
+            { "price": 1232.0 },
+            { "price": 1230.0 },
+            { "price": 1231.0 },
+            { "price": 1228.0 },
+            { "price": 1226.0 },
+            { "price": 1227.0 },
+            { "price": 1224.0 },
+
+            {
+                "comment": "ここまで UNDEFINED"
+            },
+
+            {
+                "comment": "ここから DOWN判定"
+            },
+
+            { "price": 1222.0 },
+
+            {
+                "comment": "1222 -> DOWN判定 / LONG EXIT"
+            },
+
+            { "price": 1220.0 },
+            { "price": 1221.0 },
+            { "price": 1218.0 },
+            { "price": 1216.0 },
+            { "price": 1217.0 },
+            { "price": 1214.0 },
+            { "price": 1212.0 },
+            { "price": 1213.0 },
+            { "price": 1210.0 },
+
+            { "price": 1208.0 },
+            { "price": 1206.0 },
+            { "price": 1207.0 },
+            { "price": 1204.0 },
+            { "price": 1202.0 },
+
+            {
+                "comment": "DOWN -> LONG EXIT確認"
+            },
+
+            { "end": true }
+        ]
+    }
+}

@@ -200,6 +200,11 @@ class TradeService:
 
             symbol = self.symbol_store.get(trade["symbol"])
 
+            profit_target_enabled = trade.get("profit_target_enabled", False)
+            profit_target_price = trade.get("profit_target_price")
+            if not profit_target_enabled:
+                profit_target_price = None
+
             result.append({
                 "trade_id": trade["trade_id"],
 
@@ -232,9 +237,12 @@ class TradeService:
                 "current_price": trade["current_price"],
                 "current_time": trade["current_time"],
                 "current_tick": trade["current_tick"],
+
                 "previous_price": trade["previous_price"],
                 "stop_price": trade["stop_price"],
-                "profit_target_price": trade.get("profit_target_price"),
+
+                "profit_target_price": profit_target_price,
+                "profit_target_enabled": profit_target_enabled,
 
                 # Entry
                 "entry_price": trade["entry_price"],
@@ -354,16 +362,23 @@ class TradeService:
     # ---------------------
     # 利確ライン変更
     # ---------------------
-    def update_profit_target_price(self, trade_id, profit_target_price):
+    def update_profit_target_price(
+        self,
+        trade_id,
+        profit_target_price,
+        enabled,
+    ):
 
         Log.debug(
             f"(#{trade_id}) TRADE SERVICE UPDATE PROFIT TARGET "
-            f"profit_target_price={profit_target_price}"
+            f"profit_target_price={profit_target_price} "
+            f"enabled={enabled}"
         )
 
         result, message = self.trade_engine.api.update_profit_target_price(
             trade_id,
             profit_target_price,
+            enabled,
         )
 
         if result:
@@ -373,6 +388,7 @@ class TradeService:
                 data={
                     "trade_id": trade_id,
                     "profit_target_price": profit_target_price,
+                    "enabled": enabled,
                 },
             )
 

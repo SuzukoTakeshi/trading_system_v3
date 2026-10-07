@@ -154,6 +154,21 @@ def add_trade_chart_data(context, trade):
 
 
     # ==================================================
+    # TRENDパラメータ
+    # ==================================================
+
+    trend_params = None
+
+    if trade.param.strategy_type in ("trend", "trend_test"):
+
+        runtime = trade.runtime.strategy_runtime
+
+        trend_params = {
+            "trend_direction": runtime.trend_direction,
+        }
+
+
+    # ==================================================
     # 同一時間枠のデータを更新
     # ==================================================
 
@@ -207,6 +222,8 @@ def add_trade_chart_data(context, trade):
 
             last.range_params = range_params
 
+            last.trend_params = trend_params
+
             return
 
 
@@ -244,6 +261,7 @@ def add_trade_chart_data(context, trade):
         price_close=current_price,
 
         range_params=range_params,
+        trend_params=trend_params,
     )
 
     context.cache.trade_chart_datas.setdefault(

@@ -358,7 +358,12 @@ class TradeEngineAPI:
     # ==========================================
     # 利確ライン変更
     # ==========================================
-    def update_profit_target_price(self, trade_id, profit_target_price):
+    def update_profit_target_price(
+        self,
+        trade_id,
+        profit_target_price,
+        enabled,
+    ):
 
         trade = self.context.trades.get(trade_id)
 
@@ -368,8 +373,8 @@ class TradeEngineAPI:
         if trade.state != TradeState.EXIT:
             return False, f"Trade #{trade_id} はEXIT監視中ではありません。"
 
-        if trade.param.strategy_type != "standard" or trade.param.exit_method != "profit":
-            return False, f"Trade #{trade_id} は利確価格方式ではありません。"
+        if trade.param.strategy_type != "standard":
+            return False, f"Trade #{trade_id} はSTANDARDではありません。"
 
         if trade.entry_order is None or trade.entry_order.result is None:
             return False, f"Trade #{trade_id} はENTRY未約定です。"
@@ -378,37 +383,36 @@ class TradeEngineAPI:
             return False, "利確ラインには0より大きい数値を指定してください。"
 
         quote = trade.get_quote()
+
         if quote is None or quote.current_price is None:
             return False, f"Trade #{trade_id} の現在値を取得できません。"
 
-        entry_price = trade.entry_order.result.price
         current_price = quote.current_price
 
         if trade.param.side == SideType.LONG:
-            if profit_target_price <= entry_price:
-                return False, "LONGの利確ラインはENTRY価格より上に指定してください。"
             if profit_target_price <= current_price:
                 return False, "LONGの利確ラインは現在値より上に指定してください。"
+
         else:
-            if profit_target_price >= entry_price:
-                return False, "SHORTの利確ラインはENTRY価格より下に指定してください。"
             if profit_target_price >= current_price:
                 return False, "SHORTの利確ラインは現在値より下に指定してください。"
 
         previous_target = trade.runtime.profit_target_price
+
         trade.runtime.profit_target_price = profit_target_price
+        trade.runtime.profit_target_enabled = enabled
 
         message = (
-            f"PROFIT TARGET LINE UPDATED side={trade.param.side.value} "
-            f"previous={previous_target} new={profit_target_price} "
+            f"PROFIT TARGET LINE UPDATED "
+            f"side={trade.param.side.value} "
+            f"previous={previous_target} "
+            f"new={profit_target_price} "
+            f"enabled={enabled} "
             f"current_price={current_price}"
         )
         Log.event(f"(#{trade_id}) {message}")
-        trade.add_timeline(
-            event="EXIT",
-            message=message,
-            current_price=current_price,
-        )
+        trade.add_timeline(event="EXIT", message=message, current_price=current_price)
+
         self._save_trade(trade)
 
         return True, "利確ラインを変更しました。"

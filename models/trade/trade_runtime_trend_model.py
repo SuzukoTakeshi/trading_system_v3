@@ -16,6 +16,9 @@ class TradeRuntimeTrendModel:
         self.current_bar = None
         self.bars = []
 
+        # TREND判定結果
+        self.trend_direction = "UNDEFINED"
+
         # 一時データなので保存・復元は行わない
         # trend_chartに渡すために使用
         self.short_moving_averages = []

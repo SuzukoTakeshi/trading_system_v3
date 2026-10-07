@@ -43,6 +43,7 @@ class TradeChartModel:
         price_close=None,
 
         range_params=None,
+        trend_params=None,
     ):
 
         self.time = time or datetime.now()
@@ -78,6 +79,8 @@ class TradeChartModel:
         #     "range_lower_limit": 2956.875
         # }
 
+        # TREND
+        self.trend_params = trend_params
 
     @property
     def price(self):
@@ -124,6 +127,9 @@ class TradeChartModel:
 
             # RANGE
             "range_params": self.range_params,
+
+            # TREND
+            "trend_params": self.trend_params,
         }
 
 
@@ -176,4 +182,7 @@ class TradeChartModel:
 
             # RANGE
             range_params=data.get("range_params"),
+
+            # TREND
+            trend_params=data.get("trend_params"),
         )

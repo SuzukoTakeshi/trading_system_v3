@@ -42,7 +42,7 @@ from models.order.order_result_model import OrderResultModel
 #   ・ProcessExitRequest
 # など、ENTRY / EXIT 共通で使用する。
 #
-ORDER_SUBMIT_TIMEOUT_SEC = 5
+ORDER_SUBMIT_TIMEOUT_SEC = 10
 
 
 class ProcessOrderBase(ProcessBase):

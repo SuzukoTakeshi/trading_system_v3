@@ -1,18 +1,18 @@
 #
-# trade/entry/entry_trand/process_entry_trend.py
+# trade/exit/exit_trend/process_exit_trend.py
 #
-# TREND Entry
+# TREND Exit
 #
 # 役割:
 #   ・TREND BAR更新
 #   ・TREND判定
-#   ・TRENDに応じたENTRY条件判定
+#   ・TRENDに応じたEXIT条件判定
 #
 # 注意:
 #   ・注文生成は行わない
-#   ・UP   + LONG でENTRY
-#   ・DOWN + SHORTでENTRY
-#   ・RANGE / UNDEFINEDではENTRYしない
+#   ・DOWN + LONG でEXIT
+#   ・UP   + SHORTでEXIT
+#   ・RANGE / UNDEFINEDではEXITしない
 #
 
 from core.logger import Log
@@ -20,21 +20,22 @@ from core.strategy_trend_config_loader import StrategyTrendConfig
 
 from trade.trade_enums import (
     SideType,
+    ExitReason,
 )
 
-from trade.entry.process_entry_base import ProcessEntryBase
+from trade.exit.process_exit_base import ProcessExitBase
 
 from trade.trend.trend_bar_builder import TrendBarBuilder
 from trade.trend.trend_analyzer import TrendAnalyzer
 
 
-class ProcessEntryTrend(ProcessEntryBase):
+class ProcessExitTrend(ProcessExitBase):
 
     def __init__(self, context, market):
 
         super().__init__(context, market)
 
-        Log.create("ProcessEntryTrend")
+        Log.create("ProcessExitTrend")
 
         self.config = StrategyTrendConfig.instance().get_trend()
 
@@ -46,11 +47,11 @@ class ProcessEntryTrend(ProcessEntryBase):
     # ==========================================
     # Process入口
     #
-    #   EngineからENTRY状態で呼ばれる
+    #   EngineからEXIT状態で呼ばれる
     # ==========================================
     def process(self, trade):
 
-        # Log.flow("ENTRY", f"(#{trade.id}) ProcessEntryTrend:process")
+        # Log.flow("EXIT", f"(#{trade.id}) ProcessExitTrend:process")
 
         # --------------------------------------
         # 現在価格取得
@@ -58,13 +59,9 @@ class ProcessEntryTrend(ProcessEntryBase):
         quote = trade.get_quote()
 
         # --------------------------------------
-        # 共通初期処理
-        # --------------------------------------
-        self.process_base(trade, quote)
-
-        # --------------------------------------
         # 現在価格
         # --------------------------------------
+        self.quote = quote
         current_price = self.quote.current_price
 
         # --------------------------------------
@@ -96,33 +93,39 @@ class ProcessEntryTrend(ProcessEntryBase):
         runtime.trend_direction = trend_direction
 
         Log.debug(
-            f"(#{trade.id}) TREND ENTRY "
-            f"price={current_price} "
+            f"(#{trade.id}) TREND EXIT "
+            f"current_price={current_price} "
             f"datetime={self.quote.current_datetime} "
             f"direction={trend_direction} "
             f"total={result['total_score']}"
         )
 
         # --------------------------------------
-        # TREND ENTRY判定
+        # TREND EXIT判定
         # --------------------------------------
-
-        # UP TREND
-        if trend_direction == "UP":
-
-            if trade.param.side == SideType.LONG:
-                Log.event(f"(#{trade.id}) TREND ENTRY LONG price={current_price}")
-                self.notify(trade, "TREND ENTRY LONG")
-                return True
-
-            return False
 
         # DOWN TREND
         if trend_direction == "DOWN":
 
+            if trade.param.side == SideType.LONG:
+                message = f"TREND EXIT LONG price={current_price}"
+                trade.add_timeline(event="EXIT", message=message, current_price=current_price)
+                trade.runtime.set_exit(current_price, ExitReason.TREND_EXIT)
+                Log.event(f"(#{trade.id}) {message}")
+                self.notify(trade, "TREND EXIT LONG")
+                return True
+
+            return False
+
+        # UP TREND
+        if trend_direction == "UP":
+
             if trade.param.side == SideType.SHORT:
-                Log.event(f"(#{trade.id}) TREND ENTRY SHORT price={current_price}")
-                self.notify(trade, "TREND ENTRY SHORT")
+                message = f"TREND EXIT SHORT price={current_price}"
+                trade.add_timeline(event="EXIT", message=message, current_price=current_price)
+                trade.runtime.set_exit(current_price, ExitReason.TREND_EXIT)
+                Log.event(f"(#{trade.id}) {message}")
+                self.notify(trade, "TREND EXIT SHORT")
                 return True
 
             return False

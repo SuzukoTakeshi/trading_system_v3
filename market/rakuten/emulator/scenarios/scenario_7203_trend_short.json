@@ -1,0 +1,302 @@
+{
+    "trade": {
+        "symbol": 7203,
+        "trade_price": 0,
+        "quantity": 100,
+        "atr": 1.0,
+        "trade_type": "margin",
+        "margin_type": "day",
+        "side": "short",
+        "strategy": "scalping"
+    },
+
+    "market": {
+        "mode": "scenario",
+        "interval": 2.0,
+        "scenario": [
+            {
+                "comment": [
+                    "=== TREND ENTRY -> EXIT TEST ===",
+                    "Strategy : SCALPING",
+                    "Side     : SHORT",
+                    "TREND    : RANGE -> DOWN -> UP",
+                    "ENTRY    : DOWN",
+                    "EXIT     : UP"
+                ]
+            },
+
+            {
+                "comment": "開始"
+            },
+
+            { "price": 1000.0 },
+            { "price": 998.0 },
+            { "price": 999.0 },
+            { "price": 996.0 },
+            { "price": 994.0 },
+            { "price": 995.0 },
+            { "price": 992.0 },
+            { "price": 990.0 },
+            { "price": 991.0 },
+            { "price": 988.0 },
+
+            { "price": 986.0 },
+            { "price": 987.0 },
+            { "price": 984.0 },
+            { "price": 982.0 },
+            { "price": 983.0 },
+            { "price": 980.0 },
+            { "price": 978.0 },
+            { "price": 979.0 },
+            { "price": 976.0 },
+            { "price": 974.0 },
+
+            { "price": 975.0 },
+            { "price": 972.0 },
+            { "price": 970.0 },
+            { "price": 971.0 },
+            { "price": 968.0 },
+            { "price": 966.0 },
+            { "price": 967.0 },
+            { "price": 964.0 },
+            { "price": 962.0 },
+            { "price": 963.0 },
+
+            { "price": 960.0 },
+            { "price": 958.0 },
+            { "price": 959.0 },
+            { "price": 956.0 },
+            { "price": 954.0 },
+            { "price": 955.0 },
+            { "price": 952.0 },
+            { "price": 950.0 },
+            { "price": 951.0 },
+            { "price": 948.0 },
+
+            { "price": 946.0 },
+            { "price": 947.0 },
+            { "price": 944.0 },
+            { "price": 942.0 },
+            { "price": 943.0 },
+            { "price": 940.0 },
+            { "price": 938.0 },
+            { "price": 939.0 },
+            { "price": 936.0 },
+            { "price": 934.0 },
+
+            { "price": 935.0 },
+            { "price": 932.0 },
+            { "price": 930.0 },
+            { "price": 931.0 },
+            { "price": 928.0 },
+            { "price": 926.0 },
+            { "price": 927.0 },
+            { "price": 924.0 },
+            { "price": 922.0 },
+            { "price": 923.0 },
+
+            { "price": 920.0 },
+            { "price": 918.0 },
+            { "price": 919.0 },
+            { "price": 916.0 },
+
+            {
+                "comment": "ここまで RANGE"
+            },
+
+            {
+                "comment": "ここから DOWN判定"
+            },
+
+            { "price": 914.0 },
+
+            {
+                "comment": "914 -> DOWN判定 / SHORT ENTRY"
+            },
+
+            { "price": 915.0 },
+            { "price": 912.0 },
+            { "price": 910.0 },
+            { "price": 911.0 },
+            { "price": 908.0 },
+
+            { "price": 906.0 },
+            { "price": 907.0 },
+            { "price": 904.0 },
+            { "price": 902.0 },
+            { "price": 903.0 },
+            { "price": 900.0 },
+
+            { "price": 898.0 },
+            { "price": 899.0 },
+            { "price": 896.0 },
+            { "price": 894.0 },
+
+            { "price": 895.0 },
+            { "price": 892.0 },
+            { "price": 890.0 },
+            { "price": 891.0 },
+            { "price": 888.0 },
+            { "price": 886.0 },
+
+            { "price": 887.0 },
+            { "price": 884.0 },
+            { "price": 882.0 },
+            { "price": 883.0 },
+            { "price": 880.0 },
+
+            { "price": 878.0 },
+            { "price": 879.0 },
+            { "price": 876.0 },
+            { "price": 874.0 },
+            { "price": 875.0 },
+            { "price": 872.0 },
+
+            { "price": 870.0 },
+            { "price": 871.0 },
+            { "price": 868.0 },
+            { "price": 866.0 },
+            { "price": 867.0 },
+            { "price": 864.0 },
+
+            { "price": 862.0 },
+            { "price": 863.0 },
+            { "price": 860.0 },
+            { "price": 858.0 },
+            { "price": 859.0 },
+            { "price": 856.0 },
+
+            { "price": 854.0 },
+            { "price": 855.0 },
+            { "price": 852.0 },
+            { "price": 850.0 },
+            { "price": 851.0 },
+            { "price": 848.0 },
+
+            { "price": 846.0 },
+            { "price": 847.0 },
+            { "price": 844.0 },
+            { "price": 842.0 },
+            { "price": 843.0 },
+
+            { "price": 840.0 },
+            { "price": 838.0 },
+            { "price": 839.0 },
+            { "price": 836.0 },
+            { "price": 834.0 },
+
+            {
+                "comment": "DOWN継続中"
+            },
+
+            {
+                "comment": "ここからさらに下降"
+            },
+
+            { "price": 780.0 },
+            { "price": 778.0 },
+            { "price": 779.0 },
+            { "price": 776.0 },
+            { "price": 774.0 },
+            { "price": 775.0 },
+            { "price": 772.0 },
+            { "price": 770.0 },
+            { "price": 771.0 },
+            { "price": 768.0 },
+
+            { "price": 766.0 },
+            { "price": 767.0 },
+            { "price": 764.0 },
+            { "price": 762.0 },
+            { "price": 763.0 },
+            { "price": 760.0 },
+            { "price": 758.0 },
+            { "price": 759.0 },
+            { "price": 756.0 },
+            { "price": 754.0 },
+
+            {
+                "comment": "DOWN継続 / SHORT保有中"
+            },
+
+            { "price": 755.0 },
+            { "price": 752.0 },
+            { "price": 750.0 },
+            { "price": 751.0 },
+            { "price": 748.0 },
+            { "price": 746.0 },
+            { "price": 747.0 },
+            { "price": 744.0 },
+            { "price": 742.0 },
+            { "price": 743.0 },
+
+            { "price": 740.0 },
+            { "price": 738.0 },
+            { "price": 739.0 },
+            { "price": 736.0 },
+            { "price": 734.0 },
+
+            {
+                "comment": "ここから上昇開始"
+            },
+
+            { "price": 735.0 },
+            { "price": 738.0 },
+            { "price": 737.0 },
+            { "price": 740.0 },
+            { "price": 742.0 },
+            { "price": 741.0 },
+            { "price": 744.0 },
+            { "price": 746.0 },
+            { "price": 745.0 },
+            { "price": 748.0 },
+
+            { "price": 750.0 },
+            { "price": 752.0 },
+            { "price": 751.0 },
+            { "price": 754.0 },
+            { "price": 756.0 },
+            { "price": 755.0 },
+            { "price": 758.0 },
+            { "price": 760.0 },
+            { "price": 759.0 },
+            { "price": 762.0 },
+
+            {
+                "comment": "ここまで UNDEFINED"
+            },
+
+            {
+                "comment": "ここから UP判定"
+            },
+
+            { "price": 764.0 },
+
+            {
+                "comment": "764 -> UP判定 / SHORT EXIT"
+            },
+
+            { "price": 766.0 },
+            { "price": 765.0 },
+            { "price": 768.0 },
+            { "price": 770.0 },
+            { "price": 769.0 },
+            { "price": 772.0 },
+            { "price": 774.0 },
+            { "price": 773.0 },
+            { "price": 776.0 },
+
+            { "price": 778.0 },
+            { "price": 780.0 },
+            { "price": 779.0 },
+            { "price": 782.0 },
+            { "price": 784.0 },
+
+            {
+                "comment": "UP -> SHORT EXIT確認"
+            },
+
+            { "end": true }
+        ]
+    }
+}

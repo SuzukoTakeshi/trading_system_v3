@@ -27,6 +27,7 @@ from trade.exit.process_exit_base import ProcessExitBase
 
 from trade.exit.exit_stop.process_exit_stop import ProcessExitStop
 from trade.exit.exit_range.process_exit_range import ProcessExitRange
+from trade.exit.exit_trend.process_exit_trend import ProcessExitTrend
 
 
 class ProcessExit(ProcessExitBase):
@@ -39,6 +40,7 @@ class ProcessExit(ProcessExitBase):
 
         self.exit_stop = ProcessExitStop(context, market)
         self.exit_range = ProcessExitRange(context, market)
+        self.exit_trend = ProcessExitTrend(context, market)
 
         self.quote = None
 
@@ -52,16 +54,21 @@ class ProcessExit(ProcessExitBase):
         self.quote = trade.get_quote()
 
         if trade.param.strategy_type == "standard":
-            if trade.param.exit_method == "profit":
-                if self.is_profit_target_hit(trade):
+
+            if trade.param.exit_method == "stop":
+                if self.exit_stop.process(trade):
                     return True
-            elif self.exit_stop.process(trade):
+
+            if self.is_profit_target_hit(trade):
                 return True
 
         if trade.param.strategy_type == "range":
             if self.exit_range.process(trade):
                 return True
 
+        if trade.param.strategy_type == "trend":
+            if self.exit_trend.process(trade):
+                return True
 
         # DEBUGでは時間系EXITを行わない
         if not self.market.is_debug():
@@ -80,22 +87,22 @@ class ProcessExit(ProcessExitBase):
 
         return False
 
+
+    # ==========================================
+    # 金額による利益確定
+    # ・MONITOR画面の利確ライン設定ダイアログで設定
+    # ==========================================
     def is_profit_target_hit(self, trade):
-        """ENTRY約定価格から指定率の利益が出たら決済する。"""
-        if trade.entry_order is None or trade.entry_order.result is None:
+
+        if not trade.runtime.profit_target_enabled:
             return False
 
-        entry_price = trade.entry_order.result.price
-        current_price = self.quote.current_price
         target_price = trade.runtime.profit_target_price
 
         if target_price is None:
-            target_rate = trade.param.profit_target_percent / 100
-            if trade.param.side.value == "long":
-                target_price = entry_price * (1 + target_rate)
-            else:
-                target_price = entry_price * (1 - target_rate)
-            trade.runtime.profit_target_price = target_price
+            return False
+
+        current_price = self.quote.current_price
 
         if trade.param.side.value == "long":
             hit = current_price >= target_price
@@ -110,14 +117,14 @@ class ProcessExit(ProcessExitBase):
             f"current_price={current_price} target={target_price}"
         )
         Log.event(f"(#{trade.id}) {message}")
-        trade.add_timeline(
-            event="EXIT",
-            message=message,
-            current_price=current_price,
-        )
+        trade.add_timeline(event="EXIT", message=message, current_price=current_price)
+
         trade.runtime.set_exit(current_price, ExitReason.PROFIT_TARGET_EXIT)
+
         self.notify(trade, "PROFIT TARGET EXIT")
+
         return True
+
 
     # ==========================================
     # 1日信用 強制手仕舞い

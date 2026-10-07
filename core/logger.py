@@ -29,7 +29,8 @@
 #   ・check()      ：判定・条件確認
 #
 #   ・emulator()   ：Emulator関連
-
+#
+#   ・trend()      ：トレンド判定
 
 #   ・trade()      ：売買情報
 #   ・order()      ：注文処理
@@ -57,6 +58,8 @@
 #   ・CHECK       ：判定確認
 
 #   ・EMULATOR    ：Emulator専用
+
+#   ・TREND       ：トレンド判定
 
 #   ・TRADE       ：売買情報
 #   ・ORDER       ：注文処理
@@ -357,6 +360,12 @@ class Log:
         cls._write_log("EMULATOR", *args)
 
 
+    # ========================
+    # TREND
+    # ========================
+    @classmethod
+    def trend(cls, *args):
+        cls._write_log("TREND", *args)
 
 
     # ========================

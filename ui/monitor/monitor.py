@@ -196,7 +196,7 @@ def main():
 
                     with star_col:
                         if target is not None:
-                            profit_loss = trade.get("profit_loss")
+                            profit_loss = target.get("profit_loss")
                             if profit_loss is not None:
                                 if profit_loss > 0:
                                     star = "★"

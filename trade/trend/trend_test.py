@@ -112,12 +112,99 @@ class TrendTest:
         # Price → TrendBarBuilder
         # の順で処理する。
         # --------------------------------------
+
+        previous_direction = None
+
         for i, price in enumerate(prices):
 
             current_time = start_time + timedelta(
                 seconds=i
             )
 
+            # --------------------------------------
+            # TREND BAR更新
+            #
+            # 実運用と同じく、
+            # Price → TrendBarBuilder
+            # の順で処理する。
+            # --------------------------------------
+            self.trend_bar_builder.update(
+                trend_runtime,
+                price,
+                current_time,
+            )
+
+            # --------------------------------------
+            # TREND分析
+            #
+            # 現時点で完成しているTREND BARを
+            # Analyzerへ渡して判定する。
+            # --------------------------------------
+            result = self.trend_analyzer.analyze(
+                trend_runtime.bars
+            )
+
+            # --------------------------------------
+            # TREND移動平均をRuntimeへ反映
+            #
+            # TRENDチャートでMAを表示するために使用する。
+            # --------------------------------------
+            trend_runtime.short_moving_averages = (
+                result["short_moving_averages"]
+            )
+
+            trend_runtime.medium_moving_averages = (
+                result["medium_moving_averages"]
+            )
+
+            trend_runtime.long_moving_averages = (
+                result["long_moving_averages"]
+            )
+
+            trend_direction = result["trend_direction"]
+
+            if trend_direction != previous_direction:
+                Log.debug(
+                    f"TREND CHANGE "
+                    f"index={i} "
+                    f"price={price} "
+                    f"direction={trend_direction}"
+                )
+            previous_direction = trend_direction
+
+            # --------------------------------------
+            # 現在のTREND状態
+            #
+            # Chart上でTREND判定を確認できるようにする。
+            # --------------------------------------
+            trend_params = {
+                "trend_direction": trend_direction,
+
+                "short_moving_average": (
+                    result["short_moving_averages"][-1]["value"]
+                    if result["short_moving_averages"]
+                    else None
+                ),
+
+                "medium_moving_average": (
+                    result["medium_moving_averages"][-1]["value"]
+                    if result["medium_moving_averages"]
+                    else None
+                ),
+
+                "long_moving_average": (
+                    result["long_moving_averages"][-1]["value"]
+                    if result["long_moving_averages"]
+                    else None
+                ),
+            }
+
+            # --------------------------------------
+            # Chartデータ作成
+            #
+            # Priceと、その時点のTREND判定を
+            # 同じChartデータとして保存する。
+            # --------------------------------------
             chart_data = TradeChartModel(
                 time=current_time,
 
@@ -125,15 +212,12 @@ class TrendTest:
                 price_high=price,
                 price_low=price,
                 price_close=price,
+
+                trend_params=trend_params,
             )
 
             chart_data_list.append(chart_data)
 
-            self.trend_bar_builder.update(
-                trend_runtime,
-                price,
-                current_time,
-            )
 
         # --------------------------------------
         # TREND BAR生成結果
@@ -155,36 +239,5 @@ class TrendTest:
                 f"low={trend_runtime.current_bar.low} "
                 f"close={trend_runtime.current_bar.close}"
             )
-
-        # --------------------------------------
-        # TREND分析
-        #
-        # 生成したTREND BARをAnalyzerへ渡し、
-        # SMA / Price Change / Structureなどから
-        # TREND方向を判定する。
-        # --------------------------------------
-        result = self.trend_analyzer.analyze(
-            trend_runtime.bars
-        )
-
-        trend_runtime.short_moving_averages = (
-            result["short_moving_averages"]
-        )
-
-        trend_runtime.medium_moving_averages = (
-            result["medium_moving_averages"]
-        )
-
-        trend_runtime.long_moving_averages = (
-            result["long_moving_averages"]
-        )
-
-        trend_direction = result["trend_direction"]
-
-        Log.debug(
-            f"TREND TEST DIRECTION "
-            f"direction={trend_direction} "
-            f"total={result['total_score']}"
-        )
 
         return

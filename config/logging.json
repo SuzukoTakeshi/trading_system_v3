@@ -11,6 +11,8 @@
     "ASSET": true,
     "FLOW": false,
 
+    "TREND": false,
+
     "EMULATOR": true,
 
     "ENTRY": false,
@@ -33,6 +35,8 @@
 
         "STATE": "状態遷移",
         "FLOW": "処理フロー確認",
+
+        "TREND": "トレンド判定",
 
         "EMULATOR": "エミュレーター動作",
 

@@ -123,6 +123,7 @@ def update_trade_profit_target(trade_id: int, req: ProfitTargetPriceRequestDTO):
     return app_service.trade_service.update_profit_target_price(
         trade_id,
         req.profit_target_price,
+        req.enabled,
     )
 
 

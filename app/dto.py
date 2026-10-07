@@ -53,3 +53,4 @@ class StopPriceRequestDTO(BaseModel):
 class ProfitTargetPriceRequestDTO(BaseModel):
 
     profit_target_price: float
+    enabled: bool

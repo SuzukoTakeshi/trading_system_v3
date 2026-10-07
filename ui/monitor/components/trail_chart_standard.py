@@ -245,13 +245,11 @@ def render_standard_chart(
         ]
 
         if not stop_rows.empty:
-
             latest_stop = (
                 stop_rows.iloc[-1]["stop_loss"]
             )
 
             if pd.notna(latest_stop):
-
                 ax.axhline(
                     latest_stop,
                     linestyle="--",
@@ -260,7 +258,11 @@ def render_standard_chart(
                     color="red"
                 )
 
-    elif profit_target_price is not None:
+    # ==================================================
+    # 利確ライン
+    # ==================================================
+
+    if profit_target_price is not None:
         ax.axhline(
             profit_target_price,
             linestyle="--",
@@ -269,6 +271,7 @@ def render_standard_chart(
             color="green",
             label=f"PROFIT TARGET ({profit_target_price:,.2f})",
         )
+
 
     # ==================================================
     # ENTRY
