@@ -101,7 +101,6 @@ class TradeEngineAPI:
                 )
             ),
             exit_method=(getattr(req, "exit_method", None) or "stop"),
-            profit_target_percent=(getattr(req, "profit_target_percent", None) or 0.1),
         )
 
         if trade.param.repeat_count > 1:
@@ -198,7 +197,6 @@ class TradeEngineAPI:
             repeat_group_id=previous_param.repeat_group_id,
             entry_method=previous_param.entry_method,
             exit_method=previous_param.exit_method,
-            profit_target_percent=previous_param.profit_target_percent,
         )
 
         self.context.trades[trade.id] = trade
@@ -261,7 +259,7 @@ class TradeEngineAPI:
 
         if trade.state not in [
             TradeState.CREATED,
-            TradeState.ENTRY_WAIT,
+            TradeState.ENTRY_INIT,
             TradeState.ENTRY,
             TradeState.EXIT,
         ]:
@@ -300,6 +298,54 @@ class TradeEngineAPI:
         self.context.notifier.notify_trade(trade, "TRADE RESUME")
 
         return True
+
+
+    # ==========================================
+    # ATR変更
+    # ==========================================
+    def update_atr(self, trade_id, atr):
+
+        trade = self.context.trades.get(trade_id)
+
+        if trade is None:
+            return False, f"Trade #{trade_id} が存在しません。"
+
+        if trade.state != TradeState.EXIT:
+            return False, f"Trade #{trade_id} はEXIT監視中ではありません。"
+
+        if trade.entry_order is None or trade.entry_order.result is None:
+            return False, f"Trade #{trade_id} はENTRY未約定です。"
+
+        if not math.isfinite(atr) or atr < 0.1:
+            return False, "ATRには0.1以上の数値を指定してください。"
+
+        previous_atr = trade.param.atr
+        trade.param.atr = atr
+
+        quote = trade.get_quote()
+        current_price = (
+            quote.current_price
+            if quote is not None
+            else None
+        )
+
+        message = (
+            f"ATR UPDATED "
+            f"previous={previous_atr} "
+            f"new={atr}"
+        )
+
+        Log.event(f"(#{trade_id}) {message}")
+
+        trade.add_timeline(
+            event="EXIT",
+            message=message,
+            current_price=current_price,
+        )
+
+        self._save_trade(trade)
+
+        return True, "ATRを変更しました。"
 
 
     # ==========================================
@@ -440,7 +486,7 @@ class TradeEngineAPI:
 
             cancelable_states = [
                 TradeState.CREATED,
-                TradeState.ENTRY_WAIT,
+                TradeState.ENTRY_INIT,
                 TradeState.ENTRY,
                 TradeState.EXIT,
             ]

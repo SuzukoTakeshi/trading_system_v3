@@ -14,6 +14,7 @@ from app.service import AppService
 from app.dto import (
     TradeRequestDTO,
     TradeIdsRequestDTO,
+    AtrRequestDTO,
     StopPriceRequestDTO,
     ProfitTargetPriceRequestDTO,
 )
@@ -106,6 +107,15 @@ def pause_trade(trade_id: int):
 def resume_trade(trade_id: int):
 
     return app_service.trade_service.resume_trade(trade_id)
+
+
+@app.post("/trade/{trade_id}/atr")
+def update_trade_atr(trade_id: int, req: AtrRequestDTO):
+
+    return app_service.trade_service.update_atr(
+        trade_id,
+        req.atr,
+    )
 
 
 @app.post("/trade/{trade_id}/stop")

@@ -37,12 +37,16 @@ class TradeRequestDTO(BaseModel):
     # STANDARDで選択するENTRY/EXIT判定方式
     entry_method: Optional[str] = None
     exit_method: Optional[str] = None
-    profit_target_percent: Optional[float] = None
 
 
 class TradeIdsRequestDTO(BaseModel):
 
     trade_ids: list[int]
+
+
+class AtrRequestDTO(BaseModel):
+
+    atr: float
 
 
 class StopPriceRequestDTO(BaseModel):

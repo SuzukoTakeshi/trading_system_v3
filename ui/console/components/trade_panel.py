@@ -119,9 +119,6 @@ def trade_panel():
             if strategy_type == "standard":
                 payload["entry_method"] = trade_params["entry_method"]
                 payload["exit_method"] = trade_params["exit_method"]
-                payload["profit_target_percent"] = trade_params[
-                    "profit_target_percent"
-                ]
 
             # ==================================================
             # RANGEパラメータ

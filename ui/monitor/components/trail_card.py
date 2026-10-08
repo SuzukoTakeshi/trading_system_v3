@@ -7,6 +7,7 @@ import streamlit as st
 
 from ui.api.client import (
     get_error_message,
+    update_atr,
     update_stop_price,
     update_profit_target_price,
 )
@@ -30,8 +31,51 @@ from ui.utils.formatters import (
 )
 
 
-@st.dialog("損切ライン変更")
+def resume_monitor_refresh():
+    st.session_state["monitor_dialog_open"] = False
+
+
+@st.dialog("ATR変更", on_dismiss=resume_monitor_refresh)
+def atr_dialog(trade_id, current_atr):
+    st.session_state["monitor_dialog_open"] = True
+
+    st.write(f"Trade #{trade_id} のATRを変更します。")
+
+    input_key = f"monitor_atr_input_{trade_id}"
+
+    if input_key not in st.session_state:
+        st.session_state[input_key] = float(current_atr)
+
+    with st.form(key=f"monitor_atr_form_{trade_id}"):
+
+        requested_atr = st.number_input(
+            "新しいATR（%）",
+            min_value=0.1,
+            step=0.1,
+            key=input_key,
+        )
+
+        submitted = st.form_submit_button("変更依頼", width="stretch")
+
+    if submitted:
+        try:
+            response = update_atr(trade_id, requested_atr)
+
+            if response.get("result") == "OK":
+                st.success(response.get("message", "ATRを変更しました。"))
+                st.session_state["monitor_dialog_open"] = False
+                st.rerun()
+
+            else:
+                st.error(response.get("message", "ATR変更に失敗しました。"))
+
+        except Exception as e:
+            st.error(get_error_message(e))
+
+
+@st.dialog("損切ライン変更", on_dismiss=resume_monitor_refresh)
 def stop_price_dialog(trade_id, current_stop, entry_price):
+    st.session_state["monitor_dialog_open"] = True
 
     st.write(f"Trade #{trade_id} の損切ラインを変更します。")
 
@@ -61,20 +105,25 @@ def stop_price_dialog(trade_id, current_stop, entry_price):
             response = update_stop_price(trade_id, requested_stop)
             if response.get("result") == "OK":
                 st.success(response.get("message", "STOPラインを変更しました。"))
+                st.session_state["monitor_dialog_open"] = False
                 st.rerun()
+
             else:
                 st.error(response.get("message", "STOPライン変更に失敗しました。"))
         except Exception as e:
             st.error(get_error_message(e))
 
 
-@st.dialog("利確ライン変更")
-def profit_target_price_dialog(trade_id, current_target, entry_price, current_enabled):
+@st.dialog("利確ライン変更", on_dismiss=resume_monitor_refresh)
+def profit_target_price_dialog(trade_id, current_target, entry_price, side):
+    st.session_state["monitor_dialog_open"] = True
 
     st.write(f"Trade #{trade_id} の利確ラインを変更します。")
 
     input_key = f"monitor_profit_target_input_{trade_id}"
     enabled_key = f"monitor_profit_target_enabled_{trade_id}"
+    percent_key = f"monitor_profit_target_percent_{trade_id}"
+    percent_saved_key = f"monitor_profit_target_saved_{trade_id}"
 
     if input_key not in st.session_state:
         if current_target is not None:
@@ -82,14 +131,58 @@ def profit_target_price_dialog(trade_id, current_target, entry_price, current_en
         elif entry_price is not None:
             st.session_state[input_key] = float(entry_price)
 
+    if percent_saved_key not in st.session_state:
+        st.session_state[percent_saved_key] = 0.0
+
+    st.session_state[percent_key] = st.session_state[percent_saved_key]
+
+    def calculate_profit_target():
+        percent = st.session_state[percent_key]
+        st.session_state[percent_saved_key] = percent
+
+        if side == "long":
+            new_price = entry_price * (1 + percent / 100)
+        elif side == "short":
+            new_price = entry_price * (1 - percent / 100)
+        else:
+            return
+
+        st.session_state[input_key] = round(new_price, 2)
+
     if entry_price is not None:
+        # 利確率入力
+        st.number_input(
+            "利確率（%）",
+            min_value=0.0,
+            step=0.1,
+            key=percent_key,
+            on_change=calculate_profit_target,
+        )
+
+        if st.button(
+            "利確率から価格を計算",
+            key=f"monitor_profit_target_calculate_{trade_id}",
+        ):
+            percent = st.session_state[percent_key]
+            st.session_state[percent_saved_key] = percent
+
+            if side == "long":
+                new_price = entry_price * (1 + percent / 100)
+            elif side == "short":
+                new_price = entry_price * (1 - percent / 100)
+            else:
+                return
+
+            st.session_state[input_key] = round(new_price, 2)
+
+        # 約定価格を入力・利確ライン有効トグル
         price_col, enabled_col = st.columns([2, 1])
 
         with price_col:
             if st.button(
-                "取得価格を入力",
+                "約定価格を入力",
                 key=f"monitor_profit_target_use_entry_price_{trade_id}",
-                help=f"取得価格 {fmt_price(entry_price)} を利確ラインに入力します",
+                help=f"約定価格 {fmt_price(entry_price)} を利確ラインに入力します",
             ):
                 st.session_state[input_key] = float(entry_price)
 
@@ -127,6 +220,7 @@ def profit_target_price_dialog(trade_id, current_target, entry_price, current_en
                         "利確ラインを変更しました。",
                     )
                 )
+                st.session_state["monitor_dialog_open"] = False
                 st.rerun()
             else:
                 st.error(
@@ -489,7 +583,26 @@ def render_trail_card(trade: dict):
             render_item("ENTRY判定基準価格", fmt_price(trade.get("entry_base_price")))
 
         with atr_col:
-            render_item("ATR", f"{trade.get('atr'):,.1f}%")
+
+            atr_value_col, atr_edit_col = st.columns([5, 1])
+
+            with atr_value_col:
+                render_item(
+                    "ATR",
+                    f"{trade.get('atr'):,.1f}%"
+                )
+
+            if trade.get("state") == "exit":
+                with atr_edit_col:
+                    if st.button(
+                        "✏️",
+                        key=f"monitor_atr_edit_{trade['trade_id']}",
+                        help="ATRを変更",
+                    ):
+                        atr_dialog(
+                            trade["trade_id"],
+                            trade.get("atr"),
+                        )
 
 
         # ---------------------
@@ -549,23 +662,13 @@ def render_trail_card(trade: dict):
             exit_method = trade.get("exit_method")
             exit_method_text = {
                 "stop": "STOP",
-                "profit": "利確(%)",
             }.get(exit_method, "-")
-            profit_target_percent = trade.get("profit_target_percent")
-            profit_text = (
-                f"{profit_target_percent:g}%"
-                if exit_method == "profit"
-                and isinstance(profit_target_percent, (int, float))
-                else "-"
-            )
 
-            entry_method_col, exit_method_col, profit_col, _ = st.columns(4)
+            entry_method_col, exit_method_col, _, _ = st.columns(4)
             with entry_method_col:
                 render_item("ENTRY判定", entry_method_text)
             with exit_method_col:
                 render_item("EXIT判定", exit_method_text)
-            with profit_col:
-                render_item("初期利確率", profit_text)
 
         # ---------------------
         # 取得
@@ -646,7 +749,7 @@ def render_trail_card(trade: dict):
                             trade["trade_id"],
                             target_price,
                             trade.get("entry_price"),
-                            target_enabled,
+                            side,
                         )
 
         with col4:

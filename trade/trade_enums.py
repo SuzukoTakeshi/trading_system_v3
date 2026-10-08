@@ -29,7 +29,7 @@ class EngineState(str, Enum):
 #
 # CREATED
 #   ↓
-# ENTRY_WAIT
+# ENTRY_INIT
 #   ↓
 # ENTRY
 #   ↓
@@ -57,7 +57,7 @@ class TradeState(str, Enum):
     CREATED = "created"
 
     # Entry監視
-    ENTRY_WAIT = "entry_wait"
+    ENTRY_INIT = "entry_init"
     ENTRY = "entry"
 
     # 注文処理
@@ -87,7 +87,7 @@ class TradeState(str, Enum):
     def is_trade_state(cls, state):
         return state in [
             cls.CREATED,
-            cls.ENTRY_WAIT,
+            cls.ENTRY_INIT,
             cls.ENTRY,
             cls.ENTRY_REQUEST,
             cls.ENTRY_RESULT,

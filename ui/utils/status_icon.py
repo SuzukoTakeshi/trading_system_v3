@@ -12,8 +12,8 @@ def state_icon(state: str):
         "created":
             "⚪ 作成",
 
-        "entry_wait":
-            "🟨 ENTRY待機",
+        "entry_init":
+            "🟨 ENTRY開始",
 
         "entry_pullback":
             "🟨 押し込み確認",

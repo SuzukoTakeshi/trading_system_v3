@@ -8,7 +8,7 @@
 #
 #   ENTRY判定状態
 #   約定後管理状態
-#   STOP管理状態
+#   EXIT判定状態
 #   を保持する。
 #
 
@@ -18,6 +18,7 @@ from core.logger import Log
 
 from trade.trade_enums import ExitReason
 
+from models.trade.trade_runtime_standard_model import TradeRuntimeStandardModel
 from models.trade.trade_runtime_range_model import TradeRuntimeRangeModel
 from models.trade.trade_runtime_trend_model import TradeRuntimeTrendModel
 
@@ -35,68 +36,21 @@ class TradeRuntimeModel:
 
         # 現在参照している市場情報
         #
-        # TradeReadyでQuoteModelを設定する。
+        # TradeReadyで取得した最新Quoteを
+        # Trade Runtimeに一時保持して、
+        # Trade処理全体から参照できるようにする。
         #
-        # Trade処理中は、
-        # self.quote.current_price
-        # などから現在の市場情報を取得する。
         self.quote = None
 
         # 値幅制限待ち状態
         #
         # True:
-        #   現在、値幅制限外でTrade停止中
+        #   値幅制限外のため、Trade処理を待機中
         #
         # False:
         #   値幅制限待ちではない
         #
         self.price_limit_waiting = False
-
-
-        # ---------------------------------------
-        # STOP管理
-        # ---------------------------------------
-
-        # STOP開始時刻
-        #
-        # 約定後、初回STOP処理を開始した時刻
-        #
-        self.stop_start_time = None
-
-        # LONG: 保有後最高値
-        self.stop_highest_price = None
-
-        # SHORT: 保有後最安値
-        self.stop_lowest_price = None
-
-
-        # ---------------------------------------
-        # ENTRY判定管理
-        # ---------------------------------------
-
-        # LONG/SHORT共通
-        # ENTRY監視開始時点の基準価格
-        self.entry_base_price = None
-
-        # LONG: 押し込み中の最安値
-        self.entry_lowest_price = None
-
-        # SHORT: 押し込み中の最高値
-        self.entry_highest_price = None
-
-        # 直前価格 (連続上昇・下降判定用)
-        self.entry_previous_price = None
-
-        # 反転確認回数
-        #   LONG:  連続上昇回数
-        #   SHORT: 連続下降回数
-        self.entry_reversal_count = 0
-
-        # LONG: Reversal中の最安値
-        self.entry_reversal_lowest_price = None
-
-        # SHORT: Reversal中の最高値
-        self.entry_reversal_highest_price = None
 
         # ---------------------------------------
         # EXIT判定管理
@@ -114,6 +68,16 @@ class TradeRuntimeModel:
         #
         self.stop_price = None
 
+        # STOP開始時刻
+        # 約定後、初回STOP処理を開始した時刻
+        self.stop_start_time = None
+
+        # LONG: 保有後最高値
+        self.stop_highest_price = None
+
+        # SHORT: 保有後最安値
+        self.stop_lowest_price = None
+
         # 利確方式で使う固定の利確価格
         self.profit_target_price = None
 
@@ -126,9 +90,10 @@ class TradeRuntimeModel:
         # Strategy固有Runtime
         self.strategy_runtime = None
 
-        if strategy_type == "range":
+        if strategy_type == "standard":
+            self.strategy_runtime = TradeRuntimeStandardModel()
+        elif strategy_type == "range":
             self.strategy_runtime = create_range_runtime(params)
-
         elif strategy_type in ("trend", "trend_test"):
             self.strategy_runtime = TradeRuntimeTrendModel()
 
@@ -139,7 +104,11 @@ class TradeRuntimeModel:
             # TRADE READY
             "price_limit_waiting": self.price_limit_waiting,
 
-            # STOP管理
+            # EXIT判定管理
+            "exit_decision_price": self.exit_decision_price,
+
+            "stop_price": self.stop_price,
+
             "stop_start_time": (
                 self.stop_start_time.isoformat()
                 if self.stop_start_time
@@ -149,19 +118,6 @@ class TradeRuntimeModel:
             "stop_highest_price": self.stop_highest_price,
             "stop_lowest_price": self.stop_lowest_price,
 
-            # ENTRY判定管理
-            "entry_base_price": self.entry_base_price,
-            "entry_lowest_price": self.entry_lowest_price,
-            "entry_highest_price": self.entry_highest_price,
-            "entry_previous_price": self.entry_previous_price,
-            "entry_reversal_count": self.entry_reversal_count,
-            "entry_reversal_lowest_price": self.entry_reversal_lowest_price,
-            "entry_reversal_highest_price": self.entry_reversal_highest_price,
-
-            # EXIT判定管理
-            "exit_decision_price": self.exit_decision_price,
-
-            "stop_price": self.stop_price,
             "profit_target_price": self.profit_target_price,
             "profit_target_enabled": self.profit_target_enabled,
 
@@ -193,7 +149,10 @@ class TradeRuntimeModel:
             False
         )
 
-        # STOP管理
+        # EXIT判定管理
+        runtime.exit_decision_price = data.get("exit_decision_price")
+
+        runtime.stop_price = data.get("stop_price")
         stop_start_time_str = data.get("stop_start_time")
         if stop_start_time_str:
             runtime.stop_start_time = datetime.fromisoformat(
@@ -206,20 +165,6 @@ class TradeRuntimeModel:
         runtime.stop_lowest_price = data.get(
             "stop_lowest_price"
         )
-
-        # ENTRY判定管理
-        runtime.entry_base_price = data.get("entry_base_price")
-        runtime.entry_lowest_price = data.get("entry_lowest_price")
-        runtime.entry_highest_price = data.get("entry_highest_price")
-        runtime.entry_previous_price = data.get("entry_previous_price")
-        runtime.entry_reversal_count = data.get("entry_reversal_count", 0)
-        runtime.entry_reversal_lowest_price = data.get("entry_reversal_lowest_price")
-        runtime.entry_reversal_highest_price = data.get("entry_reversal_highest_price")
-
-        # EXIT判定管理
-        runtime.exit_decision_price = data.get("exit_decision_price")
-
-        runtime.stop_price = data.get("stop_price")
         runtime.profit_target_price = data.get("profit_target_price")
         runtime.profit_target_enabled = data.get(
             "profit_target_enabled",
@@ -238,7 +183,14 @@ class TradeRuntimeModel:
 
         if strategy_runtime_data is not None:
 
-            if strategy_type == "range":
+            if strategy_type == "standard":
+                runtime.strategy_runtime = (
+                    TradeRuntimeStandardModel.from_dict(
+                        strategy_runtime_data
+                    )
+                )
+
+            elif strategy_type == "range":
                 runtime.strategy_runtime = (
                     TradeRuntimeRangeModel.from_dict(
                         strategy_runtime_data

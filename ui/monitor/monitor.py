@@ -327,11 +327,13 @@ def main():
     #
     # UIへの影響を避けるため、画面の最後に配置する。
     #
-    if auto_refresh:
+    # Auto Refresh
+    if auto_refresh and not st.session_state.get("monitor_dialog_open", False):
         st_autorefresh(
             interval=MONITOR_REFRESH_INTERVAL_MS,
             key="trade_monitor_refresh",
         )
+
 
     # Streamlit URL-encodes commas assigned through st.query_params.
     # Keep the comma-separated trade_ids readable in the browser URL.

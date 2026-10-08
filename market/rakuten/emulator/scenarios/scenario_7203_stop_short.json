@@ -1,0 +1,73 @@
+{
+    "trade": {
+        "symbol": 7203,
+        "trade_price": 0,
+        "quantity": 100,
+        "atr": 1.0,
+        "trade_type": "margin",
+        "margin_type": "day",
+        "side": "short",
+        "strategy": "scalping"
+    },
+
+    "market": {
+        "mode": "scenario",
+        "interval": 2.0,
+        "scenario": [
+            {
+                "comment": [
+                    "=== PROFIT TEST ===",
+                    "Strategy : SCALPING",
+                    "Side     : SHORT",
+                    "ATR      : 1.0"
+                ]
+            },
+
+            { "comment": "開始" },
+            { "price": 3000.0 },
+
+            { "comment": "戻り開始" },
+            { "price": 3005.0 },
+            { "price": 3010.0 },
+            { "price": 3015.0 },
+            { "price": 3020.0 },
+            { "price": 3025.0 },
+            { "price": 3020.0 },
+            { "price": 3015.0 },
+            { "price": 3020.0 },
+            { "price": 3025.0 },
+
+            { "comment": "反落開始" },
+            { "price": 3020.0 },
+            { "price": 3015.0 },
+            { "price": 3010.0 },
+            { "price": 3005.0 },
+
+            { "comment": "エントリー後下落" },
+            { "price": 3000.0 },
+            { "price": 2990.0 },
+            { "price": 2980.0 },
+            { "price": 2970.0 },
+            { "price": 2960.0 },
+            { "price": 2950.0 },
+            { "price": 2940.0 },
+
+            { "comment": "さらに下落して利益確定" },
+            { "price": 2930.0 },
+            { "price": 2920.0 },
+            { "price": 2910.0 },
+            { "price": 2900.0 },
+
+			{ "comment": "利益確定方向へ反発" },
+			{ "price": 2910.0 },
+			{ "price": 2920.0 },
+			{ "price": 2930.0 },
+			{ "price": 2940.0 },
+			{ "price": 2950.0 },
+			{ "price": 2960.0 },
+
+			{ "comment": "終了" },
+			{ "end": true }
+        ]
+    }
+}

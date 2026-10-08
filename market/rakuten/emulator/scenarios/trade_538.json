@@ -12,8 +12,7 @@
         "params": {},
         "repeat_count": 1,
         "entry_method": "immediate",
-        "exit_method": "stop",
-        "profit_target_percent": 0.1
+        "exit_method": "stop"
     },
     "market": {
         "mode": "scenario",
@@ -24,11 +23,11 @@
             },
             {
                 "price": 1185.5,
-                "comment": "STATE created -> entry_wait"
+                "comment": "STATE created -> entry_init"
             },
             {
                 "price": 1185.0,
-                "comment": "STATE entry_wait -> entry"
+                "comment": "STATE entry_init -> entry"
             },
             {
                 "price": 1185.0,

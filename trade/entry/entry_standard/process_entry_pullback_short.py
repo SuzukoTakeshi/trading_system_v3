@@ -40,6 +40,9 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
             f"(#{trade.id}) ProcessEntryPullbackShort:process"
         )
 
+        # STANDARD Runtime
+        runtime = trade.runtime.strategy_runtime
+
         # 現在価格取得
         quote = trade.get_quote()
 
@@ -54,7 +57,7 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
 
         # 戻り幅計算
         atr_amount = (
-            trade.runtime.entry_base_price
+            runtime.entry_base_price
             * trade.param.atr
             / 100
         )
@@ -66,12 +69,12 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
 
         # 戻り判定ライン
         pullback_price = (
-            trade.runtime.entry_base_price
+            runtime.entry_base_price
             + pullback_width
         )
 
         # 初回戻り設定
-        if trade.runtime.entry_highest_price is None:
+        if runtime.entry_highest_price is None:
 
             if current_price >= pullback_price:
 
@@ -82,8 +85,8 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
                 )
 
                 # 戻り開始情報保存
-                trade.runtime.entry_highest_price = current_price
-                trade.runtime.entry_previous_price = current_price
+                runtime.entry_highest_price = current_price
+                runtime.entry_previous_price = current_price
 
                 # Entry状態更新
                 trade.entry_state = EntryState.PULLBACK
@@ -93,7 +96,7 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
                     f"symbol={trade.param.symbol} "
                     f"current_price={current_price} "
                     f"entry_highest_price="
-                    f"{trade.runtime.entry_highest_price}"
+                    f"{runtime.entry_highest_price}"
                 )
 
                 Log.event(
@@ -116,7 +119,7 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
 
         # 戻り中
         #   高値更新確認
-        if current_price > trade.runtime.entry_highest_price:
+        if current_price > runtime.entry_highest_price:
 
             message = (
                 f"PULLBACK UPDATE HIGH SHORT "
@@ -124,7 +127,8 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
                 f"current_price={current_price}"
             )
 
-            Log.event(
+            Log.trace(
+                "ENTRY",
                 f"(#{trade.id}) {message}"
             )
 
@@ -135,13 +139,13 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
             )
 
             # 最高値更新
-            trade.runtime.entry_highest_price = current_price
+            runtime.entry_highest_price = current_price
 
         # 初回反転確認
         #   前回価格より下落した場合
         if (
-            trade.runtime.entry_previous_price is not None
-            and current_price < trade.runtime.entry_previous_price
+            runtime.entry_previous_price is not None
+            and current_price < runtime.entry_previous_price
         ):
 
             message = (
@@ -165,8 +169,8 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
             # ---------------------------------------
             # Pullbackで確認した最高値を
             # Reversal開始時点の基準高値として引き継ぐ。
-            trade.runtime.entry_reversal_highest_price = (
-                trade.runtime.entry_highest_price
+            runtime.entry_reversal_highest_price = (
+                runtime.entry_highest_price
             )
 
             # 通知
@@ -178,6 +182,6 @@ class ProcessEntryPullbackShort(ProcessEntryBase):
             return True
 
         # 前回価格更新
-        trade.runtime.entry_previous_price = current_price
+        runtime.entry_previous_price = current_price
 
         return False

@@ -211,7 +211,7 @@ class TradeService:
                 "strategy_type": trade["strategy_type"],
                 "entry_method": trade.get("entry_method"),
                 "exit_method": trade.get("exit_method"),
-                "profit_target_percent": trade.get("profit_target_percent"),
+
                 "repeat_index": trade["repeat_index"],
                 "repeat_count": trade["repeat_count"],
 
@@ -328,6 +328,33 @@ class TradeService:
         return Response.error(
             response_id="TRADE_RESUME_ERROR",
             message=f"Trade #{trade_id} をRESUMEできません。",
+        )
+
+    # ---------------------
+    # ATR変更
+    # ---------------------
+    def update_atr(self, trade_id, atr):
+
+        Log.debug(f"(#{trade_id}) TRADE SERVICE UPDATE ATR atr={atr}")
+
+        result, message = self.trade_engine.api.update_atr(
+            trade_id,
+            atr,
+        )
+
+        if result:
+            return Response.ok(
+                response_id="TRADE_ATR_UPDATED",
+                message=f"(#{trade_id}) {message}",
+                data={
+                    "trade_id": trade_id,
+                    "atr": atr,
+                },
+            )
+
+        return Response.rejected(
+            response_id="TRADE_ATR_UPDATE_REJECTED",
+            message=message,
         )
 
     # ---------------------

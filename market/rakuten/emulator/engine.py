@@ -232,7 +232,6 @@ class EmulatorEngine:
             "repeat_count": trade.get("repeat_count", 1),
             "entry_method": trade.get("entry_method"),
             "exit_method": trade.get("exit_method"),
-            "profit_target_percent": trade.get("profit_target_percent"),
         }
 
         Log.emulator(f"CREATE EMULATOR TRADE (@{req['symbol']})")

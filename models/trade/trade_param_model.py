@@ -48,7 +48,6 @@ class TradeParamModel:
         repeat_group_id=None,
         entry_method=None,
         exit_method="stop",
-        profit_target_percent=0.1,
     ):
 
         # 戦略タイプ
@@ -63,7 +62,6 @@ class TradeParamModel:
             else strategy_type
         )
         self.exit_method = exit_method or "stop"
-        self.profit_target_percent = profit_target_percent or 0.1
 
         # 銘柄
         self.symbol = symbol
@@ -107,9 +105,13 @@ class TradeParamModel:
         self.repeat_index = repeat_index
         self.repeat_group_id = repeat_group_id
 
+        # ---------------------------------------
         # MarketDes
-        # 銘柄の市場情報
-
+        # ---------------------------------------
+        # Trade開始時に取得した銘柄の市場情報
+        #
+        # Trade実行中は変更しない。
+        #
         # 売買単位
         self.trading_unit = None
 
@@ -126,7 +128,6 @@ class TradeParamModel:
             "strategy_type": self.strategy_type,
             "entry_method": self.entry_method,
             "exit_method": self.exit_method,
-            "profit_target_percent": self.profit_target_percent,
 
             "symbol": self.symbol,
             "quantity": self.quantity,
@@ -176,7 +177,6 @@ class TradeParamModel:
             strategy_type=data.get("strategy_type", "standard"),
             entry_method=data.get("entry_method"),
             exit_method=data.get("exit_method", "stop"),
-            profit_target_percent=data.get("profit_target_percent", 0.1),
 
             symbol=data.get("symbol"),
             quantity=data.get("quantity"),

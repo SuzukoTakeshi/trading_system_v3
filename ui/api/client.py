@@ -167,6 +167,16 @@ def resume_trade(trade_id):
 
 
 # ==========================================
+# Trade ATR変更
+# ==========================================
+def update_atr(trade_id, atr):
+    return post(
+        f"/trade/{trade_id}/atr",
+        json={"atr": atr},
+    )
+
+
+# ==========================================
 # Trade STOPライン変更
 # ==========================================
 def update_stop_price(trade_id, stop_price):

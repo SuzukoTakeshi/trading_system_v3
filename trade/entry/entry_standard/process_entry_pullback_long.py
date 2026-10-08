@@ -40,6 +40,9 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
             f"(#{trade.id}) ProcessEntryPullbackLong:process"
         )
 
+        # STANDARD Runtime
+        runtime = trade.runtime.strategy_runtime
+
         # 現在価格取得
         quote = trade.get_quote()
 
@@ -54,7 +57,7 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
 
         # 押し込み幅計算
         atr_amount = (
-            trade.runtime.entry_base_price
+            runtime.entry_base_price
             * trade.param.atr
             / 100
         )
@@ -66,12 +69,12 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
 
         # 押し込み判定ライン
         pullback_price = (
-            trade.runtime.entry_base_price
+            runtime.entry_base_price
             - pullback_width
         )
 
         # 初回押し込み設定
-        if trade.runtime.entry_lowest_price is None:
+        if runtime.entry_lowest_price is None:
 
             if current_price <= pullback_price:
 
@@ -82,8 +85,8 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
                 )
 
                 # 押し込み開始情報保存
-                trade.runtime.entry_lowest_price = current_price
-                trade.runtime.entry_previous_price = current_price
+                runtime.entry_lowest_price = current_price
+                runtime.entry_previous_price = current_price
 
                 # Entry状態更新
                 trade.entry_state = EntryState.PULLBACK
@@ -93,7 +96,7 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
                     f"symbol={trade.param.symbol} "
                     f"current_price={current_price} "
                     f"entry_lowest_price="
-                    f"{trade.runtime.entry_lowest_price}"
+                    f"{runtime.entry_lowest_price}"
                 )
 
                 Log.event(
@@ -116,7 +119,7 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
 
         # 押し込み中
         #   安値更新確認
-        if current_price < trade.runtime.entry_lowest_price:
+        if current_price < runtime.entry_lowest_price:
 
             message = (
                 f"PULLBACK UPDATE LOW LONG "
@@ -136,13 +139,13 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
             )
 
             # 最安値更新
-            trade.runtime.entry_lowest_price = current_price
+            runtime.entry_lowest_price = current_price
 
         # 初回反転確認
         #   前回価格より上昇した場合
         if (
-            trade.runtime.entry_previous_price is not None
-            and current_price > trade.runtime.entry_previous_price
+            runtime.entry_previous_price is not None
+            and current_price > runtime.entry_previous_price
         ):
 
             message = (
@@ -166,8 +169,8 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
             # ---------------------------------------
             # Pullbackで確認した最安値を
             # Reversal開始時点の基準安値として引き継ぐ。
-            trade.runtime.entry_reversal_lowest_price = (
-                trade.runtime.entry_lowest_price
+            runtime.entry_reversal_lowest_price = (
+                runtime.entry_lowest_price
             )
 
             # 通知
@@ -179,6 +182,6 @@ class ProcessEntryPullbackLong(ProcessEntryBase):
             return True
 
         # 前回価格更新
-        trade.runtime.entry_previous_price = current_price
+        runtime.entry_previous_price = current_price
 
         return False

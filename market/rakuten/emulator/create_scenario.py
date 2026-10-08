@@ -105,7 +105,6 @@ class ScenarioCreator:
             "repeat_count": param.repeat_count,
             "entry_method": param.entry_method,
             "exit_method": param.exit_method,
-            "profit_target_percent": param.profit_target_percent,
         }
 
         # ==========================================

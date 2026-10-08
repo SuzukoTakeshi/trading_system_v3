@@ -2,7 +2,7 @@
     "ENTRY WAIT": {
         "message": "偵察を開始しました。",
         "voice_type": "VOICE_FILE",
-        "voice_file": "entry_wait.wav"
+        "voice_file": "entry_init.wav"
     },
     "PULLBACK ENTRY LONG": {
         "message": "作戦Aに移行しました。",

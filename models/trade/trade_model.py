@@ -71,7 +71,6 @@ class TradeModel(BaseEntity):
         repeat_group_id=None,
         entry_method=None,
         exit_method="stop",
-        profit_target_percent=0.1,
 
         generate_id=True,
     ):
@@ -128,7 +127,6 @@ class TradeModel(BaseEntity):
             repeat_group_id=repeat_group_id,
             entry_method=entry_method,
             exit_method=exit_method,
-            profit_target_percent=profit_target_percent,
         )
 
         # Trade実行中データ
@@ -322,7 +320,6 @@ class TradeModel(BaseEntity):
             "strategy_type": self.param.strategy_type,
             "entry_method": self.param.entry_method,
             "exit_method": self.param.exit_method,
-            "profit_target_percent": self.param.profit_target_percent,
 
             "repeat_index": self.param.repeat_index,
             "repeat_count": self.param.repeat_count,
@@ -331,7 +328,16 @@ class TradeModel(BaseEntity):
             "quantity": self.param.quantity,
             "atr": self.param.atr,
             "trade_price": self.param.trade_price,
-            "entry_base_price": self.runtime.entry_base_price,
+
+            "entry_base_price": (
+                self.runtime.strategy_runtime.entry_base_price
+                if (
+                    self.param.strategy_type == "standard"
+                    and self.runtime.strategy_runtime is not None
+                )
+                else None
+            ),
+
             "trade_type": self.param.trade_type.value,
             "margin_type": self.param.margin_type,
             "side": self.param.side.value,

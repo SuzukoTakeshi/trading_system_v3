@@ -554,6 +554,9 @@ def trade_list_panel():
         #
         with pause_col:
             if st.button("⏸ Pause", width="stretch", disabled=len(selected_ids) != 1):
+                if len(selected_ids) != 1:
+                    return
+
                 trade_id = selected_ids[0]
                 list_button_action(pause_trade, trade_id, f"(#{trade_id}) PAUSE 完了")
 
@@ -562,6 +565,9 @@ def trade_list_panel():
         #
         with resume_col:
             if st.button("▶ Resume", width="stretch", disabled=len(selected_ids) != 1):
+                if len(selected_ids) != 1:
+                    return
+
                 trade_id = selected_ids[0]
                 list_button_action(resume_trade, trade_id, f"(#{trade_id}) RESUME 完了")
 
@@ -570,13 +576,24 @@ def trade_list_panel():
         #
         with cancel_col:
             if st.button("❌ Cancel", width="stretch", disabled=len(selected_ids) != 1):
+                if len(selected_ids) != 1:
+                    return
+
                 trade_id = selected_ids[0]
-                list_button_action(cancel_trade, trade_id, f"(#{trade_id}) CANCEL 完了", cancel_confirm=True)
+                list_button_action(
+                    cancel_trade,
+                    trade_id,
+                    f"(#{trade_id}) CANCEL 完了",
+                    cancel_confirm=True,
+                )
 
         #
         # Delete
         #
         with delete_col:
             if st.button("🗑 Delete", width="stretch", disabled=len(selected_ids) != 1):
+                if len(selected_ids) != 1:
+                    return
+
                 trade_id = selected_ids[0]
                 list_button_action(delete_trade, trade_id, f"(#{trade_id}) DELETE 完了")

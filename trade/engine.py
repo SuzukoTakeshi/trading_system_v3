@@ -53,7 +53,7 @@ from trade.trade_close import TradeClose
 from trade.engine_api import TradeEngineAPI
 
 from trade.process.process_market import ProcessMarket
-from trade.process.process_entry_wait import ProcessEntryWait
+from trade.process.process_entry_init import ProcessEntryInit
 from trade.entry.process_entry import ProcessEntry
 from trade.process.process_entry_request import ProcessEntryRequest
 from trade.process.process_entry_result import ProcessEntryResult
@@ -125,7 +125,7 @@ class TradeEngine:
 
         # Cycle Process
         self.process_market = ProcessMarket(self.context, self.market)
-        self.process_entry_wait = ProcessEntryWait(self.context, self.market)
+        self.process_entry_init = ProcessEntryInit(self.context, self.market)
         self.process_entry = ProcessEntry(self.context, self.market)
         self.process_entry_request = ProcessEntryRequest(self.context, self.market)
         self.process_entry_result = ProcessEntryResult(self.context, self.market)
@@ -368,15 +368,15 @@ class TradeEngine:
                     # ==========================================
                     case TradeState.CREATED:
                         if self.process_market.process(trade):
-                            trade.change_state(TradeState.ENTRY_WAIT)
+                            trade.change_state(TradeState.ENTRY_INIT)
 
                     # ==========================================
                     # Entry開始待機
                     # ・初回価格取得待ち
                     # ・ENTRY監視開始準備
                     # ==========================================
-                    case TradeState.ENTRY_WAIT:
-                        if self.process_entry_wait.process(trade):
+                    case TradeState.ENTRY_INIT:
+                        if self.process_entry_init.process(trade):
                             trade.change_state(TradeState.ENTRY)
 
                     # ==========================================
@@ -708,7 +708,7 @@ class TradeEngine:
         #
         if trade.state in [
             TradeState.CREATED,
-            TradeState.ENTRY_WAIT,
+            TradeState.ENTRY_INIT,
             TradeState.ENTRY,
         ]:
             trade.change_state(TradeState.CANCELED)

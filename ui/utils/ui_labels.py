@@ -38,7 +38,7 @@ EVENT_LABEL = {
 
     # Entry監視
     "entry": "🟢 ENTRY開始",
-    "entry_wait": "🟢 ENTRY待ち",
+    "entry_init": "🟢 ENTRY開始",
     "entry_pullback": "🟢 押し込み中",
     "entry_reversal": "🟢 反転上昇中",
 

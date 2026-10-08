@@ -37,6 +37,9 @@ class ProcessEntryReversalShort(ProcessEntryBase):
             f"(#{trade.id}) ProcessEntryReversalShort:process"
         )
 
+        # STANDARD Runtime
+        runtime = trade.runtime.strategy_runtime
+
         # 現在価格取得
         quote = trade.get_quote()
 
@@ -47,9 +50,9 @@ class ProcessEntryReversalShort(ProcessEntryBase):
 
         cfg = self.get_entry_config()
 
-        previous_count = trade.runtime.entry_reversal_count
+        previous_count = runtime.entry_reversal_count
 
-        if trade.runtime.entry_previous_price is None:
+        if runtime.entry_previous_price is None:
             raise EntryPreviousPriceNotFoundError(
                 message="entry_previous_price is None (SHORT)",
                 code="ENTRY_PREVIOUS_PRICE_NOT_FOUND",
@@ -59,32 +62,32 @@ class ProcessEntryReversalShort(ProcessEntryBase):
         # Reversal最高値更新
         # ---------------------------------------
         if (
-            trade.runtime.entry_reversal_highest_price is None
+            runtime.entry_reversal_highest_price is None
             or
-            current_price > trade.runtime.entry_reversal_highest_price
+            current_price > runtime.entry_reversal_highest_price
         ):
-            trade.runtime.entry_reversal_highest_price = current_price
+            runtime.entry_reversal_highest_price = current_price
 
         # ---------------------------------------
         # 下落回数カウント
         # ---------------------------------------
-        if current_price < trade.runtime.entry_previous_price:
-            trade.runtime.entry_reversal_count += 1
+        if current_price < runtime.entry_previous_price:
+            runtime.entry_reversal_count += 1
 
-        elif current_price > trade.runtime.entry_previous_price:
-            trade.runtime.entry_reversal_count = 0
+        elif current_price > runtime.entry_previous_price:
+            runtime.entry_reversal_count = 0
 
         # ---------------------------------------
         # カウント変化を記録
         # ---------------------------------------
-        if previous_count != trade.runtime.entry_reversal_count:
+        if previous_count != runtime.entry_reversal_count:
 
             message = (
                 f"REVERSAL ENTRY SHORT "
-                f"count={trade.runtime.entry_reversal_count} "
+                f"count={runtime.entry_reversal_count} "
                 f"current_price={current_price} "
                 f"reversal_highest_price="
-                f"{trade.runtime.entry_reversal_highest_price}"
+                f"{runtime.entry_reversal_highest_price}"
             )
 
             Log.event(
@@ -100,18 +103,18 @@ class ProcessEntryReversalShort(ProcessEntryBase):
         # ---------------------------------------
         # 前回価格更新
         # ---------------------------------------
-        trade.runtime.entry_previous_price = current_price
+        runtime.entry_previous_price = current_price
 
         # ---------------------------------------
         # 反転確認回数
         # ---------------------------------------
         if (
-            trade.runtime.entry_reversal_count
+            runtime.entry_reversal_count
             >= cfg["reversal_confirm_count"]
         ):
 
             reversal_highest_price = (
-                trade.runtime.entry_reversal_highest_price
+                runtime.entry_reversal_highest_price
             )
 
             reversal_atr_multiplier = (
@@ -119,7 +122,7 @@ class ProcessEntryReversalShort(ProcessEntryBase):
             )
 
             atr_amount = (
-                trade.runtime.entry_base_price
+                runtime.entry_base_price
                 * trade.param.atr
                 / 100
             )
@@ -141,7 +144,7 @@ class ProcessEntryReversalShort(ProcessEntryBase):
 
                 message = (
                     f"REVERSAL WAIT SHORT "
-                    f"count={trade.runtime.entry_reversal_count} "
+                    f"count={runtime.entry_reversal_count} "
                     f"current_price={current_price} "
                     f"reversal_highest_price={reversal_highest_price} "
                     f"fall_width={fall_width} "
@@ -166,7 +169,7 @@ class ProcessEntryReversalShort(ProcessEntryBase):
             message = (
                 f"REVERSAL COMPLETE SHORT "
                 f"symbol={trade.param.symbol} "
-                f"count={trade.runtime.entry_reversal_count} "
+                f"count={runtime.entry_reversal_count} "
                 f"current_price={current_price} "
                 f"reversal_highest_price={reversal_highest_price} "
                 f"fall_width={fall_width} "
