@@ -95,13 +95,13 @@ class ProcessEntryTrend(ProcessEntryBase):
 
         runtime.trend_direction = trend_direction
 
-        Log.debug(
-            f"(#{trade.id}) TREND ENTRY "
-            f"price={current_price} "
-            f"datetime={self.quote.current_datetime} "
-            f"direction={trend_direction} "
-            f"total={result['total_score']}"
-        )
+        # Log.debug(
+        #     f"(#{trade.id}) TREND ENTRY "
+        #     f"price={current_price} "
+        #     f"datetime={self.quote.current_datetime} "
+        #     f"direction={trend_direction} "
+        #     f"total={result['total_score']}"
+        # )
 
         # --------------------------------------
         # TREND ENTRY判定

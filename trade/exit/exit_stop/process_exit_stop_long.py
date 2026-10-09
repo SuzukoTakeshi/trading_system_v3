@@ -34,9 +34,7 @@ class ProcessExitStopLong(ProcessExitStopBase):
     # ==========================================
     def process(self, trade):
 
-        Log.flow(
-            f"(#{trade.id}) ProcessExitStopLong:process"
-        )
+        Log.flow(f"(#{trade.id}) ProcessExitStopLong:process")
 
         self.trade = trade
         self.quote = trade.get_quote()
@@ -47,7 +45,6 @@ class ProcessExitStopLong(ProcessExitStopBase):
         # 初回STOP初期化
         if trade.runtime.stop_price is None:
             self.init_stop(trade)
-
             return False
 
         # 初期STOP待機
@@ -75,8 +72,7 @@ class ProcessExitStopLong(ProcessExitStopBase):
 
         # ENTRY約定価格を基準にATR(%)から初期STOP価格を設定する
         trade.runtime.stop_price = (
-            entry_price
-            - atr_amount * trade.param.stop_atr_multiplier
+            entry_price - atr_amount * trade.param.stop_atr_multiplier
         )
 
         trade.runtime.stop_highest_price = entry_price
@@ -88,14 +84,8 @@ class ProcessExitStopLong(ProcessExitStopBase):
             f"entry={entry_price} "
             f"stop={trade.runtime.stop_price}"
         )
-
         Log.event(f"(#{trade.id}) {message}")
-
-        trade.add_timeline(
-            event="STOP",
-            message=message,
-            current_price=entry_price,
-        )
+        trade.add_timeline(event="STOP", message=message, current_price=entry_price)
 
         # 通知
         self.notify(trade, "INIT STOP LONG")
@@ -114,18 +104,9 @@ class ProcessExitStopLong(ProcessExitStopBase):
 
             trade.runtime.stop_highest_price = current_price
 
-            message = (
-                f"STOP HIGH UPDATE LONG "
-                f"current_price={current_price}"
-            )
-
+            message = (f"STOP HIGH UPDATE LONG current_price={current_price}")
             Log.event(f"(#{trade.id}) {message}")
-
-            trade.add_timeline(
-                event="STOP",
-                message=message,
-                current_price=current_price,
-            )
+            trade.add_timeline(event="STOP", message=message, current_price=current_price)
 
             entry_price = trade.entry_order.result.price
             atr_amount = entry_price * trade.param.atr / 100
@@ -136,7 +117,6 @@ class ProcessExitStopLong(ProcessExitStopBase):
             )
 
             if new_stop > trade.runtime.stop_price:
-
                 trade.runtime.stop_price = new_stop
 
                 message = (
@@ -144,14 +124,8 @@ class ProcessExitStopLong(ProcessExitStopBase):
                     f"current_price={current_price} "
                     f"stop={trade.runtime.stop_price}"
                 )
-
                 Log.event(f"(#{trade.id}) {message}")
-
-                trade.add_timeline(
-                    event="STOP",
-                    message=message,
-                    current_price=current_price,
-                )
+                trade.add_timeline(event="STOP", message=message, current_price=current_price)
 
     # ==========================================
     # STOP判定
@@ -161,25 +135,15 @@ class ProcessExitStopLong(ProcessExitStopBase):
         current_price = self.quote.current_price
 
         if current_price <= trade.runtime.stop_price:
-
             message = (
                 f"STOP HIT LONG "
                 f"current_price={current_price} "
                 f"<= stop_price={trade.runtime.stop_price}"
             )
-
             Log.event(f"(#{trade.id}) {message}")
+            trade.add_timeline(event="EXIT", message=message, current_price=current_price)
 
-            trade.add_timeline(
-                event="EXIT",
-                message=message,
-                current_price=current_price,
-            )
-
-            trade.runtime.set_exit(
-                current_price,
-                ExitReason.STOP_LINE_EXIT,
-            )
+            trade.runtime.set_exit(current_price, ExitReason.STOP_LINE_EXIT)
 
             return True
 
