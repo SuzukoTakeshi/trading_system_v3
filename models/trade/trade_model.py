@@ -291,7 +291,7 @@ class TradeModel(BaseEntity):
         return trade
 
 
-    def to_dict(self):
+    def to_dict(self, timeline=True):
         """
         API/UI表示用変換
         """
@@ -504,9 +504,10 @@ class TradeModel(BaseEntity):
                 )
                 else []
             ),
-
-            # Timeline
-            "timeline": self.timeline,
         })
+
+        # Timeline
+        if timeline:
+            data["timeline"] = self.timeline
 
         return data

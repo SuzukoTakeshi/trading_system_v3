@@ -119,5 +119,41 @@
         "message": "レンジトレード判定を開始します。",
         "voice_type": "VOICE_FILE",
         "voice_file": "entry_range_start.wav"
+    },
+
+    "TREND ENTRY LONG": {
+        "message": "トレンドLONGを開始します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "trend_entry_long.wav"
+    },
+
+    "TREND ENTRY SHORT": {
+        "message": "トレンドSHORTを開始します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "trend_entry_short.wav"
+    },
+
+    "TREND EXIT LONG": {
+        "message": "トレンドLONGを終了します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "trend_exit_long.wav"
+    },
+
+    "TREND EXIT SHORT": {
+        "message": "トレンドSHORTを終了します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "trend_exit_short.wav"
+    },
+
+    "STOP HIGH UPDATE LONG": {
+        "message": "高値更新",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "stop_high_update_long.mp3"
+    },
+
+    "STOP LOW UPDATE SHORT": {
+        "message": "安値更新",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "stop_low_update_short.mp3"
     }
 }

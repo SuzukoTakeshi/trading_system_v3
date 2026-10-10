@@ -88,8 +88,15 @@ _audio_component = st.components.v2.component(
                         return;
                     }
 
+                    const mimeType =
+                        voice.format === "mp3"
+                            ? "audio/mpeg"
+                            : "audio/wav";
+
                     audio.src =
-                        "data:audio/wav;base64," +
+                        "data:" +
+                        mimeType +
+                        ";base64," +
                         voice.audio;
 
                     audio.currentTime = 0;
@@ -153,6 +160,7 @@ def play(filename):
             "voices": [
                 {
                     "audio": audio,
+                    "format": Path(filename).suffix.lower().lstrip("."),
                 }
             ],
         },
@@ -178,6 +186,7 @@ def play_voices(voices):
         items.append(
             {
                 "audio": audio,
+                "format": Path(filename).suffix.lower().lstrip("."),
             }
         )
 

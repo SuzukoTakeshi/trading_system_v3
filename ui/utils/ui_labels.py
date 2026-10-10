@@ -38,7 +38,7 @@ EVENT_LABEL = {
 
     # Entry監視
     "entry": "🟢 ENTRY開始",
-    "entry_init": "🟢 ENTRY開始",
+    "entry_init": "🟢 ENTRY初期化",
     "entry_pullback": "🟢 押し込み中",
     "entry_reversal": "🟢 反転上昇中",
 
@@ -149,6 +149,7 @@ EXIT_REASON_LABEL = {
     "profit_target_exit": "利確",
     "range_exit": "RANGE完了",
     "range_boundary_exit": "RANGE逸脱",
+    "trend_exit": "トレンド終了",
 }
 
 # ==========================================

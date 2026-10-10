@@ -29,8 +29,14 @@ monitor_page = st.Page(
     url_path="monitor",
 )
 
+trade_history_page = st.Page(
+    str(ROOT / "ui" / "trade_history" / "trade_history.py"),
+    title="TRADE HISTORY",
+    url_path="trade_history",
+)
+
 pg = st.navigation(
-    [console_page, monitor_page],
+    [console_page, monitor_page, trade_history_page],
     position="hidden",
 )
 

@@ -222,9 +222,9 @@ class TradeEngineAPI:
     # ==========================================
     # Trade一覧取得
     # ==========================================
-    def get_trades(self):
+    def get_trades(self, timeline=True):
         return [
-            trade.to_dict()
+            trade.to_dict(timeline=timeline)
             for trade in self.context.trades.values()
         ]
 

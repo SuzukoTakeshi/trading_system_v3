@@ -70,50 +70,51 @@ class Notifier:
     # Notify Trade
     # ==================================================
 
-    def notify_trade(self, trade, notify_id):
+    def notify_trade(self, trade, notify_id, sound_only=False):
 
         data = self.get("notifier_trade.json", notify_id)
 
         if data is None:
             return None
 
-        message = data["message"]
+        if not sound_only:
 
-        # ------------------------------------------
-        # 銘柄Voice
-        # ------------------------------------------
-        symbol = f"{trade.param.symbol}"
+            # ------------------------------------------
+            # 銘柄Voice
+            # ------------------------------------------
+            symbol = f"{trade.param.symbol}"
 
-        symbol_name = ""
-        symbol_data = self.symbol_store.get(symbol)
+            symbol_name = ""
+            symbol_data = self.symbol_store.get(symbol)
 
-        if symbol_data:
-            symbol_name = symbol_data["name"]
+            if symbol_data:
+                symbol_name = symbol_data["name"]
 
-        voice_file = f"{trade.param.symbol}.wav"
+            voice_file = f"{trade.param.symbol}.wav"
 
-        if self.voice_manager.voice_file_exists(voice_file):
-            self.add(
-                VoiceType.VOICE_FILE,
-                voice_file=voice_file,
-                voice_text=f"{symbol}　{symbol_name}",
-            )
+            if self.voice_manager.voice_file_exists(voice_file):
+                self.add(
+                    VoiceType.VOICE_FILE,
+                    voice_file=voice_file,
+                    voice_text=f"{symbol}　{symbol_name}",
+                )
 
-        else:
-            symbol_text = "".join(
-                self.number_voice.get(char, char)
-                for char in symbol
-            )
+            else:
+                symbol_text = "".join(
+                    self.number_voice.get(char, char)
+                    for char in symbol
+                )
 
-            voice_text = f"{symbol_text}、{symbol_name}"
+                voice_text = f"{symbol_text}、{symbol_name}"
 
-            self.add(VoiceType.VOICE_SYMBOL, voice_id=symbol, voice_text=voice_text)
+                self.add(VoiceType.VOICE_SYMBOL, voice_id=symbol, voice_text=voice_text)
 
         # ------------------------------------------
         # 通知Voice
         # ------------------------------------------
 
         voice_type = VoiceType[data["voice_type"]]
+        message = data["message"]
 
         self.add(voice_type, voice_file=data["voice_file"], voice_text=message)
 

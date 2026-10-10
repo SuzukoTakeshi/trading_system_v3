@@ -3,6 +3,9 @@
 #
 
 import streamlit as st
+import webbrowser
+
+from ui.config import TRADE_HISTORY_URL
 
 from ui.console.components.trade_list_panel import trade_list_panel
 from ui.console.components.log_panel import log_panel
@@ -32,7 +35,7 @@ def main_panel(ctx):
         unsafe_allow_html=True,
     )
 
-    trade_col, asset_col, log_col, config_col = st.columns(4)
+    trade_col, asset_col, log_col, config_col, history_col = st.columns(5)
 
     with trade_col:
         if st.button(
@@ -73,6 +76,14 @@ def main_panel(ctx):
         ):
             ctx.main_page = "config"
             st.rerun()
+
+    with history_col:
+        if st.button(
+            "トレード履歴",
+            width="stretch",
+            key="main_page_trade_history",
+        ):
+            webbrowser.open_new_tab(TRADE_HISTORY_URL)
 
 
     match ctx.main_page:

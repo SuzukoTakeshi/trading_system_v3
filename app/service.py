@@ -16,7 +16,7 @@ from core.asset_store import AssetStore
 
 from app.services.system_service import SystemService
 from app.services.trade_service import TradeService
-
+from app.services.trade_option_service import TradeOptionService
 
 class AppService:
 
@@ -46,4 +46,9 @@ class AppService:
             self.symbol_store,
             self.trade_symbol_store,
             self.trade_params_store,
+        )
+
+        # Trade Option Service
+        self.trade_option_service = TradeOptionService(
+            self.symbol_store,
         )

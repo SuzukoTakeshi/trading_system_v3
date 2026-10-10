@@ -153,33 +153,19 @@ class ProcessExit(ProcessExitBase):
         # まだ強制手仕舞い時刻に到達していない場合は、
         # 通常のEXIT監視を継続する。
         now = datetime.now()
-        close_time = datetime.strptime(
-            rule["time"],
-            "%H:%M",
-        ).time()
+        close_time = datetime.strptime(rule["time"], "%H:%M").time()
 
         if now.time() < close_time:
             return False
 
         # EXIT実績を設定する。
-        trade.runtime.set_exit(
-            self.quote.current_price,
-            ExitReason.MARGIN_DAY_CLOSE,
-        )
+        trade.runtime.set_exit(self.quote.current_price, ExitReason.MARGIN_DAY_CLOSE)
 
         message = f"MARGIN DAY CLOSE time={rule['time']}"
-
         Log.event(f"(#{trade.id}) {message}")
+        trade.add_timeline(event="EXIT", message=message)
 
-        trade.add_timeline(
-            event="EXIT",
-            message=message,
-        )
-
-        self.notify(
-            trade,
-            "MARGIN DAY CLOSE",
-        )
+        self.notify(trade, "MARGIN DAY CLOSE")
 
         return True
 
@@ -205,39 +191,19 @@ class ProcessExit(ProcessExitBase):
 
         # ENTRY約定時刻を基準に、
         # 時間決済を実行する時刻を計算する。
-        limit_time = (
-            entry_time
-            + timedelta(
-                minutes=trade.param.time_limit_minutes
-            )
-        )
+        limit_time = entry_time + timedelta(minutes=trade.param.time_limit_minutes)
 
         # 現在時刻が時間制限時刻以降になった場合、
         # 時間決済条件成立とする。
         if datetime.now() >= limit_time:
 
-            trade.runtime.set_exit(
-                self.quote.current_price,
-                ExitReason.TIME_EXIT,
-            )
+            trade.runtime.set_exit(self.quote.current_price, ExitReason.TIME_EXIT)
 
-            message = (
-                f"TIME LIMIT EXIT "
-                f"time_limit_minutes="
-                f"{trade.param.time_limit_minutes}min"
-            )
-
+            message = f"TIME LIMIT EXIT time_limit_minutes={trade.param.time_limit_minutes}min"
             Log.event(f"(#{trade.id}) {message}")
+            trade.add_timeline(event="EXIT", message=message)
 
-            trade.add_timeline(
-                event="EXIT",
-                message=message,
-            )
-
-            self.notify(
-                trade,
-                "TIME LIMIT EXIT",
-            )
+            self.notify(trade, "TIME LIMIT EXIT")
 
             return True
 
@@ -257,10 +223,7 @@ class ProcessExit(ProcessExitBase):
             return False
 
         # 指定時刻を取得する。
-        close_time = datetime.strptime(
-            trade.param.close_time,
-            "%H:%M",
-        ).time()
+        close_time = datetime.strptime(trade.param.close_time, "%H:%M").time()
 
         now = datetime.now()
 
@@ -268,27 +231,13 @@ class ProcessExit(ProcessExitBase):
         # 指定時刻決済条件成立とする。
         if now.time() >= close_time:
 
-            trade.runtime.set_exit(
-                self.quote.current_price,
-                ExitReason.CLOSE_EXIT,
-            )
+            trade.runtime.set_exit(self.quote.current_price, ExitReason.CLOSE_EXIT)
 
-            message = (
-                f"TRADE CLOSE TIME EXIT "
-                f"close_time={trade.param.close_time}"
-            )
-
+            message = f"TRADE CLOSE TIME EXIT close_time={trade.param.close_time}"
             Log.event(f"(#{trade.id}) {message}")
+            trade.add_timeline(event="EXIT", message=message)
 
-            trade.add_timeline(
-                event="EXIT",
-                message=message,
-            )
-
-            self.notify(
-                trade,
-                "TRADE CLOSE TIME EXIT",
-            )
+            self.notify(trade, "TRADE CLOSE TIME EXIT")
 
             return True
 

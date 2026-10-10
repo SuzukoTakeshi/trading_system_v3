@@ -79,11 +79,7 @@ class ProcessExitStopShort(ProcessExitStopBase):
         trade.runtime.stop_highest_price = None
 
         # 初期STOP
-        message = (
-            f"INITIAL STOP "
-            f"entry={entry_price} "
-            f"stop={trade.runtime.stop_price}"
-        )
+        message = f"INITIAL STOP entry={entry_price} stop={trade.runtime.stop_price}"
         Log.event(f"(#{trade.id}) {message}")
         trade.add_timeline(event="STOP", message=message, current_price=entry_price)
 
@@ -101,12 +97,13 @@ class ProcessExitStopShort(ProcessExitStopBase):
             trade.runtime.stop_lowest_price is None
             or current_price < trade.runtime.stop_lowest_price
         ):
-
             trade.runtime.stop_lowest_price = current_price
 
             message = (f"STOP LOW UPDATE SHORT current_price={current_price}")
             Log.event(f"(#{trade.id}) {message}")
             trade.add_timeline(event="STOP", message=message, current_price=current_price)
+
+            self.notify(trade, "STOP LOW UPDATE SHORT", sound_only=True)
 
             entry_price = trade.entry_order.result.price
             atr_amount = entry_price * trade.param.atr / 100
@@ -137,8 +134,7 @@ class ProcessExitStopShort(ProcessExitStopBase):
         if current_price >= trade.runtime.stop_price:
             message = (
                 f"STOP HIT SHORT "
-                f"current_price={current_price} "
-                f">= stop_price={trade.runtime.stop_price}"
+                f"current_price={current_price} >= stop_price={trade.runtime.stop_price}"
             )
             Log.event(f"(#{trade.id}) {message}")
             trade.add_timeline(event="EXIT", message=message, current_price=current_price)

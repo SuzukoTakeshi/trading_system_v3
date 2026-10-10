@@ -252,7 +252,7 @@ class Log:
             cls._beep(1600, 100)
 
         else:
-            cls._beep(1000, 120)
+            cls._beep(2000, 120)
 
     # ========================
     # INFO

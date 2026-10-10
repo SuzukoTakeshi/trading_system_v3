@@ -148,8 +148,8 @@ def register_trade(payload):
     return post("/trade", json=payload)
 
 
-def get_trades():
-    return get("/trades")
+def get_trades(timeline=True):
+    return get(f"/trades?timeline={str(timeline).lower()}")
 
 
 # ==========================================
@@ -237,4 +237,26 @@ def get_trade_chart_datas(trade_ids):
         json={
             "trade_ids": trade_ids
         }
+    )
+
+# ==========================================
+# Trade History
+# ==========================================
+
+def get_trade_history(date):
+    return get(f"/trade_history?date={date}")
+
+
+def get_trade_history_dates():
+    return get("/trade_history/dates")
+
+
+def delete_trade_histories(date, trade_ids):
+
+    return post(
+        "/trade_history/delete",
+        json={
+            "date": date,
+            "trade_ids": trade_ids,
+        },
     )

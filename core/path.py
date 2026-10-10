@@ -19,6 +19,14 @@ STORAGE_DIR = ROOT_DIR / "storage"
 # Log Dir
 LOG_DIR = STORAGE_DIR / "logs"
 
+# Trade Data
+TRADE_DIR = STORAGE_DIR / "json" / "trade"
+TRADE_CHART_DIR = STORAGE_DIR / "json" / "trade_chart"
+
+# Trade History
+TRADE_HISTORY_DIR = STORAGE_DIR / "json" / "trade_history"
+
+
 # Configuration
 CONFIG_FILE = CONFIG_DIR / "config.json"
 STRATEGY_CONFIG_FILE = CONFIG_DIR / "strategy_config.json"

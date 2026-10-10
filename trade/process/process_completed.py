@@ -9,7 +9,6 @@
 #
 
 from datetime import datetime
-from pathlib import Path
 import shutil
 
 from core.logger import Log
@@ -17,6 +16,12 @@ from core.logger import Log
 from trade.trade_enums import SideType
 
 from trade.process.process_base import ProcessBase
+
+from core.path import (
+    TRADE_DIR,
+    TRADE_CHART_DIR,
+    TRADE_HISTORY_DIR,
+)
 
 
 class ProcessCompleted(ProcessBase):
@@ -88,11 +93,10 @@ class ProcessCompleted(ProcessBase):
         # ・日付ごとにフォルダを作成
         # ==========================================
 
-        trade_dir = Path("storage/json/trade")
-
-        trade_chart_dir = Path("storage/json/trade_chart")
-
-        history_dir = (Path("storage/json/trade_history") / datetime.now().strftime("%Y%m%d"))
+        history_dir = (
+            TRADE_HISTORY_DIR
+            / datetime.now().strftime("%Y%m%d")
+        )
 
         history_dir.mkdir(parents=True, exist_ok=True)
 
@@ -101,7 +105,7 @@ class ProcessCompleted(ProcessBase):
         # ・現在のTrade JSONをそのままコピー
         # ==========================================
 
-        trade_file = (trade_dir / f"trade_{trade.id}.json")
+        trade_file = TRADE_DIR / f"trade_{trade.id}.json"
 
         if trade_file.exists():
             shutil.copy2(trade_file, history_dir / trade_file.name)
@@ -111,7 +115,12 @@ class ProcessCompleted(ProcessBase):
         # ・現在のTrade Chart JSONをそのままコピー
         # ==========================================
 
-        trade_chart_file = (trade_chart_dir / f"trade_chart_{trade.id}.json")
+        trade_chart_file = (
+            TRADE_CHART_DIR / f"trade_chart_{trade.id}.json"
+        )
 
         if trade_chart_file.exists():
-            shutil.copy2(trade_chart_file, history_dir / trade_chart_file.name)
+            shutil.copy2(
+                trade_chart_file,
+                history_dir / trade_chart_file.name,
+            )

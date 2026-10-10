@@ -126,7 +126,7 @@ def main():
     # --------------------------------------
     # Trade Data
     # --------------------------------------
-    trades = get_trades()
+    trades = get_trades(timeline=timeline_display)
 
     chart_datas = get_trade_chart_datas(trade_ids)
     #st.write(chart_datas)

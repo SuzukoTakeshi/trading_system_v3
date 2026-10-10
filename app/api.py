@@ -17,6 +17,7 @@ from app.dto import (
     AtrRequestDTO,
     StopPriceRequestDTO,
     ProfitTargetPriceRequestDTO,
+    TradeHistoryDeleteRequestDTO,
 )
 
 app = FastAPI(title="Trading System")
@@ -92,9 +93,11 @@ def trade(req: TradeRequestDTO):
 
 
 @app.get("/trades")
-def trades():
+def trades(timeline: bool = True):
 
-    return app_service.trade_service.get_trades()
+    return app_service.trade_service.get_trades(
+        timeline=timeline,
+    )
 
 
 @app.post("/trade/{trade_id}/pause")
@@ -157,4 +160,26 @@ def trade_chart_datas(req: TradeIdsRequestDTO):
 
     return app_service.trade_service.get_trade_chart_datas(
         req.trade_ids
+    )
+
+# ---------------------
+# Trade History
+# ---------------------
+
+@app.get("/trade_history")
+def trade_history(date: str):
+
+    return app_service.trade_option_service.get_trade_history(date)
+
+@app.get("/trade_history/dates")
+def trade_history_dates():
+
+    return app_service.trade_option_service.get_trade_history_dates()
+
+@app.post("/trade_history/delete")
+def delete_trade_histories(req: TradeHistoryDeleteRequestDTO):
+
+    return app_service.trade_option_service.delete_trade_histories(
+        req.date,
+        req.trade_ids,
     )

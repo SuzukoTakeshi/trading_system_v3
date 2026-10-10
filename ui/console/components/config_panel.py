@@ -14,28 +14,19 @@ import streamlit as st
 from core.config_loader import Config
 from core.strategy_config_loader import StrategyConfig
 from core.strategy_range_config_loader import StrategyRangeConfig
-
+from core.strategy_trend_config_loader import StrategyTrendConfig
 
 def config_panel(ctx):
 
     config = Config.instance().data
     strategy_config = StrategyConfig.instance().data
     range_config_data = StrategyRangeConfig.instance().data
+    trend_config_data = StrategyTrendConfig.instance().data
 
-    config_description = config.get(
-        "description",
-        {}
-    )
-
-    strategy_description = strategy_config.get(
-        "description",
-        {}
-    )
-
-    range_description = range_config_data.get(
-        "description",
-        {}
-    )
+    config_description = config.get("description", {})
+    strategy_description = strategy_config.get("description", {})
+    range_description = range_config_data.get("description", {})
+    trend_description = trend_config_data.get("description", {})
 
     with st.container(border=True):
 
@@ -719,6 +710,7 @@ def config_panel(ctx):
                 ("Entry Low Deviation Rate (%)", "entry_low_deviation_rate"),
                 ("Exit High Deviation Rate (%)", "exit_high_deviation_rate"),
                 ("Exit Low Deviation Rate (%)", "exit_low_deviation_rate"),
+                ("Boundary Confirm Minutes", "boundary_confirm_minutes"),
             )
 
             cols = st.columns(3)
@@ -739,3 +731,180 @@ def config_panel(ctx):
                         )
                     )
 
+
+        # ==========================================
+        # TREND STRATEGY
+        # ==========================================
+
+        with st.expander(
+            "trend_config.json",
+            expanded=True
+        ):
+
+            trend = trend_config_data.get(
+                "trend",
+                {}
+            )
+
+            # --------------------------------------
+            # BASIC
+            # --------------------------------------
+
+            st.markdown("**BASIC**")
+
+            cols = st.columns(3)
+
+            basic_fields = (
+                ("Bar Interval Minutes", "bar_interval_minutes"),
+                ("History Bars", "history_bars"),
+            )
+
+            for index, (label, key) in enumerate(basic_fields):
+                with cols[index % len(cols)]:
+                    st.text_input(
+                        label,
+                        value=str(trend.get(key, "")),
+                        disabled=True,
+                        key=f"trend_config_{key}",
+                    )
+
+                    st.caption(
+                        trend_description.get(
+                            f"trend.{key}",
+                            "",
+                        )
+                    )
+
+            # --------------------------------------
+            # STRUCTURE
+            # --------------------------------------
+
+            st.markdown("**STRUCTURE**")
+
+            structure = trend.get("structure", {})
+
+            cols = st.columns(3)
+
+            structure_fields = (
+                ("Bars", "bars"),
+                ("Full Score", "full_score"),
+                ("Partial Score", "partial_score"),
+            )
+
+            for index, (label, key) in enumerate(structure_fields):
+                with cols[index % len(cols)]:
+                    st.text_input(
+                        label,
+                        value=str(structure.get(key, "")),
+                        disabled=True,
+                        key=f"trend_structure_{key}",
+                    )
+
+                    st.caption(
+                        trend_description.get(
+                            f"trend.structure.{key}",
+                            "",
+                        )
+                    )
+
+            # --------------------------------------
+            # MOVING AVERAGE
+            # --------------------------------------
+
+            st.markdown("**MOVING AVERAGE**")
+
+            moving_average = trend.get("moving_average", {})
+
+            cols = st.columns(3)
+
+            moving_average_fields = (
+                ("Short Bars", "short_bars"),
+                ("Medium Bars", "medium_bars"),
+                ("Long Bars", "long_bars"),
+                ("Position Score", "position_score"),
+                ("Slope Score", "slope_score"),
+            )
+
+            for index, (label, key) in enumerate(moving_average_fields):
+                with cols[index % len(cols)]:
+                    st.text_input(
+                        label,
+                        value=str(moving_average.get(key, "")),
+                        disabled=True,
+                        key=f"trend_moving_average_{key}",
+                    )
+
+                    st.caption(
+                        trend_description.get(
+                            f"trend.moving_average.{key}",
+                            "",
+                        )
+                    )
+
+            # --------------------------------------
+            # PRICE CHANGE
+            # --------------------------------------
+
+            st.markdown("**PRICE CHANGE**")
+
+            price_change = trend.get("price_change", {})
+
+            cols = st.columns(3)
+
+            price_change_fields = (
+                ("Bars", "bars"),
+                ("Rate 1 (%)", "rate_1"),
+                ("Rate 2 (%)", "rate_2"),
+                ("Rate 3 (%)", "rate_3"),
+                ("Score 1", "score_1"),
+                ("Score 2", "score_2"),
+                ("Score 3", "score_3"),
+            )
+
+            for index, (label, key) in enumerate(price_change_fields):
+                with cols[index % len(cols)]:
+                    st.text_input(
+                        label,
+                        value=str(price_change.get(key, "")),
+                        disabled=True,
+                        key=f"trend_price_change_{key}",
+                    )
+
+                    st.caption(
+                        trend_description.get(
+                            f"trend.price_change.{key}",
+                            "",
+                        )
+                    )
+
+            # --------------------------------------
+            # DECISION
+            # --------------------------------------
+
+            st.markdown("**DECISION**")
+
+            decision = trend.get("decision", {})
+
+            cols = st.columns(3)
+
+            decision_fields = (
+                ("Conflict Score Threshold", "conflict_score_threshold"),
+                ("Direction Score Threshold", "direction_score_threshold"),
+                ("Agreement Count", "agreement_count"),
+            )
+
+            for index, (label, key) in enumerate(decision_fields):
+                with cols[index % len(cols)]:
+                    st.text_input(
+                        label,
+                        value=str(decision.get(key, "")),
+                        disabled=True,
+                        key=f"trend_decision_{key}",
+                    )
+
+                    st.caption(
+                        trend_description.get(
+                            f"trend.decision.{key}",
+                            "",
+                        )
+                    )

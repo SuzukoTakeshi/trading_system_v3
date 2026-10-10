@@ -192,11 +192,11 @@ class TradeService:
     # ---------------------
     # Trade一覧取得
     # ---------------------
-    def get_trades(self):
+    def get_trades(self, timeline=True):
 
         result = []
 
-        for trade in self.trade_engine.api.get_trades():
+        for trade in self.trade_engine.api.get_trades(timeline=timeline):
 
             symbol = self.symbol_store.get(trade["symbol"])
 
@@ -205,7 +205,7 @@ class TradeService:
             if not profit_target_enabled:
                 profit_target_price = None
 
-            result.append({
+            trade_data = {
                 "trade_id": trade["trade_id"],
 
                 "strategy_type": trade["strategy_type"],
@@ -273,10 +273,13 @@ class TradeService:
                 "trend_long_moving_averages": (
                     trade.get("trend_long_moving_averages", [])
                 ),
+            }
 
-                # Timeline
-                "timeline": trade["timeline"],
-            })
+            # Timeline
+            if timeline:
+                trade_data["timeline"] = trade["timeline"]
+
+            result.append(trade_data)
 
         return result
 

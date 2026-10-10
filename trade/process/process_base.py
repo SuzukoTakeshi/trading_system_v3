@@ -16,5 +16,5 @@ class ProcessBase:
         self.market = market
 
 
-    def notify(self, trade, notify_id):
-        self.context.notifier.notify_trade(trade, notify_id)
+    def notify(self, trade, notify_id, sound_only=False):
+        self.context.notifier.notify_trade(trade, notify_id, sound_only)

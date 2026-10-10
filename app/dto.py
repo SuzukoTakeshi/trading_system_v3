@@ -58,3 +58,9 @@ class ProfitTargetPriceRequestDTO(BaseModel):
 
     profit_target_price: float
     enabled: bool
+
+
+class TradeHistoryDeleteRequestDTO(BaseModel):
+
+    date: str
+    trade_ids: list[int]

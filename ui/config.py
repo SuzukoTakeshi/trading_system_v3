@@ -38,6 +38,8 @@ API_URL = f"http://127.0.0.1:{API_PORT}"
 
 MONITOR_URL = f"http://127.0.0.1:{UI_PORT}/monitor"
 
+TRADE_HISTORY_URL = f"http://127.0.0.1:{UI_PORT}/trade_history"
+
 # =========================
 # API
 # =========================
