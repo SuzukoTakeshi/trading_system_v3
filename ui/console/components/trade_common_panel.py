@@ -6,6 +6,8 @@
 
 import streamlit as st
 
+from trade.trade_enums import SideType
+
 from ui.api.client import get_trade_options, get_trade_params
 
 
@@ -317,63 +319,67 @@ def trade_common_panel(strategy_type="standard"):
     # ==================================================
     # トレード区分
     # ==================================================
+    side_str = None
 
-    title_col, data_col = st.columns([1, 2])
+    if strategy_type != "trend":
 
-    with title_col:
-        st.write("トレード区分")
 
-    with data_col:
+        title_col, data_col = st.columns([1, 2])
 
-        side_cfg = strategy_cfg[strategy]["side"]
+        with title_col:
+            st.write("トレード区分")
 
-        side_options = {
-            "買い": "long",
-            "売り": "short",
-        }
+        with data_col:
 
-        available_side = []
+            side_cfg = strategy_cfg[strategy]["side"]
 
-        if side_cfg["long"]:
-            available_side.append("買い")
+            side_options = {
+                "買い": SideType.LONG.value,
+                "売り": SideType.SHORT.value,
+            }
 
-        if side_cfg["short"]:
-            available_side.append("売り")
+            available_side = []
 
-        if available_side:
+            if side_cfg["long"]:
+                available_side.append("買い")
 
-            available_side_values = [
-                side_options[label]
-                for label in available_side
-            ]
+            if side_cfg["short"]:
+                available_side.append("売り")
 
-            if (
-                st.session_state.trade_side
-                not in available_side_values
-            ):
-                st.session_state.trade_side = (
-                    available_side_values[0]
+            if available_side:
+
+                available_side_values = [
+                    side_options[label]
+                    for label in available_side
+                ]
+
+                if (
+                    st.session_state.trade_side
+                    not in available_side_values
+                ):
+                    st.session_state.trade_side = (
+                        available_side_values[0]
+                    )
+
+                side_index = available_side_values.index(
+                    st.session_state.trade_side
                 )
 
-            side_index = available_side_values.index(
-                st.session_state.trade_side
-            )
+                side_label = st.radio(
+                    "トレード区分",
+                    available_side,
+                    index=side_index,
+                    horizontal=True,
+                    key="trade_side_radio",
+                    label_visibility="collapsed",
+                )
 
-            side_label = st.radio(
-                "トレード区分",
-                available_side,
-                index=side_index,
-                horizontal=True,
-                key="trade_side_radio",
-                label_visibility="collapsed",
-            )
+                side_str = side_options[side_label]
 
-            side_str = side_options[side_label]
+                st.session_state.trade_side = side_str
 
-            st.session_state.trade_side = side_str
-
-        else:
-            side_str = None
+            else:
+                side_str = None
 
     st.markdown(
         """

@@ -16,6 +16,8 @@
 
 from core.logger import Log
 
+from trade.trade_enums import TrendDirection
+
 
 class TrendAnalyzer:
 
@@ -470,7 +472,7 @@ class TrendAnalyzer:
                     and abs(second) >= conflict_threshold
                     and first * second < 0
                 ):
-                    return "UNDEFINED"
+                    return TrendDirection.UNDEFINED
 
         # --------------------------------------
         # 上昇・下降方向の一致数
@@ -488,7 +490,7 @@ class TrendAnalyzer:
             total_score >= direction_threshold
             and up_count >= agreement_count
         ):
-            return "UP"
+            return TrendDirection.UP
 
         # --------------------------------------
         # 下降トレンド
@@ -500,10 +502,10 @@ class TrendAnalyzer:
             total_score <= -direction_threshold
             and down_count >= agreement_count
         ):
-            return "DOWN"
+            return TrendDirection.DOWN
 
         # --------------------------------------
         # 上昇・下降の条件を満たさない場合
         # → RANGE
         # --------------------------------------
-        return "RANGE"
+        return TrendDirection.RANGE

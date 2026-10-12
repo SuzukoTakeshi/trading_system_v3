@@ -101,9 +101,17 @@ class TradeState(str, Enum):
         ]
 
 
+#
+# トレード区分
+#
+# LONG  : 買い
+# SHORT : 売り
+# JUDGE : 判定（TREND判定）
+#
 class SideType(str, Enum):
     LONG = "long"
     SHORT = "short"
+    JUDGE = "judge"
 
 
 #
@@ -137,7 +145,6 @@ class StrategyType(str, Enum):
     SCALPING = "scalping"
     DAYTRADE = "daytrade"
     SWING = "swing"
-
 
 # Entry State
 #
@@ -186,3 +193,17 @@ class ExitReason(str, Enum):
     RANGE_EXIT = "range_exit"
     RANGE_BOUNDARY_EXIT = "range_boundary_exit"
     TREND_EXIT = "trend_exit"
+
+#
+# TREND方向
+#
+# UP        : 上昇トレンド
+# DOWN      : 下降トレンド
+# RANGE     : レンジ
+# UNDEFINED : 未判定
+#
+class TrendDirection(str, Enum):
+    UP = "UP"
+    DOWN = "DOWN"
+    RANGE = "RANGE"
+    UNDEFINED = "UNDEFINED"

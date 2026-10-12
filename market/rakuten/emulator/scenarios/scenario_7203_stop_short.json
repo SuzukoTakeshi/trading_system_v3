@@ -19,7 +19,8 @@
                     "=== PROFIT TEST ===",
                     "Strategy : SCALPING",
                     "Side     : SHORT",
-                    "ATR      : 1.0"
+                    "ATR      : 1.0",
+                    "LAST PRICE: \\4,000"
                 ]
             },
 
@@ -65,9 +66,14 @@
 			{ "price": 2940.0 },
 			{ "price": 2950.0 },
 			{ "price": 2960.0 },
+			{ "price": 2970.0 },
 
 			{ "comment": "終了" },
-			{ "end": true }
+
+			{ "comment": "初期戻し" },
+            { "price": 3000.0 },
+
+            { "end": true }
         ]
     }
 }

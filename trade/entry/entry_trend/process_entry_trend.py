@@ -20,6 +20,7 @@ from core.strategy_trend_config_loader import StrategyTrendConfig
 
 from trade.trade_enums import (
     SideType,
+    TrendDirection,
 )
 
 from trade.entry.process_entry_base import ProcessEntryBase
@@ -108,20 +109,79 @@ class ProcessEntryTrend(ProcessEntryBase):
         # --------------------------------------
 
         # UP TREND
-        if trend_direction == "UP":
+        if trend_direction == TrendDirection.UP:
+
+            runtime.trend_side = SideType.LONG
+
+            if trade.param.side == SideType.JUDGE:
+                message = f"TREND ENTRY JUDGE LONG"
+                Log.event(f"(#{trade.id}) {message}")
+                trade.add_timeline(
+                    event="TREND",
+                    message=message,
+                    current_price=current_price,
+                    ma_score=result["ma_score"],
+                    price_change_score=result["price_change_score"],
+                    structure_score=result["structure_score"],
+                    total_score=result["total_score"],
+                )
+
+                self.notify(trade, "TREND ENTRY JUDGE LONG")
+                return True
 
             if trade.param.side == SideType.LONG:
-                Log.event(f"(#{trade.id}) TREND ENTRY LONG price={current_price}")
+                message = f"TREND ENTRY LONG"
+                Log.event(f"(#{trade.id}) {message}")
+                trade.add_timeline(
+                    event="TREND",
+                    message=message,
+                    current_price=current_price,
+                    ma_score=result["ma_score"],
+                    price_change_score=result["price_change_score"],
+                    structure_score=result["structure_score"],
+                    total_score=result["total_score"],
+                )
+
                 self.notify(trade, "TREND ENTRY LONG")
                 return True
 
             return False
 
+
         # DOWN TREND
-        if trend_direction == "DOWN":
+        if trend_direction == TrendDirection.DOWN:
+
+            runtime.trend_side = SideType.SHORT
+
+            if trade.param.side == SideType.JUDGE:
+                message = f"TREND ENTRY JUDGE SHORT"
+                Log.event(f"(#{trade.id}) {message}")
+                trade.add_timeline(
+                    event="TREND",
+                    message=message,
+                    current_price=current_price,
+                    ma_score=result["ma_score"],
+                    price_change_score=result["price_change_score"],
+                    structure_score=result["structure_score"],
+                    total_score=result["total_score"],
+                )
+
+                self.notify(trade, "TREND ENTRY JUDGE SHORT")
+                return True
 
             if trade.param.side == SideType.SHORT:
-                Log.event(f"(#{trade.id}) TREND ENTRY SHORT price={current_price}")
+                message = f"TREND ENTRY SHORT"
+                Log.event(f"(#{trade.id}) {message}")
+                trade.add_timeline(
+                    event="TREND",
+                    message=message,
+                    current_price=current_price,
+                    ma_score=result["ma_score"],
+                    price_change_score=result["price_change_score"],
+                    structure_score=result["structure_score"],
+                    total_score=result["total_score"],
+                )
+
                 self.notify(trade, "TREND ENTRY SHORT")
                 return True
 

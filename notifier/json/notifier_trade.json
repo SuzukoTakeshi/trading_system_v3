@@ -127,8 +127,20 @@
         "voice_file": "trend_entry_long.wav"
     },
 
+    "TREND ENTRY JUDGE LONG": {
+        "message": "トレンド判定LONGを開始します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "trend_entry_long.wav"
+    },
+
     "TREND ENTRY SHORT": {
         "message": "トレンドSHORTを開始します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "trend_entry_short.wav"
+    },
+
+    "TREND ENTRY JUDGE SHORT": {
+        "message": "トレンド判定SHORTを開始します。",
         "voice_type": "VOICE_FILE",
         "voice_file": "trend_entry_short.wav"
     },
@@ -139,8 +151,20 @@
         "voice_file": "trend_exit_long.wav"
     },
 
+    "TREND EXIT JUDGE LONG": {
+        "message": "トレンド判定LONGを終了します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "trend_exit_long.wav"
+    },
+
     "TREND EXIT SHORT": {
         "message": "トレンドSHORTを終了します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "trend_exit_short.wav"
+    },
+
+    "TREND EXIT JUDGE SHORT": {
+        "message": "トレンド判定SHORTを終了します。",
         "voice_type": "VOICE_FILE",
         "voice_file": "trend_exit_short.wav"
     },

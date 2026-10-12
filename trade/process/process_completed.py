@@ -56,6 +56,11 @@ class ProcessCompleted(ProcessBase):
             profit_loss = (entry_result.price - exit_result.price) * trade.param.quantity
             notify_id = ("COMPLETED SHORT " + ("PROFIT" if profit_loss >= 0 else "LOSS"))
 
+        # ★★★★★★★★★★
+        elif trade.param.side == SideType.JUDGE:
+            profit_loss = (exit_result.price - entry_result.price) * trade.param.quantity
+            notify_id = ("COMPLETED LONG " + ("PROFIT" if profit_loss >= 0 else "LOSS"))
+
         # ==========================================
         # 完了通知
         # ==========================================

@@ -12,8 +12,8 @@
 #   ・EXIT注文は生成しない
 #
 
-from core.exception import InternalError
 from core.logger import Log
+from core.exception import StrategySideDisabledError
 
 from trade.trade_enums import SideType
 
@@ -44,6 +44,12 @@ class ProcessExitRange:
 
         Log.flow(f"(#{trade.id}) ProcessExitRange:process")
 
+        if trade.param.side != SideType.LONG and trade.param.side != SideType.LONG:
+            raise StrategySideDisabledError(
+                message=f"SIDE ERROR(ProcessExitRange) strategy={trade.param.strategy.value} side={trade.param.side.value}",
+                code="SIDE_DISABLED",
+            )
+
         runtime = trade.runtime.strategy_runtime
 
         if (runtime.long_exit_upper is None or runtime.short_exit_lower is None):
@@ -54,11 +60,6 @@ class ProcessExitRange:
 
         if trade.param.side == SideType.SHORT:
             return self.short.process(trade)
-
-        raise InternalError(
-            message=f"UNKNOWN SIDE {trade.param.side}",
-            code="UNKNOWN_SIDE",
-        )
 
 
     # ==========================================

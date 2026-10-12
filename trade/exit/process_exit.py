@@ -20,6 +20,7 @@ from core.logger import Log
 from trade.trade_enums import (
     TradeType,
     MarginType,
+    SideType,
     ExitReason,
 )
 
@@ -104,7 +105,9 @@ class ProcessExit(ProcessExitBase):
 
         current_price = self.quote.current_price
 
-        if trade.param.side.value == "long":
+        # ★★★★★★★★　TRENDの"judge"での判定を追加
+
+        if trade.param.side == SideType.LONG:
             hit = current_price >= target_price
         else:
             hit = current_price <= target_price

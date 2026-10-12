@@ -21,8 +21,9 @@ from trade.process.process_order_base import (
 )
 
 from core.exception import (
-    InternalError,
     OrderSubmitTimeoutError,
+    StrategySideDisabledError,
+    InternalError,
 )
 
 
@@ -104,8 +105,15 @@ class ProcessExitRequest(ProcessOrderBase):
         elif trade.param.side == SideType.SHORT:
             order_action = OrderAction.BUY
 
+         # ★★★★★★★★
+        elif trade.param.side == SideType.JUDGE:
+            order_action = OrderAction.SELL
+
         else:
-            raise InternalError(message=f"UNKNOWN SIDE {trade.param.side}", code="UNKNOWN_SIDE")
+            raise StrategySideDisabledError(
+                message=f"SIDE ERROR(ProcessExitRequest) strategy={trade.param.strategy.value} side={trade.param.side.value}",
+                code="SIDE_DISABLED",
+            )
 
         order = self.create_order(
             trade,

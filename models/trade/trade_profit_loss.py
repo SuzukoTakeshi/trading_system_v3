@@ -7,6 +7,8 @@
 #   ・Tradeの損益計算
 #
 
+from trade.trade_enums import SideType
+
 
 class TradeProfitLoss:
 
@@ -44,11 +46,22 @@ class TradeProfitLoss:
         exit_price = exit_result.price
         quantity = trade.param.quantity
 
-        if trade.param.side.value == "long":
+        if trade.param.side == SideType.LONG:
             return (exit_price - entry_price) * quantity
 
-        if trade.param.side.value == "short":
+        if trade.param.side == SideType.SHORT:
             return (entry_price - exit_price) * quantity
+
+        if trade.param.side == SideType.JUDGE:
+            side = trade.runtime.strategy_runtime.trend_side
+
+            if side == SideType.LONG:
+                return (exit_price - entry_price) * quantity
+
+            if side == SideType.SHORT:
+                return (entry_price - exit_price) * quantity
+
+            return None
 
         return None
 
@@ -85,11 +98,22 @@ class TradeProfitLoss:
         entry_price = entry_result.price
         quantity = trade.param.quantity
 
-        if trade.param.side.value == "long":
+        if trade.param.side == SideType.LONG:
             return (current_price - entry_price) * quantity
 
-        if trade.param.side.value == "short":
+        if trade.param.side == SideType.SHORT:
             return (entry_price - current_price) * quantity
+
+        if trade.param.side == SideType.JUDGE:
+            side = trade.runtime.strategy_runtime.trend_side
+
+            if side == SideType.LONG:
+                return (current_price - entry_price) * quantity
+
+            if side == SideType.SHORT:
+                return (entry_price - current_price) * quantity
+
+            return None
 
         return None
 
@@ -121,10 +145,19 @@ class TradeProfitLoss:
         entry_price = entry_result.price
         quantity = trade.param.quantity
 
-        if trade.param.side.value == "long":
+        if trade.param.side == SideType.LONG:
             return (stop_price - entry_price) * quantity
 
-        if trade.param.side.value == "short":
+        if trade.param.side == SideType.SHORT:
             return (entry_price - stop_price) * quantity
+
+        if trade.param.side == SideType.JUDGE:
+            side = trade.runtime.strategy_runtime.trend_side
+
+            if side == SideType.LONG:
+                return (stop_price - entry_price) * quantity
+
+            if side == SideType.SHORT:
+                return (entry_price - stop_price) * quantity
 
         return None

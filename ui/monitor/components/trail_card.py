@@ -461,14 +461,14 @@ def render_trail_card(trade: dict):
                 and quantity is not None
             ):
                 if side == "long":
-                    current_profit_loss = (
-                        current_price_value - entry_price
-                    ) * quantity
+                    current_profit_loss = (current_price_value - entry_price) * quantity
 
                 elif side == "short":
-                    current_profit_loss = (
-                        entry_price - current_price_value
-                    ) * quantity
+                    current_profit_loss = (entry_price - current_price_value) * quantity
+
+                # ★★★★★★
+                elif side == "judge":
+                    current_profit_loss = (current_price_value - entry_price) * quantity
 
             # ---------------------
             # STOP損益
@@ -685,7 +685,7 @@ def render_trail_card(trade: dict):
             unsafe_allow_html=True
         )
 
-        entry_price_col, entry_time_col, stop_price_col, col4 = st.columns(4)
+        entry_price_col, entry_time_col, stop_price_col, profit_target_price_col = st.columns(4)
 
         with entry_price_col:
             render_item("取得価格", fmt_price(trade.get("entry_price")))
@@ -694,7 +694,6 @@ def render_trail_card(trade: dict):
             render_item("取得日時", fmt_dt(trade.get("entry_time")))
 
         with stop_price_col:
-
             # STOPライン
             stop_price = trade.get("stop_price")
 
@@ -719,7 +718,7 @@ def render_trail_card(trade: dict):
                             trade.get("entry_price"),
                         )
 
-
+        with profit_target_price_col:
             # 利確ライン
             target_price = trade.get("profit_target_price")
 
@@ -751,9 +750,6 @@ def render_trail_card(trade: dict):
                             trade.get("entry_price"),
                             side,
                         )
-
-        with col4:
-            render_item("", "")
 
 
         # ---------------------

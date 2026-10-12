@@ -9,6 +9,7 @@
 
 from models.trade.trend_bar_model import TrendBarModel
 
+from trade.trade_enums import TrendDirection
 
 class TradeRuntimeTrendModel:
 
@@ -17,7 +18,12 @@ class TradeRuntimeTrendModel:
         self.bars = []
 
         # TREND判定結果
-        self.trend_direction = "UNDEFINED"
+        self.trend_direction = TrendDirection.UNDEFINED
+
+        # TREND売買方向
+        #   UP   → SideType.LONG
+        #   DOWN → SideType.SHORT
+        self.trend_side = None
 
         # 一時データなので保存・復元は行わない
         # trend_chartに渡すために使用

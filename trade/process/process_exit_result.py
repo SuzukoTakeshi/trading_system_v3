@@ -35,7 +35,7 @@ class ProcessExitResult(ProcessOrderBase):
         """
 
         message = (
-            f"(@{order.id}) EXIT ORDER FILLED "
+            f"EXIT ORDER FILLED order_id={order.id} "
             f"symbol={order.symbol} "
             f"order_no={order.order_no} "
             f"quantity={order_result.quantity} "

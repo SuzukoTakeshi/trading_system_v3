@@ -69,7 +69,7 @@ class ProcessOrderBase(ProcessBase):
         )
 
         message=(
-            f"(@{order.id}) CREATE ORDER "
+            f"CREATE ORDER order_id={order.id} "
             f"order_action={order.order_action.value} "
             f"price={order.price} "
             f"quantity={order.quantity} "
@@ -168,7 +168,7 @@ class ProcessOrderBase(ProcessBase):
 
 
         message = (
-            f"(@{order.id}) REQUEST ORDER "
+            f"REQUEST ORDER order_id={order.id} "
             f"request.order_id={request.order_id} "
             f"symbol={order.symbol} "
             f"result={result} "

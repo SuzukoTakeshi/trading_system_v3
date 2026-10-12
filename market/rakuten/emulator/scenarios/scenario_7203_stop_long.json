@@ -64,6 +64,11 @@
             { "comment": "STOPライン3,000.2" },
             { "price": 2990.0 },
 
+            { "comment": "終了" },
+
+            { "comment": "初期戻し" },
+            { "price": 3000.0 },
+
             { "end": true }
         ]
     }

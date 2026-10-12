@@ -21,6 +21,7 @@ from core.strategy_trend_config_loader import StrategyTrendConfig
 from trade.trade_enums import (
     SideType,
     ExitReason,
+    TrendDirection,
 )
 
 from trade.exit.process_exit_base import ProcessExitBase
@@ -92,7 +93,8 @@ class ProcessExitTrend(ProcessExitBase):
 
         runtime.trend_direction = trend_direction
 
-        Log.debug(
+        Log.trace(
+            "TREND",
             f"(#{trade.id}) TREND EXIT "
             f"current_price={current_price} "
             f"datetime={self.quote.current_datetime} "
@@ -105,8 +107,9 @@ class ProcessExitTrend(ProcessExitBase):
         # --------------------------------------
 
         # DOWN TREND
-        if trend_direction == "DOWN":
+        if trend_direction == TrendDirection.DOWN:
 
+            # LONGの場合
             if trade.param.side == SideType.LONG:
                 message = f"TREND EXIT LONG price={current_price}"
                 trade.add_timeline(event="EXIT", message=message, current_price=current_price)
@@ -115,17 +118,42 @@ class ProcessExitTrend(ProcessExitBase):
                 self.notify(trade, "TREND EXIT LONG")
                 return True
 
+            # JUDGEの場合
+            if (
+                trade.param.side == SideType.JUDGE
+                and runtime.trend_side == SideType.LONG
+            ):
+                message = f"TREND EXIT JUDGE LONG price={current_price}"
+                trade.add_timeline(event="EXIT", message=message, current_price=current_price)
+                trade.runtime.set_exit(current_price, ExitReason.TREND_EXIT)
+                Log.event(f"(#{trade.id}) {message}")
+                self.notify(trade, "TREND EXIT JUDGE LONG")
+                return True
+
             return False
 
         # UP TREND
-        if trend_direction == "UP":
+        if trend_direction == TrendDirection.UP:
 
+            # SHORTの場合
             if trade.param.side == SideType.SHORT:
                 message = f"TREND EXIT SHORT price={current_price}"
                 trade.add_timeline(event="EXIT", message=message, current_price=current_price)
                 trade.runtime.set_exit(current_price, ExitReason.TREND_EXIT)
                 Log.event(f"(#{trade.id}) {message}")
                 self.notify(trade, "TREND EXIT SHORT")
+                return True
+
+            # JUDGEの場合
+            if (
+                trade.param.side == SideType.JUDGE
+                and runtime.trend_side == SideType.SHORT
+            ):
+                message = f"TREND EXIT JUDGE SHORT price={current_price}"
+                trade.add_timeline(event="EXIT", message=message, current_price=current_price)
+                trade.runtime.set_exit(current_price, ExitReason.TREND_EXIT)
+                Log.event(f"(#{trade.id}) {message}")
+                self.notify(trade, "TREND EXIT JUDGE SHORT")
                 return True
 
             return False

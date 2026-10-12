@@ -25,7 +25,11 @@ from core.logger import Log
 
 from models.quote.quote_model import QuoteModel
 from models.market.market_des_model import MarketDesModel
-from trade.trade_enums import TradeState
+
+from trade.trade_enums import (
+    SideType,
+    TradeState
+)
 
 
 class TradeReady:
@@ -280,11 +284,16 @@ class TradeReady:
         # 値幅制限外
         out_of_limit = False
 
-        if trade.param.side.value == "long":
+        if trade.param.side == SideType.LONG:
             out_of_limit = current_price < trade.param.lower_limit
 
-        elif trade.param.side.value == "short":
+        if trade.param.side == SideType.SHORT:
             out_of_limit = current_price > trade.param.upper_limit
+
+        # ★★★★★★★★
+        if trade.param.side == SideType.JUDGE:
+            out_of_limit = current_price < trade.param.lower_limit
+
 
         # 値幅制限外 → 待機開始
         if out_of_limit:

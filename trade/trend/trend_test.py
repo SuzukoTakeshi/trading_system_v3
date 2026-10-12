@@ -178,7 +178,7 @@ class TrendTest:
             # Chart上でTREND判定を確認できるようにする。
             # --------------------------------------
             trend_params = {
-                "trend_direction": trend_direction,
+                "trend_direction": trend_direction.value,
 
                 "short_moving_average": (
                     result["short_moving_averages"][-1]["value"]

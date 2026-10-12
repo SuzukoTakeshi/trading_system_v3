@@ -12,9 +12,7 @@ import math
 from copy import deepcopy
 
 from core.logger import Log
-from core.exception import (
-    StrategySideDisabledError,
-)
+from core.exception import StrategySideDisabledError
 
 from core.strategy_config_loader import StrategyConfig
 
@@ -376,6 +374,8 @@ class TradeEngineAPI:
 
         current_price = quote.current_price
 
+        if trade.param.strategy_type == "trend":
+            return False, "TRENDではSTOPラインは指定できません。"
         if trade.param.side == SideType.LONG and stop_price >= current_price:
             return False, "LONGのSTOPラインは現在値より下に指定してください。"
 
@@ -435,13 +435,13 @@ class TradeEngineAPI:
 
         current_price = quote.current_price
 
-        if trade.param.side == SideType.LONG:
-            if profit_target_price <= current_price:
-                return False, "LONGの利確ラインは現在値より上に指定してください。"
+        if trade.param.strategy_type == "trend":
+            return False, "TRENDでは利確ラインは指定できません。"
+        if trade.param.side == SideType.LONG and profit_target_price <= current_price:
+            return False, "LONGの利確ラインは現在値より上に指定してください。"
 
-        else:
-            if profit_target_price >= current_price:
-                return False, "SHORTの利確ラインは現在値より下に指定してください。"
+        if trade.param.side == SideType.SHORT and profit_target_price >= current_price:
+            return False, "SHORTの利確ラインは現在値より下に指定してください。"
 
         previous_target = trade.runtime.profit_target_price
 

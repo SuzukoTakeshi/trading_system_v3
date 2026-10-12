@@ -15,8 +15,8 @@
 #   ・ENTRY注文は生成しない
 #
 
-from core.exception import InternalError
 from core.logger import Log
+from core.exception import StrategySideDisabledError
 
 from trade.entry.entry_standard.process_entry_reversal_long import (
     ProcessEntryReversalLong,
@@ -36,36 +36,24 @@ class ProcessEntryReversal:
         self.context = context
         self.market = market
 
-        self.long = ProcessEntryReversalLong(
-            context,
-            market,
-        )
+        self.long = ProcessEntryReversalLong(context, market)
 
-        self.short = ProcessEntryReversalShort(
-            context,
-            market,
-        )
+        self.short = ProcessEntryReversalShort(context, market)
 
     # ==========================================
     # Reversal判定
     # ==========================================
     def process(self, trade):
 
-        Log.flow(
-            f"(#{trade.id}) ProcessEntryReversal:process"
-        )
+        Log.flow(f"(#{trade.id}) ProcessEntryReversal:process")
 
         if trade.param.side == SideType.LONG:
-
             return self.long.process(trade)
 
-        elif trade.param.side == SideType.SHORT:
-
+        if trade.param.side == SideType.SHORT:
             return self.short.process(trade)
 
-        else:
-
-            raise InternalError(
-                message=f"UNKNOWN SIDE {trade.param.side}",
-                code="UNKNOWN_SIDE",
-            )
+        raise StrategySideDisabledError(
+            message=f"SIDE ERROR(ProcessEntryReversal) strategy={trade.param.strategy.value} side={trade.param.side.value}",
+            code="SIDE_DISABLED",
+        )

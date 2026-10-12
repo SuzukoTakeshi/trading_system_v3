@@ -13,8 +13,9 @@
 #   ・ENTRY注文は生成しない
 #
 
-from core.exception import InternalError
 from core.logger import Log
+
+from core.exception import StrategySideDisabledError
 
 from trade.trade_enums import SideType
 
@@ -49,13 +50,11 @@ class ProcessEntryPullback:
 
             return self.long.process(trade)
 
-        elif trade.param.side == SideType.SHORT:
+        if trade.param.side == SideType.SHORT:
 
             return self.short.process(trade)
 
-        else:
-
-            raise InternalError(
-                message=f"UNKNOWN SIDE {trade.param.side}",
-                code="UNKNOWN_SIDE",
-            )
+        raise StrategySideDisabledError(
+            message=f"SIDE ERROR(ProcessEntryPullback) strategy={trade.param.strategy.value} side={trade.param.side.value}",
+            code="SIDE_DISABLED",
+        )

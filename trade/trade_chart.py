@@ -164,7 +164,7 @@ def add_trade_chart_data(context, trade):
         runtime = trade.runtime.strategy_runtime
 
         trend_params = {
-            "trend_direction": runtime.trend_direction,
+            "trend_direction": runtime.trend_direction.value,
         }
 
 

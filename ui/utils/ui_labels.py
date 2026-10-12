@@ -81,6 +81,7 @@ STRATEGY_TYPE_LABEL = {
 SIDE_LABEL = {
     "long": "🟢 買い(L)",
     "short": "🔴 売り(S)",
+    "judge": "🟠 判定",
 }
 
 # ==================================================
@@ -119,6 +120,7 @@ SCENARIO_LABEL = {
     "LONG": "🟢 LONG",
     "SHORT": "🔴 SHORT",
     "RANDOM": "🔵 RANDOM",
+    "JUDGE": "🟠 判定",
 }
 
 # ==========================================

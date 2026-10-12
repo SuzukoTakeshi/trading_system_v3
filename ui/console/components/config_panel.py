@@ -327,10 +327,7 @@ def config_panel(ctx):
                 "swing",
             )
 
-            for col, strategy_name in zip(
-                cols,
-                strategies
-            ):
+            for col, strategy_name in zip(cols, strategies):
 
                 strategy_data = strategy.get(
                     strategy_name,
@@ -339,9 +336,7 @@ def config_panel(ctx):
 
                 with col:
 
-                    st.markdown(
-                        f"### {strategy_name.upper()}"
-                    )
+                    st.markdown(f"### {strategy_name.upper()}")
 
                     # ==============================
                     # STRATEGY
@@ -374,52 +369,43 @@ def config_panel(ctx):
 
                     st.markdown("**SIDE**")
 
-                    side = strategy_data.get(
-                        "side",
-                        {}
-                    )
+                    side = strategy_data.get("side", {})
 
-                    st.text_input(
-                        "Long",
+                    st.text_input("Long",
                         value=(
                             "有効"
-                            if side.get(
-                                "long",
-                                False
-                            )
+                            if side.get("long", False)
                             else "無効"
                         ),
                         disabled=True,
                         key=f"{strategy_name}_side_long"
                     )
 
-                    st.caption(
-                        strategy_description.get(
-                            "side.long",
-                            ""
-                        )
-                    )
+                    st.caption(strategy_description.get("side.long", ""))
 
-                    st.text_input(
-                        "Short",
+                    st.text_input("Short",
                         value=(
                             "有効"
-                            if side.get(
-                                "short",
-                                False
-                            )
+                            if side.get("short", False)
                             else "無効"
                         ),
                         disabled=True,
                         key=f"{strategy_name}_side_short"
                     )
 
-                    st.caption(
-                        strategy_description.get(
-                            "side.short",
-                            ""
-                        )
+                    st.caption(strategy_description.get("side.short", ""))
+
+                    st.text_input("judge",
+                        value=(
+                            "有効"
+                            if side.get("judge", False)
+                            else "無効"
+                        ),
+                        disabled=True,
+                        key=f"{strategy_name}_side_judge"
                     )
+
+                    st.caption(strategy_description.get("side.judge", ""))
 
                     # ==============================
                     # ENTRY

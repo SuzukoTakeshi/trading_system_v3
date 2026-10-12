@@ -205,7 +205,7 @@ class StrategySideDisabledError(StrategyError):
 
     原因:
         ・strategy_config.jsonのside設定
-        ・LONG/SHORT組み合わせ不一致
+        ・LONG/SHORT/JUDGE組み合わせ不一致
 
     例:
         swing + short

@@ -234,7 +234,7 @@ def convert_trade_display_data(trades):
             row.get("strategy", ""),
         )
 
-        # トレード区分 (LONG/SHORT)
+        # トレード区分 (LONG/SHORT/JUDGE)
         row["side"] = SIDE_LABEL.get(
             row.get("side", ""),
             row.get("side", ""),

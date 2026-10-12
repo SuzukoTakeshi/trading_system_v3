@@ -19,6 +19,7 @@ from trade.trade_enums import (
 from trade.entry.process_entry_base import ProcessEntryBase
 from trade.range_boundary import confirm_boundary_duration
 
+from core.exception import StrategySideDisabledError
 
 
 class ProcessEntryRange(ProcessEntryBase):
@@ -80,12 +81,15 @@ class ProcessEntryRange(ProcessEntryBase):
 
         # ENTRY判定
         if trade.param.side == SideType.LONG:
-            result = self.entry_long(trade, runtime, price)
+            return self.entry_long(trade, runtime, price)
 
         if trade.param.side == SideType.SHORT:
-            result = self.entry_short(trade, runtime, price)
+            return self.entry_short(trade, runtime, price)
 
-        return result
+        raise StrategySideDisabledError(
+            message=f"SIDE ERROR(ProcessEntryRange) strategy={trade.param.strategy.value} side={trade.param.side.value}",
+            code="SIDE_DISABLED",
+        )
 
 
     # ==================================================

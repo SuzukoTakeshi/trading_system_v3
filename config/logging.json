@@ -5,7 +5,7 @@
     "ERROR": true,
     "DEBUG": true,
 
-    "CREATE": true,
+    "CREATE": false,
     "STATE": true,
     "MARKET": true,
     "ASSET": true,
@@ -19,7 +19,6 @@
 
 
     "CHECK": true,
-    "TRADE": true,
     "ORDER": true,
     "EXECUTION": true,
     "BREAKEVEN": true,

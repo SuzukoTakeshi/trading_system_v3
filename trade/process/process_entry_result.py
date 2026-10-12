@@ -31,7 +31,7 @@ class ProcessEntryResult(ProcessOrderBase):
         """
 
         message = (
-            f"(@{order.id}) ORDER FILLED "
+            f"ORDER FILLED "
             f"order_no={order.order_no} "
             f"symbol={order.symbol} "
             f"quantity={order_result.quantity} "

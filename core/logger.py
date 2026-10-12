@@ -32,7 +32,6 @@
 #
 #   ・trend()      ：トレンド判定
 
-#   ・trade()      ：売買情報
 #   ・order()      ：注文処理
 #   ・execution()  ：約定処理
 #   ・breakeven()  ：BreakEven情報
@@ -366,33 +365,6 @@ class Log:
     @classmethod
     def trend(cls, *args):
         cls._write_log("TREND", *args)
-
-
-    # ========================
-    # TRADE
-    #
-    # 売買ログ
-    # ========================
-    @classmethod
-    def trade(cls, side, symbol, quantity, price):
-
-        if not cls._write_log(
-            "TRADE",
-            side,
-            symbol,
-            f"{quantity}@{price:.2f}"
-        ):
-            return
-
-        if not cls.SOUND:
-            return
-
-        if side == "BUY":
-            cls._beep(1000, 120)
-
-        else:
-            cls._beep(1200, 100)
-            cls._beep(1600, 150)
 
     # ========================
     # ORDER
