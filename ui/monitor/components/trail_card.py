@@ -466,9 +466,15 @@ def render_trail_card(trade: dict):
                 elif side == "short":
                     current_profit_loss = (entry_price - current_price_value) * quantity
 
-                # ★★★★★★
                 elif side == "judge":
-                    current_profit_loss = (current_price_value - entry_price) * quantity
+                    trend_side = trade.get("trend_side")
+
+                    if trend_side == "long":
+                        current_profit_loss = (current_price_value - entry_price) * quantity
+                    elif trend_side == "short":
+                        current_profit_loss = (entry_price - current_price_value) * quantity
+                    else:
+                        current_profit_loss = 0
 
             # ---------------------
             # STOP損益
@@ -670,6 +676,57 @@ def render_trail_card(trade: dict):
             with exit_method_col:
                 render_item("EXIT判定", exit_method_text)
 
+
+        # ---------------------
+        # TRENDスコア（現在値）
+        # ---------------------
+
+        if trade.get("strategy_type") in ("trend", "trend_test"):
+
+            st.markdown(
+                """
+                <hr style="
+                    margin: 10px 0;
+                    border: none;
+                    border-top: 1px solid #444;
+                ">
+                """,
+                unsafe_allow_html=True
+            )
+
+            # トレンド判定方向
+            if trade.get("side") == "judge":
+                trend_side = trade.get("trend_side")
+                side_text = SIDE_LABEL.get(trend_side, "未判定")
+                st.markdown(
+                    f"""
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin: 0px 0 8px 0;
+                        font-weight: bold;
+                    ">
+                    <span>トレンド判定：{side_text}</span>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            score_col1, score_col2, score_col3, score_col4 = st.columns(4)
+
+            with score_col1:
+                render_item("MAスコア", trade.get("trend_ma_score"))
+
+            with score_col2:
+                render_item("価格変化スコア", trade.get("trend_price_change_score"))
+
+            with score_col3:
+                render_item("構造スコア", trade.get("trend_structure_score"))
+
+            with score_col4:
+                render_item("合計スコア", trade.get("trend_total_score"))
+
         # ---------------------
         # 取得
         # ---------------------
@@ -842,4 +899,3 @@ def render_trail_card(trade: dict):
             """,
             unsafe_allow_html=True
         )
-

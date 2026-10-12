@@ -25,6 +25,12 @@ class TradeRuntimeTrendModel:
         #   DOWN → SideType.SHORT
         self.trend_side = None
 
+        # TRENDスコア（現在値）一時データ
+        self.ma_score = 0
+        self.price_change_score = 0
+        self.structure_score = 0
+        self.total_score = 0
+
         # 一時データなので保存・復元は行わない
         # trend_chartに渡すために使用
         self.short_moving_averages = []

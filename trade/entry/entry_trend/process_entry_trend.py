@@ -84,6 +84,14 @@ class ProcessEntryTrend(ProcessEntryBase):
         result = self.trend_analyzer.analyze(runtime.bars)
 
         # --------------------------------------
+        # TRENDスコアをRuntimeへ保存
+        # --------------------------------------
+        runtime.ma_score = result["ma_score"]
+        runtime.price_change_score = result["price_change_score"]
+        runtime.structure_score = result["structure_score"]
+        runtime.total_score = result["total_score"]
+
+        # --------------------------------------
         # 移動平均をRuntimeへ保存
         #
         #   trend_chartで使用する一時データ

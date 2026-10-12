@@ -448,6 +448,53 @@ class TradeModel(BaseEntity):
 
             "pause_flag": self.pause_flag,
 
+            "trend_side": (
+                self.runtime.strategy_runtime.trend_side.value
+                if (
+                    self.param.strategy_type in ("trend", "trend_test")
+                    and self.runtime.strategy_runtime is not None
+                    and self.runtime.strategy_runtime.trend_side is not None
+                )
+                else None
+            ),
+
+            # TRENDスコア（現在値）
+            "trend_ma_score": (
+                self.runtime.strategy_runtime.ma_score
+                if (
+                    self.param.strategy_type in ("trend", "trend_test")
+                    and self.runtime.strategy_runtime is not None
+                )
+                else None
+            ),
+
+            "trend_price_change_score": (
+                self.runtime.strategy_runtime.price_change_score
+                if (
+                    self.param.strategy_type in ("trend", "trend_test")
+                    and self.runtime.strategy_runtime is not None
+                )
+                else None
+            ),
+
+            "trend_structure_score": (
+                self.runtime.strategy_runtime.structure_score
+                if (
+                    self.param.strategy_type in ("trend", "trend_test")
+                    and self.runtime.strategy_runtime is not None
+                )
+                else None
+            ),
+
+            "trend_total_score": (
+                self.runtime.strategy_runtime.total_score
+                if (
+                    self.param.strategy_type in ("trend", "trend_test")
+                    and self.runtime.strategy_runtime is not None
+                )
+                else None
+            ),
+
             "trend_bars": (
                 [
                     bar.to_dict()

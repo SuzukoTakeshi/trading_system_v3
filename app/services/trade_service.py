@@ -260,6 +260,14 @@ class TradeService:
                 # System
                 "created_at": trade["created_at"],
 
+                "trend_side": trade.get("trend_side"),
+
+                # TRENDスコア（現在値）
+                "trend_ma_score": trade.get("trend_ma_score"),
+                "trend_price_change_score": trade.get("trend_price_change_score"),
+                "trend_structure_score": trade.get("trend_structure_score"),
+                "trend_total_score": trade.get("trend_total_score"),
+
                 "trend_bars": trade.get("trend_bars", []),
 
                 "trend_short_moving_averages": (
