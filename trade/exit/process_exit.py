@@ -105,12 +105,17 @@ class ProcessExit(ProcessExitBase):
 
         current_price = self.quote.current_price
 
-        # ★★★★★★★★　TRENDの"judge"での判定を追加
-
         if trade.param.side == SideType.LONG:
             hit = current_price >= target_price
-        else:
+        elif trade.param.side == SideType.SHORT:
             hit = current_price <= target_price
+
+        elif trade.param.side == SideType.JUDGE:
+            side = trade.runtime.strategy_runtime.trend_side
+            if side == SideType.LONG:
+                hit = current_price >= target_price
+            if side == SideType.SHORT:
+                hit = current_price <= target_price
 
         if not hit:
             return False

@@ -26,8 +26,8 @@
         "trend.decision.agreement_count": "方向判定に必要なスコアの一致数"
     },
     "trend": {
-        "bar_interval_minutes": 0.25,
-        "history_bars": 100,
+        "bar_interval_minutes": 0.5,
+        "history_bars": 120,
 
         "structure": {
             "bars": 3,

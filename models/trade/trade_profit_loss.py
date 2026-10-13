@@ -54,14 +54,11 @@ class TradeProfitLoss:
 
         if trade.param.side == SideType.JUDGE:
             side = trade.runtime.strategy_runtime.trend_side
-
             if side == SideType.LONG:
                 return (exit_price - entry_price) * quantity
 
             if side == SideType.SHORT:
                 return (entry_price - exit_price) * quantity
-
-            return None
 
         return None
 

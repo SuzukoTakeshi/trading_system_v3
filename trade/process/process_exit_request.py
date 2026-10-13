@@ -105,9 +105,12 @@ class ProcessExitRequest(ProcessOrderBase):
         elif trade.param.side == SideType.SHORT:
             order_action = OrderAction.BUY
 
-         # ★★★★★★★★
         elif trade.param.side == SideType.JUDGE:
-            order_action = OrderAction.SELL
+            side = trade.runtime.strategy_runtime.trend_side
+            if side == SideType.LONG:
+                order_action = OrderAction.SELL
+            if side == SideType.SHORT:
+                order_action = OrderAction.BUY
 
         else:
             raise StrategySideDisabledError(

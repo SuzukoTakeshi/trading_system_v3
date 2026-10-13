@@ -287,12 +287,16 @@ class TradeReady:
         if trade.param.side == SideType.LONG:
             out_of_limit = current_price < trade.param.lower_limit
 
-        if trade.param.side == SideType.SHORT:
+        elif trade.param.side == SideType.SHORT:
             out_of_limit = current_price > trade.param.upper_limit
 
-        # ★★★★★★★★
-        if trade.param.side == SideType.JUDGE:
-            out_of_limit = current_price < trade.param.lower_limit
+        elif trade.param.side == SideType.JUDGE:
+            side = trade.runtime.strategy_runtime.trend_side
+            if side == SideType.LONG:
+                out_of_limit = current_price < trade.param.lower_limit
+
+            if side == SideType.SHORT:
+                out_of_limit = current_price > trade.param.upper_limit
 
 
         # 値幅制限外 → 待機開始

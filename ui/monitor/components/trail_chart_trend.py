@@ -178,7 +178,7 @@ def render_trend_chart(
             high_price,
             color=bar_color,
             label=(
-                "15s OHLC"
+                "OHLC"
                 if not ohlc_labeled
                 else None
             ),
