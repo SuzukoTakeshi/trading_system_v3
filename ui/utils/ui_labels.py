@@ -147,8 +147,9 @@ EXIT_REASON_LABEL = {
     "time_exit": "時間決済",
     "close_exit": "指定時刻決済",
     "manual_exit": "手動決済",
-    "stop_line_exit": "損切り",
-    "profit_target_exit": "利確",
+    "stop_line_exit": "STOP決済",
+    "profit_target_exit": "利確決済",
+
     "range_exit": "RANGE完了",
     "range_boundary_exit": "RANGE逸脱",
     "trend_exit": "トレンド終了",

@@ -127,6 +127,7 @@ def update_trade_stop(trade_id: int, req: StopPriceRequestDTO):
     return app_service.trade_service.update_stop_price(
         trade_id,
         req.stop_price,
+        req.enabled,
     )
 
 

@@ -20,7 +20,12 @@ def render_standard_chart(
     name: str = "",
     exit_method: str = "stop",
     profit_target_price: float | None = None,
+    stop_exit_enabled: bool = True,
+    profit_target_enabled: bool | None = None,
 ):
+
+    if profit_target_enabled is None:
+        profit_target_enabled = profit_target_price is not None
 
     if not trail_history:
         st.info("トレール履歴はありません")
@@ -136,7 +141,10 @@ def render_standard_chart(
     high = plot_df["high_watermark"]
     low = plot_df["low_watermark"]
     stop = plot_df["stop_loss"]
-    show_stop = exit_method != "profit"
+    show_stop = (
+        exit_method != "profit"
+        and stop_exit_enabled
+    )
 
     entry_rows = df[df["entry_price"].notna()]
 
@@ -262,7 +270,7 @@ def render_standard_chart(
     # 利確ライン
     # ==================================================
 
-    if profit_target_price is not None:
+    if profit_target_enabled and profit_target_price is not None:
         ax.axhline(
             profit_target_price,
             linestyle="--",
@@ -390,7 +398,7 @@ def render_standard_chart(
     if show_stop:
         y_columns.append("stop_loss")
 
-    if profit_target_price is not None:
+    if profit_target_enabled and profit_target_price is not None:
         y_values = pd.concat(
             [
                 plot_df[y_columns].stack().dropna(),

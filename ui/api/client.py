@@ -179,10 +179,17 @@ def update_atr(trade_id, atr):
 # ==========================================
 # Trade STOPライン変更
 # ==========================================
-def update_stop_price(trade_id, stop_price):
+def update_stop_price(
+    trade_id,
+    stop_price,
+    enabled,
+):
     return post(
         f"/trade/{trade_id}/stop",
-        json={"stop_price": stop_price},
+        json={
+            "stop_price": stop_price,
+            "enabled": enabled,
+        },
     )
 
 

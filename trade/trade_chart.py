@@ -268,3 +268,30 @@ def add_trade_chart_data(context, trade):
         trade.id,
         []
     ).append(trade_chart_data)
+
+
+# ==========================================
+# STOPライン更新
+# ==========================================
+def update_trade_chart_stop(context, trade):
+
+    Log.debug("Call update_trade_chart_stop")
+
+    chart_data_list = context.cache.trade_chart_datas.get(
+        trade.id,
+        []
+    )
+
+    if not chart_data_list:
+        return
+
+    # 最後のチャートデータだけ更新
+    last = chart_data_list[-1]
+
+    last.stop_loss = trade.runtime.stop_price
+
+    Log.debug(
+        f"(#{trade.id}) CHART STOP UPDATED "
+        f"stop_loss={last.stop_loss} "
+        f"time={last.time}"
+    )

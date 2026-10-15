@@ -26,6 +26,8 @@ from trade.trade_enums import (
 from models.trade.trade_model import TradeModel
 from models.quote.quote_model import QuoteModel
 
+from trade.trade_chart import update_trade_chart_stop
+
 
 class TradeEngineAPI:
 
@@ -349,7 +351,7 @@ class TradeEngineAPI:
     # ==========================================
     # STOPライン変更
     # ==========================================
-    def update_stop_price(self, trade_id, stop_price):
+    def update_stop_price(self, trade_id, stop_price, enabled):
 
         trade = self.context.trades.get(trade_id)
 
@@ -359,43 +361,62 @@ class TradeEngineAPI:
         if trade.state != TradeState.EXIT:
             return False, f"Trade #{trade_id} はEXIT監視中ではありません。"
 
+        if trade.param.strategy_type not in ("standard", "trend"):
+            return False, f"Trade #{trade_id} はSTANDARDまたはTRENDではありません。"
+
         if trade.entry_order is None or trade.entry_order.result is None:
             return False, f"Trade #{trade_id} はENTRY未約定です。"
-
-        if trade.runtime.stop_price is None:
-            return False, f"Trade #{trade_id} のSTOPラインはまだ設定されていません。"
 
         if not math.isfinite(stop_price) or stop_price <= 0:
             return False, "STOPラインには0より大きい数値を指定してください。"
 
         quote = trade.get_quote()
+
         if quote is None or quote.current_price is None:
             return False, f"Trade #{trade_id} の現在値を取得できません。"
 
         current_price = quote.current_price
 
-        if trade.param.strategy_type == "trend":
-            return False, "TRENDではSTOPラインは指定できません。"
-        if trade.param.side == SideType.LONG and stop_price >= current_price:
+        side = trade.param.side
+
+        if side == SideType.JUDGE:
+            side = trade.runtime.strategy_runtime.trend_side
+
+        if side == SideType.LONG and stop_price >= current_price:
             return False, "LONGのSTOPラインは現在値より下に指定してください。"
 
-        if trade.param.side == SideType.SHORT and stop_price <= current_price:
+        if side == SideType.SHORT and stop_price <= current_price:
             return False, "SHORTのSTOPラインは現在値より上に指定してください。"
 
         previous_stop = trade.runtime.stop_price
         trade.runtime.stop_price = stop_price
 
+        # チャートのSTOPラインを即時更新
+        update_trade_chart_stop(self.context, trade)
+
+        # STOP判定の有効・無効を更新
+        if trade.param.params is None:
+            trade.param.params = {}
+
+        trade.param.params["stop_exit_enabled"] = enabled
+
         message = (
-            f"STOP LINE UPDATED side={trade.param.side.value} "
-            f"previous={previous_stop} new={stop_price} "
+            f"STOP LINE UPDATED "
+            f"side={side.value} "
+            f"previous={previous_stop} "
+            f"new={stop_price} "
+            f"enabled={enabled} "
             f"current_price={current_price}"
         )
+
         Log.event(f"(#{trade_id}) {message}")
+
         trade.add_timeline(
             event="STOP",
             message=message,
             current_price=current_price,
         )
+
         self._save_trade(trade)
 
         return True, "STOPラインを変更しました。"
@@ -419,8 +440,8 @@ class TradeEngineAPI:
         if trade.state != TradeState.EXIT:
             return False, f"Trade #{trade_id} はEXIT監視中ではありません。"
 
-        if trade.param.strategy_type != "standard":
-            return False, f"Trade #{trade_id} はSTANDARDではありません。"
+        if trade.param.strategy_type != "standard" and trade.param.strategy_type != "trend":
+            return False, f"Trade #{trade_id} はSTANDARDまたはTRENDではありません。"
 
         if trade.entry_order is None or trade.entry_order.result is None:
             return False, f"Trade #{trade_id} はENTRY未約定です。"
@@ -435,12 +456,14 @@ class TradeEngineAPI:
 
         current_price = quote.current_price
 
-        if trade.param.strategy_type == "trend":
-            return False, "TRENDでは利確ラインは指定できません。"
-        if trade.param.side == SideType.LONG and profit_target_price <= current_price:
+        side = trade.param.side
+        if side == SideType.JUDGE:
+            side = trade.runtime.strategy_runtime.trend_side
+
+        if side == SideType.LONG and profit_target_price <= current_price:
             return False, "LONGの利確ラインは現在値より上に指定してください。"
 
-        if trade.param.side == SideType.SHORT and profit_target_price >= current_price:
+        if side == SideType.SHORT and profit_target_price >= current_price:
             return False, "SHORTの利確ラインは現在値より下に指定してください。"
 
         previous_target = trade.runtime.profit_target_price

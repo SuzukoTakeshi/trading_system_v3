@@ -56,7 +56,10 @@ class ProcessExit(ProcessExitBase):
 
         if trade.param.strategy_type == "standard":
 
-            if trade.param.exit_method == "stop":
+            params = trade.param.params or {}
+            stop_exit_enabled = params.get("stop_exit_enabled", True)
+
+            if (trade.param.exit_method == "stop" and stop_exit_enabled):
                 if self.exit_stop.process(trade):
                     return True
 
@@ -68,8 +71,23 @@ class ProcessExit(ProcessExitBase):
                 return True
 
         if trade.param.strategy_type == "trend":
-            if self.exit_trend.process(trade):
+
+            params = trade.param.params
+
+            trend_exit_enabled = params.get("trend_exit_enabled", True)
+            stop_exit_enabled = params.get("stop_exit_enabled", True)
+
+            if trend_exit_enabled:
+                if self.exit_trend.process(trade):
+                    return True
+
+            if stop_exit_enabled:
+                if self.exit_stop.process(trade):
+                    return True
+
+            if self.is_profit_target_hit(trade):
                 return True
+
 
         # DEBUGでは時間系EXITを行わない
         if not self.market.is_debug():

@@ -78,6 +78,7 @@ def render_trend_chart(
     long_moving_averages: list,
     symbol: str = "",
     name: str = "",
+    stop_exit_enabled: bool = True,
 ):
 
     if not trail_history and not trend_bars:
@@ -111,15 +112,10 @@ def render_trend_chart(
     # Price
     # --------------------------------------
     if not df.empty:
-
         if "price_close" in df.columns:
-
             # 最大約300点に間引き
             max_points = 300
-            step = max(
-                1,
-                len(df) // max_points
-            )
+            step = max(1, len(df) // max_points)
 
             price_df = df.iloc[::step]
 
@@ -131,13 +127,43 @@ def render_trend_chart(
             )
 
     # --------------------------------------
+    # STOP
+    # --------------------------------------
+    if (
+        stop_exit_enabled
+        and not df.empty
+        and {"time", "stop_loss"}.issubset(df.columns)
+    ):
+        stop_df = df[
+            df["stop_loss"].notna()
+        ]
+
+        if not stop_df.empty:
+            ax.plot(
+                stop_df["time"],
+                stop_df["stop_loss"],
+                label="STOP",
+                linewidth=1,
+                color="red",
+            )
+
+            latest_stop = stop_df.iloc[-1]["stop_loss"]
+
+            if pd.notna(latest_stop):
+                ax.axhline(
+                    latest_stop,
+                    linestyle="--",
+                    linewidth=0.8,
+                    alpha=0.7,
+                    color="red",
+                )
+
+    # --------------------------------------
     # TREND期間
     #
     # ※ 間引き前のtrail_historyから作成
     # --------------------------------------
-    trend_periods = _build_trend_periods(
-        trail_history
-    )
+    trend_periods = _build_trend_periods(trail_history)
 
     # --------------------------------------
     # 15秒 OHLC
@@ -145,10 +171,7 @@ def render_trend_chart(
     ohlc_labeled = False
 
     for bar in trend_bars:
-
-        bar_time = pd.to_datetime(
-            bar.get("time")
-        )
+        bar_time = pd.to_datetime(bar.get("time"))
 
         open_price = bar.get("open")
         high_price = bar.get("high")
@@ -206,19 +229,9 @@ def render_trend_chart(
     # Short SMA
     # --------------------------------------
     if short_moving_averages:
-
-        ma_df = pd.DataFrame(
-            short_moving_averages
-        )
-
-        if {"time", "value"}.issubset(
-            ma_df.columns
-        ):
-
-            ma_df["time"] = pd.to_datetime(
-                ma_df["time"]
-            )
-
+        ma_df = pd.DataFrame(short_moving_averages)
+        if {"time", "value"}.issubset(ma_df.columns):
+            ma_df["time"] = pd.to_datetime(ma_df["time"])
             ax.plot(
                 ma_df["time"],
                 ma_df["value"],
@@ -230,19 +243,9 @@ def render_trend_chart(
     # Medium SMA
     # --------------------------------------
     if medium_moving_averages:
-
-        ma_df = pd.DataFrame(
-            medium_moving_averages
-        )
-
-        if {"time", "value"}.issubset(
-            ma_df.columns
-        ):
-
-            ma_df["time"] = pd.to_datetime(
-                ma_df["time"]
-            )
-
+        ma_df = pd.DataFrame(medium_moving_averages)
+        if {"time", "value"}.issubset(ma_df.columns):
+            ma_df["time"] = pd.to_datetime(ma_df["time"])
             ax.plot(
                 ma_df["time"],
                 ma_df["value"],
@@ -254,19 +257,9 @@ def render_trend_chart(
     # Long SMA
     # --------------------------------------
     if long_moving_averages:
-
-        ma_df = pd.DataFrame(
-            long_moving_averages
-        )
-
-        if {"time", "value"}.issubset(
-            ma_df.columns
-        ):
-
-            ma_df["time"] = pd.to_datetime(
-                ma_df["time"]
-            )
-
+        ma_df = pd.DataFrame(long_moving_averages)
+        if {"time", "value"}.issubset(ma_df.columns):
+            ma_df["time"] = pd.to_datetime(ma_df["time"])
             ax.plot(
                 ma_df["time"],
                 ma_df["value"],
@@ -294,14 +287,9 @@ def render_trend_chart(
             entry_time = row["entry_time"]
             entry_price = row["entry_price"]
 
-            if (
-                pd.notna(entry_time)
-                and pd.notna(entry_price)
-            ):
+            if (pd.notna(entry_time) and pd.notna(entry_price)):
 
-                entry_time = pd.to_datetime(
-                    entry_time
-                )
+                entry_time = pd.to_datetime(entry_time)
 
                 ax.scatter(
                     entry_time,
@@ -321,14 +309,8 @@ def render_trend_chart(
 
                 ax.annotate(
                     f"{entry_price:.2f}",
-                    xy=(
-                        entry_time,
-                        entry_price,
-                    ),
-                    xytext=(
-                        10,
-                        8,
-                    ),
+                    xy=(entry_time, entry_price),
+                    xytext=(10, 8),
                     textcoords="offset points",
                     ha="left",
                     va="bottom",
@@ -386,14 +368,8 @@ def render_trend_chart(
 
             ax.annotate(
                 f"{exit_price:.2f}",
-                xy=(
-                    exit_time,
-                    exit_price,
-                ),
-                xytext=(
-                    10,
-                    -8,
-                ),
+                xy=(exit_time, exit_price),
+                xytext=(10, -8),
                 textcoords="offset points",
                 ha="left",
                 va="top",
@@ -413,18 +389,11 @@ def render_trend_chart(
     # --------------------------------------
     if trend_periods:
 
-        trend_ax.set_ylim(
-            0,
-            1,
-        )
+        trend_ax.set_ylim(0, 1)
 
-        trend_ax.set_yticks(
-            [0.5]
-        )
+        trend_ax.set_yticks([0.5])
 
-        trend_ax.set_yticklabels(
-            ["TREND"]
-        )
+        trend_ax.set_yticklabels(["TREND"])
 
         trend_colors = {
             "UP": "green",
@@ -437,16 +406,10 @@ def render_trend_chart(
 
             # 1点だけの場合でも表示できる幅を確保
             if start_time == end_time:
-                end_time = (
-                    start_time
-                    + pd.Timedelta(seconds=1)
-                )
+                end_time = (start_time + pd.Timedelta(seconds=1))
 
             # 細いTREND帯
-            color = trend_colors.get(
-                direction,
-                "gray"
-            )
+            color = trend_colors.get(direction, "gray")
 
             trend_ax.hlines(
                 0.5,
@@ -457,10 +420,7 @@ def render_trend_chart(
             )
 
             # 期間中央に方向を表示
-            middle_time = (
-                start_time
-                + (end_time - start_time) / 2
-            )
+            middle_time = (start_time + (end_time - start_time) / 2)
 
             trend_ax.text(
                 middle_time,

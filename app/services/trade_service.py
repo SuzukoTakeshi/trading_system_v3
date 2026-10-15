@@ -108,19 +108,13 @@ class TradeService:
     # ---------------------
     def register_trade(self, req):
 
-        Log.debug(
-            f"TRADE SERVICE REGISTER TRADE symbol={req.symbol}"
-        )
+        Log.debug(f"TRADE SERVICE REGISTER TRADE symbol={req.symbol}")
 
         try:
-
             error = self._validate_trade_request(req)
 
             if error:
-                return Response.rejected(
-                    response_id=error["response_id"],
-                    message=error["message"],
-                )
+                return Response.rejected(response_id=error["response_id"], message=error["message"])
 
             trade_id = self.trade_engine.api.create_trade(req)
 
@@ -134,6 +128,17 @@ class TradeService:
                     "margin_type": req.margin_type,
                     "side": req.side,
                     "strategy": req.strategy,
+
+                    # TREND判定
+                    "trend_exit_enabled": (
+                        req.params.get("trend_exit_enabled", False)
+                        if req.params else False
+                    ),
+                    # STOP判定
+                    "stop_exit_enabled": (
+                        req.params.get("stop_exit_enabled", True)
+                        if req.params else True
+                    ),
                 },
             )
 
@@ -148,10 +153,7 @@ class TradeService:
             )
 
         except Exception as e:
-
-            Log.error(
-                f"TRADE REGISTER ERROR : {e}"
-            )
+            Log.error(f"TRADE REGISTER ERROR : {e}")
 
             return Response.error(
                 response_id="TRADE_REGISTER_ERROR",
@@ -205,6 +207,8 @@ class TradeService:
             if not profit_target_enabled:
                 profit_target_price = None
 
+            stop_exit_enabled = trade.get("stop_exit_enabled", True)
+
             trade_data = {
                 "trade_id": trade["trade_id"],
 
@@ -240,6 +244,7 @@ class TradeService:
 
                 "previous_price": trade["previous_price"],
                 "stop_price": trade["stop_price"],
+                "stop_exit_enabled": stop_exit_enabled,
 
                 "profit_target_price": profit_target_price,
                 "profit_target_enabled": profit_target_enabled,
@@ -371,15 +376,18 @@ class TradeService:
     # ---------------------
     # STOPライン変更
     # ---------------------
-    def update_stop_price(self, trade_id, stop_price):
+    def update_stop_price(self, trade_id, stop_price, enabled):
 
         Log.debug(
-            f"(#{trade_id}) TRADE SERVICE UPDATE STOP PRICE stop_price={stop_price}"
+            f"(#{trade_id}) TRADE SERVICE UPDATE STOP PRICE "
+            f"stop_price={stop_price} "
+            f"enabled={enabled}"
         )
 
         result, message = self.trade_engine.api.update_stop_price(
             trade_id,
             stop_price,
+            enabled,
         )
 
         if result:
@@ -389,6 +397,7 @@ class TradeService:
                 data={
                     "trade_id": trade_id,
                     "stop_price": stop_price,
+                    "enabled": enabled,
                 },
             )
 

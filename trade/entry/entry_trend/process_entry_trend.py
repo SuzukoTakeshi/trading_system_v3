@@ -83,6 +83,11 @@ class ProcessEntryTrend(ProcessEntryBase):
         # --------------------------------------
         result = self.trend_analyzer.analyze(runtime.bars)
 
+        # ★★★
+        # DEBUG用：スコアを強制的に70にすることでEXITに移行させる
+        # result["trend_direction"] = TrendDirection.UP
+        # result["total_score"] = 70
+
         # --------------------------------------
         # TRENDスコアをRuntimeへ保存
         # --------------------------------------

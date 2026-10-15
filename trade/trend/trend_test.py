@@ -56,6 +56,12 @@ class TrendTest:
         )
 
 
+    # TrendTest.run() では、次の処理をしている。
+    # 1. TrendTestData.create(test_type) でテスト価格を生成する。
+    # 2. trade_chart_datas の既存データを clear() で消去する。
+    # 3. テスト価格を1秒ずつ TrendBarBuilder と TrendAnalyzer に渡す。
+    # 4. 各価格について TradeChartModel を作成し、chart_data_list に追加する。
+    #
     def run(self, trade, test_type="UP"):
 
         Log.debug(f"TREND test_type={test_type}")

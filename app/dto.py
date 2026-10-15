@@ -52,6 +52,7 @@ class AtrRequestDTO(BaseModel):
 class StopPriceRequestDTO(BaseModel):
 
     stop_price: float
+    enabled: bool
 
 
 class ProfitTargetPriceRequestDTO(BaseModel):

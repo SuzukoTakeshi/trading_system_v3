@@ -420,6 +420,9 @@ class TradeModel(BaseEntity):
             ),
 
             "stop_price": self.runtime.stop_price,
+            "stop_exit_enabled": (
+                (self.param.params or {}).get("stop_exit_enabled", True)
+            ),
             "profit_target_price": self.runtime.profit_target_price,
             "profit_target_enabled": self.runtime.profit_target_enabled,
 

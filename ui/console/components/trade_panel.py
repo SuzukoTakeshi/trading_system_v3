@@ -139,6 +139,23 @@ def trade_panel():
                     }
                 }
 
+
+            # ==================================================
+            # TREND EXIT判定パラメータ
+            # ==================================================
+
+            if strategy_type == "trend":
+
+                payload["params"] = {
+                    "trend_exit_enabled": trade_params[
+                        "trend_exit_enabled"
+                    ],
+                    "stop_exit_enabled": trade_params[
+                        "stop_exit_enabled"
+                    ],
+                }
+
+
             # ==================================================
             # TREND TESTパラメータ
             # ==================================================

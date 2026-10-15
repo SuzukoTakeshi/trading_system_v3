@@ -44,13 +44,18 @@ class ProcessExitStop:
 
         Log.flow(f"(#{trade.id}) ProcessExitStop:process")
 
-        if trade.param.side == SideType.LONG:
+        side = trade.param.side
+
+        if side == SideType.JUDGE:
+            side = trade.runtime.strategy_runtime.trend_side
+
+        if side == SideType.LONG:
             return self.long.process(trade)
 
-        if trade.param.side == SideType.SHORT:
+        if side == SideType.SHORT:
             return self.short.process(trade)
 
         raise StrategySideDisabledError(
-            message=f"SIDE ERROR(ProcessExitStop) strategy={trade.param.strategy.value} side={trade.param.side.value}",
+            message=f"SIDE ERROR(ProcessExitStop) strategy={trade.param.strategy.value} side={side.value}",
             code="SIDE_DISABLED",
         )

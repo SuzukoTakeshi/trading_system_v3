@@ -288,8 +288,9 @@ def main():
                             # )
                             # ★★★★★TRENDテストでは、通常チャート処理で追加された最後のデータを除外
                             price_datas = target.get("chart_datas", [])
-                            if price_datas:
+                            if strategy_type == "trend_test" and price_datas:
                                 price_datas = price_datas[:-1]
+
                             render_trend_chart(
                                 price_datas,
                                 target.get("trend_bars", []),
@@ -297,7 +298,10 @@ def main():
                                 target.get("trend_medium_moving_averages", []),
                                 target.get("trend_long_moving_averages", []),
                                 target.get("symbol", ""),
-                                target.get("name", "")
+                                target.get("name", ""),
+                                stop_exit_enabled=target.get(
+                                    "stop_exit_enabled", True
+                                ),
                             )
                         else:
                             render_standard_chart(
@@ -307,6 +311,12 @@ def main():
                                 exit_method=target.get("exit_method", "stop"),
                                 profit_target_price=target.get(
                                     "profit_target_price"
+                                ),
+                                stop_exit_enabled=target.get(
+                                    "stop_exit_enabled", True
+                                ),
+                                profit_target_enabled=target.get(
+                                    "profit_target_enabled", False
                                 ),
                             )
 

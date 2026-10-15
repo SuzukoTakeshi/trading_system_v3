@@ -1,4 +1,3 @@
-
 #
 # ui/trade_history/trade_history.py
 #
@@ -25,7 +24,6 @@ from ui.api.client import (
 from ui.components.trade_list import (
     trade_data_editor,
 )
-
 
 JST = ZoneInfo("Asia/Tokyo")
 
@@ -109,12 +107,12 @@ def main():
         st.session_state.trade_history_date = default_date
 
     # ==========================================
-    # 日付選択
+    # 日付選択・履歴件数
     # ==========================================
 
-    with st.container(width=210):
+    with st.container(width=350):
 
-        date_label_col, date_select_col = st.columns([2, 3])
+        date_label_col, date_select_col, count_col = st.columns([2, 3, 2])
 
         with date_label_col:
             st.markdown("履歴日付")
@@ -126,6 +124,9 @@ def main():
                 key="trade_history_date",
                 label_visibility="collapsed",
             )
+
+        with count_col:
+            history_count_placeholder = st.empty()
 
     # ==========================================
     # 日付変更時の削除結果クリア
@@ -167,6 +168,14 @@ def main():
 
     else:
         trade_history = st.session_state["trade_history_cache"]
+
+    # ==========================================
+    # 履歴件数表示
+    # ==========================================
+
+    history_count_placeholder.markdown(
+        f"件数：{len(trade_history)}"
+    )
 
     # ==========================================
     # 選択対象ID
@@ -242,9 +251,7 @@ def main():
     # 削除結果表示
     # ==========================================
 
-    delete_result = st.session_state.get(
-        "trade_history_delete_result"
-    )
+    delete_result = st.session_state.get("trade_history_delete_result")
 
     if delete_result:
 
@@ -262,14 +269,8 @@ def main():
                 st.error(message)
 
         with close_col:
-            if st.button(
-                "✖",
-                key="close_delete_message",
-            ):
-                st.session_state.pop(
-                    "trade_history_delete_result",
-                    None,
-                )
+            if st.button("✖", key="close_delete_message"):
+                st.session_state.pop("trade_history_delete_result", None)
                 st.rerun()
 
     # ==========================================
@@ -284,17 +285,11 @@ def main():
             [],
         )
 
-        delete_date = st.session_state.get(
-            "trade_history_pending_delete_date"
-        )
+        delete_date = st.session_state.get("trade_history_pending_delete_date")
 
-        st.write(
-            f"選択した {len(trade_ids_to_delete)} 件のTrade履歴を削除しますか？"
-        )
+        st.write(f"選択した {len(trade_ids_to_delete)} 件のTrade履歴を削除しますか？")
 
-        st.warning(
-            "対応するTrade Chartも削除されます。この操作は取り消せません。"
-        )
+        st.warning("対応するTrade Chartも削除されます。この操作は取り消せません。")
 
         cancel_col, confirm_col = st.columns(2)
 
@@ -304,18 +299,10 @@ def main():
                 key="cancel_history_delete",
                 width="stretch",
             ):
-                st.session_state[
-                    "trade_history_confirm_dialog_open"
-                ] = False
+                st.session_state["trade_history_confirm_dialog_open"] = False
 
-                st.session_state.pop(
-                    "trade_history_pending_delete_ids",
-                    None,
-                )
-                st.session_state.pop(
-                    "trade_history_pending_delete_date",
-                    None,
-                )
+                st.session_state.pop("trade_history_pending_delete_ids", None)
+                st.session_state.pop("trade_history_pending_delete_date", None)
 
                 st.rerun()
 
@@ -348,29 +335,15 @@ def main():
                             "message": message,
                         }
                     else:
-                        st.session_state.pop(
-                            "trade_history_delete_result",
-                            None,
-                        )
+                        st.session_state.pop("trade_history_delete_result", None)
 
                     if result in ("OK", "PARTIAL"):
 
-                        st.session_state[
-                            "trade_history_selected_ids"
-                        ] = set()
+                        st.session_state["trade_history_selected_ids"] = set()
 
-                        st.session_state.pop(
-                            "trade_history_cache",
-                            None,
-                        )
-                        st.session_state.pop(
-                            "trade_history_cache_date",
-                            None,
-                        )
-                        st.session_state.pop(
-                            "trade_history_dates_cache",
-                            None,
-                        )
+                        st.session_state.pop("trade_history_cache", None)
+                        st.session_state.pop("trade_history_cache_date", None)
+                        st.session_state.pop("trade_history_dates_cache", None)
 
                 except Exception as e:
                     st.session_state["trade_history_delete_result"] = {
@@ -379,18 +352,9 @@ def main():
                     }
 
                 finally:
-                    st.session_state[
-                        "trade_history_confirm_dialog_open"
-                    ] = False
-
-                    st.session_state.pop(
-                        "trade_history_pending_delete_ids",
-                        None,
-                    )
-                    st.session_state.pop(
-                        "trade_history_pending_delete_date",
-                        None,
-                    )
+                    st.session_state["trade_history_confirm_dialog_open"] = False
+                    st.session_state.pop("trade_history_pending_delete_ids", None)
+                    st.session_state.pop("trade_history_pending_delete_date", None)
 
                 st.rerun()
 
@@ -406,28 +370,14 @@ def main():
             width="stretch",
             disabled=len(selected_ids) == 0,
         ):
-            st.session_state.pop(
-                "trade_history_delete_result",
-                None,
-            )
+            st.session_state.pop("trade_history_delete_result", None)
 
-            st.session_state[
-                "trade_history_pending_delete_ids"
-            ] = sorted(selected_ids)
-
-            st.session_state[
-                "trade_history_pending_delete_date"
-            ] = selected_date
-
-            st.session_state[
-                "trade_history_confirm_dialog_open"
-            ] = True
+            st.session_state["trade_history_pending_delete_ids"] = sorted(selected_ids)
+            st.session_state["trade_history_pending_delete_date"] = selected_date
+            st.session_state["trade_history_confirm_dialog_open"] = True
 
     # ダイアログはボタン処理の外で表示する
-    if st.session_state.get(
-        "trade_history_confirm_dialog_open",
-        False,
-    ):
+    if st.session_state.get("trade_history_confirm_dialog_open", False):
         confirm_delete()
 
 
