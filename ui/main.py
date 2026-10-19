@@ -35,8 +35,14 @@ trade_history_page = st.Page(
     url_path="trade_history",
 )
 
+live_feed_page = st.Page(
+    str(ROOT / "ui" / "live_feed" / "live_feed.py"),
+    title="LIVE FEED",
+    url_path="live_feed",
+)
+
 pg = st.navigation(
-    [console_page, monitor_page, trade_history_page],
+    [console_page, monitor_page, trade_history_page, live_feed_page],
     position="hidden",
 )
 

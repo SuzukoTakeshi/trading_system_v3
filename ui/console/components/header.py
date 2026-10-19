@@ -134,7 +134,7 @@ def header(ctx):
             btn_start, btn_stop = st.columns(2)
 
             with btn_start:
-                if st.button("▶", use_container_width=True,
+                if st.button("▶", width="stretch",
                     disabled=(engine in ["starting", "running", "stopping"])
                 ):
                     try:
@@ -162,7 +162,7 @@ def header(ctx):
 
 
             with btn_stop:
-                if st.button("■", use_container_width=True,
+                if st.button("■", width="stretch",
                     disabled=(engine in ["stopped", "starting", "stopping", "error"])
                 ):
                     try:

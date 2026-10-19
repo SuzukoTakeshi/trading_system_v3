@@ -1,0 +1,199 @@
+
+import html
+import json
+from pathlib import Path
+from urllib.parse import urlencode
+
+import streamlit as st
+
+from market.rakuten.sheets.symbol_quote_sheet import SymbolQuoteSheet
+
+
+SYMBOLS_FILE = Path(__file__).resolve().parent / "symbols.json"
+
+
+def _load_symbols():
+    """有効な注目銘柄を読み込む。"""
+    if not SYMBOLS_FILE.exists():
+        raise FileNotFoundError(
+            f"注目銘柄設定ファイルが見つかりません: {SYMBOLS_FILE}"
+        )
+
+    with SYMBOLS_FILE.open("r", encoding="utf-8-sig") as file:
+        data = json.load(file)
+
+    if not isinstance(data, list):
+        raise ValueError(
+            "symbols.json のルート要素はリストである必要があります。"
+        )
+
+    result = []
+    seen = set()
+
+    for item in data:
+        if not isinstance(item, dict) or not item.get("enabled", False):
+            continue
+
+        symbol = str(item.get("symbol", "")).strip()
+        name = str(item.get("name", "")).strip()
+
+        if not symbol or symbol in seen:
+            continue
+
+        seen.add(symbol)
+        result.append({
+            "symbol": symbol,
+            "name": name or symbol,
+            "enabled": True,
+        })
+
+    return result
+
+
+def _format_price(value):
+    """現在値を表示用に整形する。"""
+    if value is None or value == "":
+        return "—"
+
+    try:
+        return f"{float(value):,.2f}".rstrip("0").rstrip(".")
+    except (TypeError, ValueError):
+        return str(value)
+
+
+def _format_tick(value):
+    """現在値ティックを表示用に整形する。"""
+    if value is None or value == "":
+        return "—"
+
+    return str(value)
+
+
+def render_watchlist(excel, selected_symbol):
+    """
+    注目銘柄の読み込み、RSS同期、株価取得、一覧表示を行う。
+
+    株価取得元はSymbolQuotesシート。
+    LIVE FEEDのget_live_feed()は使用しない。
+
+    戻り値:
+        有効な注目銘柄のリスト
+    """
+    st.caption("注目銘柄")
+
+    try:
+        symbols = _load_symbols()
+
+        ws = excel.get_sheet("symbol_quotes")
+        sheet = SymbolQuoteSheet(ws=ws)
+        sheet.sync_symbols(symbols)
+        quotes = sheet.get_quotes()
+
+    except Exception as e:
+        st.error(f"注目銘柄の取得に失敗しました: {e}")
+        return []
+
+    if not symbols:
+        st.info("有効な注目銘柄がありません。")
+        return []
+
+    # テーブルのスタイル
+    st.markdown(
+        """
+        <style>
+        .watchlist-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+            font-size: 13px;
+        }
+        .watchlist-table th {
+            text-align: left;
+            font-weight: 600;
+            padding: 5px 4px;
+            border: 1px solid #55585c;
+            white-space: nowrap;
+        }
+        .watchlist-table td {
+            padding: 5px 4px;
+            border: 1px solid #55585c;
+            white-space: nowrap;
+        }
+        .watchlist-table .watchlist-price {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        .watchlist-table .watchlist-tick {
+            text-align: center;
+        }
+        .watchlist-table a {
+            color: var(--link-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .watchlist-table a:hover {
+            text-decoration: underline;
+        }
+        .watchlist-table .watchlist-selected {
+            font-weight: 700;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # HTMLテーブルを作成
+    rows = []
+
+    for item in symbols:
+        symbol = item["symbol"]
+        name = item["name"]
+
+        quote = quotes.get(symbol, {})
+        price = _format_price(quote.get("current_price"))
+        tick = _format_tick(quote.get("current_tick"))
+
+        safe_symbol = html.escape(symbol)
+        safe_name = html.escape(name)
+        safe_price = html.escape(price)
+        safe_tick = html.escape(tick)
+
+        is_selected = symbol == selected_symbol
+
+        if is_selected:
+            symbol_cell = (
+                '<span class="watchlist-selected">'
+                f'▶ {safe_symbol}'
+                '</span>'
+            )
+        else:
+            query = urlencode({"symbol": symbol})
+            symbol_cell = (
+                f'<a href="?{query}">{safe_symbol}</a>'
+            )
+
+        rows.append(
+            "<tr>"
+            f"<td>{symbol_cell}</td>"
+            f"<td>{safe_name}</td>"
+            f'<td class="watchlist-price">{safe_price}</td>'
+            f'<td class="watchlist-tick">{safe_tick}</td>'
+            "</tr>"
+        )
+
+    table_html = (
+        '<table class="watchlist-table">'
+        "<thead><tr>"
+        "<th>銘柄コード</th>"
+        "<th>銘柄名</th>"
+        '<th style="text-align:right;">現在値</th>'
+        '<th style="text-align:center;">ティック</th>'
+        "</tr></thead>"
+        "<tbody>"
+        + "".join(rows)
+        + "</tbody></table>"
+    )
+
+    st.markdown(table_html, unsafe_allow_html=True)
+
+    return symbols

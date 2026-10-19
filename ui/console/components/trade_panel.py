@@ -103,7 +103,7 @@ def trade_panel():
         # トレード開始
         # ==================================================
 
-        if st.button("トレードGO", use_container_width=True):
+        if st.button("トレードGO", width="stretch"):
 
             payload = {
                 "strategy_type": strategy_type,

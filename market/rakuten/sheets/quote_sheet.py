@@ -1,5 +1,5 @@
 #
-# market/rakuten/quote_sheet.py
+# market/rakuten/sheets/quote_sheet.py
 #
 # Rakuten RSS Quote Sheet
 #

@@ -117,16 +117,22 @@ class MarketService:
 
         order_no, order_result = self.rakuten_client.get_order_no(order_id)
 
-        if order_no is None:
-            raise OrderResultError(
-                message=order_result,
-                code="ORDER_RESULT_ERROR",
-                data={
-                    "order_id": order_id,
-                },
-            )
+        # 注文番号を取得できた場合
+        if order_no is not None:
+            return order_no
 
-        return order_no
+        # RSSの注文結果が未反映の場合は再試行する
+        if order_result is None or order_result == "":
+            return None
+
+        # RSSがエラーなどの結果を返した場合
+        raise OrderResultError(
+            message=order_result,
+            code="ORDER_RESULT_ERROR",
+            data={
+                "order_id": order_id,
+            },
+        )
 
 
     # ==========================================
