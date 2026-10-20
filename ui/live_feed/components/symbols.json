@@ -18,5 +18,15 @@
     {
         "symbol": "3909",
         "enabled": true
+    },
+    {
+        "symbol": "5016",
+        "name": "5016",
+        "enabled": true
+    },
+    {
+        "symbol": "285A",
+        "name": "285A",
+        "enabled": true
     }
 ]

@@ -136,31 +136,45 @@ def _render_chart_settings():
 
     _init_chart_settings()
 
-    col_interval, col_count, _ = st.columns([1, 1, 5])
+    col_interval, col_count, _ = st.columns([2, 2, 5])
 
     with col_interval:
-        st.selectbox(
-            "足種",
-            options=CHART_INTERVALS,
-            format_func=lambda value: (
-                f"{CHART_INTERVAL_LABELS[value]} ({value})"
-            ),
-            key=INTERVAL_KEY,
-            on_change=_on_interval_change,
-            width=160,
-        )
+        label_col, select_col = st.columns([1, 3])
+
+        with label_col:
+            st.markdown("足種")
+
+        with select_col:
+            st.selectbox(
+                "足種",
+                options=CHART_INTERVALS,
+                format_func=lambda value: (
+                    f"{CHART_INTERVAL_LABELS[value]} ({value})"
+                ),
+                key=INTERVAL_KEY,
+                on_change=_on_interval_change,
+                label_visibility="collapsed",
+                width=160,
+            )
 
     with col_count:
-        st.selectbox(
-            "表示本数",
-            options=CHART_COUNT_OPTIONS,
-            format_func=lambda value: (
-                value if isinstance(value, str)
-                else f"{value}本"
-            ),
-            key=COUNT_CHOICE_KEY,
-            width=160,
-        )
+        label_col, select_col = st.columns([1, 3])
+
+        with label_col:
+            st.markdown("本数")
+
+        with select_col:
+            st.selectbox(
+                "表示本数",
+                options=CHART_COUNT_OPTIONS,
+                format_func=lambda value: (
+                    value if isinstance(value, str)
+                    else f"{value}本"
+                ),
+                key=COUNT_CHOICE_KEY,
+                label_visibility="collapsed",
+                width=160,
+            )
 
     if st.session_state[COUNT_CHOICE_KEY] == "直接入力":
         custom_count = st.number_input(
@@ -350,7 +364,7 @@ def _get_chart_data(workbook, symbol, interval, count):
 def render_chart(workbook, symbol):
     """共有Excelブックから取得したデータでチャートを表示する。"""
 
-    st.caption("チャート")
+    # st.caption("チャート")
 
     interval, count = _render_chart_settings()
 
@@ -412,10 +426,25 @@ def render_chart(workbook, symbol):
         margin=dict(l=10, r=10, t=20, b=10),
         showlegend=False,
         xaxis_rangeslider_visible=False,
+
+        # グラフ全体の外枠
+        font=dict(color="black"),
     )
 
-    fig.update_yaxes(title_text="株価", row=1, col=1)
-    fig.update_yaxes(title_text="出来高", row=2, col=1)
+    # 上段・下段それぞれの描画領域に枠線を付ける
+    fig.update_xaxes(
+        showline=True,
+        linewidth=1,
+        linecolor="gray",
+        mirror=True,
+    )
+
+    fig.update_yaxes(
+        showline=True,
+        linewidth=1,
+        linecolor="gray",
+        mirror=True,
+    )
 
     st.plotly_chart(
         fig,

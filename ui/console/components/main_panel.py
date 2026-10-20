@@ -5,7 +5,7 @@
 import streamlit as st
 import webbrowser
 
-from ui.config import TRADE_HISTORY_URL
+from ui.config import TRADE_HISTORY_URL, LIVE_FEED_URL
 
 from ui.console.components.trade_list_panel import trade_list_panel
 from ui.console.components.log_panel import log_panel
@@ -35,7 +35,7 @@ def main_panel(ctx):
         unsafe_allow_html=True,
     )
 
-    trade_col, asset_col, log_col, config_col, history_col = st.columns(5)
+    trade_col, asset_col, log_col, config_col, history_col, live_feed_col = st.columns(6)
 
     with trade_col:
         if st.button(
@@ -84,6 +84,14 @@ def main_panel(ctx):
             key="main_page_trade_history",
         ):
             webbrowser.open_new_tab(TRADE_HISTORY_URL)
+
+    with live_feed_col:
+        if st.button(
+            "銘柄情報",
+            width="stretch",
+            key="main_page_live_feed",
+        ):
+            webbrowser.open_new_tab(LIVE_FEED_URL)
 
 
     match ctx.main_page:

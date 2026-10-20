@@ -40,6 +40,8 @@ MONITOR_URL = f"http://127.0.0.1:{UI_PORT}/monitor"
 
 TRADE_HISTORY_URL = f"http://127.0.0.1:{UI_PORT}/trade_history"
 
+LIVE_FEED_URL = f"http://127.0.0.1:{UI_PORT}/live_feed"
+
 # =========================
 # API
 # =========================

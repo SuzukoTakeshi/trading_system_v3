@@ -1,3 +1,7 @@
+#
+# ui/live_feed/components/symbols.py
+#
+
 import html
 import json
 from pathlib import Path
@@ -27,6 +31,99 @@ def _delete_symbol(symbol):
     # 削除用のURLパラメータを消して再表示する
     if "delete_symbol" in st.query_params:
         del st.query_params["delete_symbol"]
+
+
+def _add_symbol(symbol):
+    """注目銘柄設定に銘柄を追加する。"""
+    symbol = str(symbol).strip()
+
+    if not symbol:
+        raise ValueError("銘柄コードを入力してください。")
+
+    with SYMBOLS_FILE.open("r", encoding="utf-8-sig") as file:
+        data = json.load(file)
+
+    if not isinstance(data, list):
+        raise ValueError(
+            "symbols.json のルート要素はリストである必要があります。"
+        )
+
+    # 登録済みなら有効化する
+    for item in data:
+        if (
+            isinstance(item, dict)
+            and str(item.get("symbol", "")).strip() == symbol
+        ):
+            item["enabled"] = True
+
+            with SYMBOLS_FILE.open("w", encoding="utf-8") as file:
+                json.dump(data, file, ensure_ascii=False, indent=4)
+
+            return
+
+    # 新規銘柄を追加
+    data.append({
+        "symbol": symbol,
+        "name": symbol,
+        "enabled": True,
+    })
+
+    with SYMBOLS_FILE.open("w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+
+
+@st.dialog("注目銘柄の追加")
+def _add_symbol_dialog():
+    symbol = st.text_input(
+        "銘柄コード",
+        placeholder="例：9433",
+        key="add_symbol_code",
+    )
+
+    col_cancel, col_add = st.columns(2)
+
+    with col_cancel:
+        if st.button("キャンセル", width="stretch"):
+            st.rerun()
+
+    with col_add:
+        if st.button(
+            "追加する",
+            type="primary",
+            width="stretch",
+        ):
+            try:
+                _add_symbol(symbol)
+                st.rerun()
+            except Exception as e:
+                st.error(f"銘柄の追加に失敗しました: {e}")
+
+
+@st.dialog("注目銘柄の削除確認")
+def _confirm_delete_symbol(symbol):
+    st.write(f"銘柄コード **{symbol}** を削除しますか？")
+
+    col_cancel, col_delete = st.columns(2)
+
+    with col_cancel:
+        if st.button("キャンセル", width="stretch"):
+            if "delete_symbol" in st.query_params:
+                del st.query_params["delete_symbol"]
+            st.rerun()
+
+    with col_delete:
+        if st.button(
+            "削除する",
+            type="primary",
+            width="stretch",
+        ):
+            try:
+                _delete_symbol(symbol)
+                st.success(f"{symbol} を削除しました。")
+                st.rerun()
+            except Exception as e:
+                st.error(f"注目銘柄の削除に失敗しました: {e}")
+
 
 def _load_symbols():
     """有効な注目銘柄を読み込む。"""
@@ -105,12 +202,7 @@ def render_watchlist(excel, selected_symbol):
     delete_symbol = st.query_params.get("delete_symbol", "")
 
     if delete_symbol:
-        try:
-            _delete_symbol(str(delete_symbol))
-            st.rerun()
-        except Exception as e:
-            st.error(f"注目銘柄の削除に失敗しました: {e}")
-            return []
+        _confirm_delete_symbol(str(delete_symbol))
 
     try:
         symbols = _load_symbols()
@@ -123,6 +215,12 @@ def render_watchlist(excel, selected_symbol):
     except Exception as e:
         st.error(f"注目銘柄の取得に失敗しました: {e}")
         return []
+
+    if st.button(
+        "＋ 銘柄追加",
+        key="open_add_symbol_dialog",
+    ):
+        _add_symbol_dialog()
 
     if not symbols:
         st.info("有効な注目銘柄がありません。")
@@ -154,7 +252,7 @@ def render_watchlist(excel, selected_symbol):
         })
 
         delete_cell = (
-            f'<a class="watchlist-delete" href="?{query}">✕</a>'
+            f'<a class="watchlist-delete" href="?{query}" target="_self">✕</a>'
         )
 
         is_selected = symbol == selected_symbol
@@ -168,7 +266,7 @@ def render_watchlist(excel, selected_symbol):
         else:
             query = urlencode({"symbol": symbol})
             symbol_cell = (
-                f'<a href="?{query}">{safe_symbol}</a>'
+                f'<a href="?{query}" target="_self">{safe_symbol}</a>'
             )
 
         rows.append(
