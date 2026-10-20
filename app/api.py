@@ -17,6 +17,7 @@ from app.dto import (
     AtrRequestDTO,
     StopPriceRequestDTO,
     ProfitTargetPriceRequestDTO,
+    RangeRequestDTO,
     TradeHistoryDeleteRequestDTO,
 )
 
@@ -138,6 +139,16 @@ def update_trade_profit_target(trade_id: int, req: ProfitTargetPriceRequestDTO):
         trade_id,
         req.profit_target_price,
         req.enabled,
+    )
+
+
+@app.post("/trade/{trade_id}/range")
+def update_trade_range(trade_id: int, req: RangeRequestDTO):
+
+    return app_service.trade_service.update_range(
+        trade_id,
+        req.range_high,
+        req.range_low,
     )
 
 

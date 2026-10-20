@@ -211,6 +211,19 @@ def update_profit_target_price(
 
 
 # ==========================================
+# Trade RANGE変更
+# ==========================================
+def update_range(trade_id, range_high, range_low):
+    return post(
+        f"/trade/{trade_id}/range",
+        json={
+            "range_high": range_high,
+            "range_low": range_low,
+        },
+    )
+
+
+# ==========================================
 # Trade取消
 # ==========================================
 def cancel_trade(trade_id, force=False):

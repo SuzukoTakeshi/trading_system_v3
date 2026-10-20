@@ -451,6 +451,19 @@ class TradeModel(BaseEntity):
 
             "pause_flag": self.pause_flag,
 
+            # ----------------------------------------------------------------------
+            # RANGE Runtime
+            "range_params": (
+                self.runtime.strategy_runtime.to_dict()
+                if (
+                    self.param.strategy_type == "range"
+                    and self.runtime.strategy_runtime is not None
+                )
+                else None
+            ),
+
+            # ----------------------------------------------------------------------
+            # TREND
             "trend_side": (
                 self.runtime.strategy_runtime.trend_side.value
                 if (

@@ -17,9 +17,10 @@ rcParams["font.family"] = "Meiryo"
 
 
 def render_range_chart(
-    trail_history: list,
     symbol: str = "",
-    name: str = ""
+    name: str = "",
+    range_params: dict | None = None,
+    trail_history: list | None = None,
 ):
 
     if not trail_history:
@@ -44,7 +45,7 @@ def render_range_chart(
         "exit_time",
         "exit_price",
         "side",
-        "range_params",
+        "state",
     ]
 
     for c in columns:
@@ -118,24 +119,11 @@ def render_range_chart(
     t = plot_df["time"]
     price = plot_df["price_close"]
 
-    measurement_params = next(
-        (
-            item
-            for item in df["range_params"].dropna()
-            if isinstance(item, dict)
-            and item.get("session_start_time")
-            and item.get("calculation_minutes") is not None
-        ),
-        None,
-    )
-    latest_measurement_params = next(
-        (
-            item
-            for item in reversed(df["range_params"].dropna().tolist())
-            if isinstance(item, dict)
-        ),
-        None,
-    )
+    # RANGEパラメータはTradeRuntimeRangeModelのデータを使用
+    range_params = range_params or {}
+
+    measurement_params = range_params
+    latest_measurement_params = range_params
     visible_end = plot_df["time"].max()
 
     if measurement_params:
@@ -182,16 +170,11 @@ def render_range_chart(
                 zorder=5,
             )
 
-
-    boundary_start_value = (
-        latest_measurement_params.get("boundary_outside_start_time")
-        if latest_measurement_params
-        else None
+    boundary_start_value = range_params.get(
+        "boundary_outside_start_time"
     )
-    boundary_side = (
-        latest_measurement_params.get("boundary_outside_side")
-        if latest_measurement_params
-        else None
+    boundary_side = range_params.get(
+        "boundary_outside_side"
     )
     latest_state = plot_df["state"].iloc[-1] if "state" in plot_df.columns else None
     if (
@@ -250,18 +233,7 @@ def render_range_chart(
     # RANGE
     # ==================================================
 
-    range_values = plot_df["range_params"].apply(
-        lambda value: value if isinstance(value, dict) else {}
-    )
-
-    latest_range = next(
-        (
-            value
-            for value in reversed(range_values.tolist())
-            if value
-        ),
-        {},
-    )
+    latest_range = range_params
 
     range_lines = (
         ("range_high", "RANGE HIGH", "--", 0.7, "red"),

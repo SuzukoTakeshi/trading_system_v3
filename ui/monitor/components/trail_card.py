@@ -5,13 +5,6 @@ from datetime import datetime
 
 import streamlit as st
 
-from ui.api.client import (
-    get_error_message,
-    update_atr,
-    update_stop_price,
-    update_profit_target_price,
-)
-
 from ui.utils.ui_labels import (
     SIDE_LABEL,
     STRATEGY_LABEL,
@@ -20,255 +13,19 @@ from ui.utils.ui_labels import (
     EVENT_LABEL,
     EVENT_LABEL_UNKNOWN,
     EXIT_REASON_LABEL,
-    get_exit_reason_label,
 )
 
 from ui.utils.formatters import (
     fmt_price,
     fmt_dt,
     fmt_duration,
-    fmt_r,
 )
 
-
-def resume_monitor_refresh():
-    st.session_state["monitor_dialog_open"] = False
-
-
-@st.dialog("ATR変更", on_dismiss=resume_monitor_refresh)
-def atr_dialog(trade_id, current_atr):
-    st.session_state["monitor_dialog_open"] = True
-
-    st.write(f"Trade #{trade_id} のATRを変更します。")
-
-    input_key = f"monitor_atr_input_{trade_id}"
-
-    if input_key not in st.session_state:
-        st.session_state[input_key] = float(current_atr)
-
-    with st.form(key=f"monitor_atr_form_{trade_id}"):
-
-        requested_atr = st.number_input(
-            "新しいATR（%）",
-            min_value=0.1,
-            step=0.1,
-            key=input_key,
-        )
-
-        submitted = st.form_submit_button("変更依頼", width="stretch")
-
-    if submitted:
-        try:
-            response = update_atr(trade_id, requested_atr)
-
-            if response.get("result") == "OK":
-                st.success(response.get("message", "ATRを変更しました。"))
-                st.session_state["monitor_dialog_open"] = False
-                st.rerun()
-
-            else:
-                st.error(response.get("message", "ATR変更に失敗しました。"))
-
-        except Exception as e:
-            st.error(get_error_message(e))
-
-
-@st.dialog("損切ライン変更", on_dismiss=resume_monitor_refresh)
-def stop_price_dialog(trade_id, current_stop, entry_price, stop_enabled=True):
-    st.session_state["monitor_dialog_open"] = True
-
-    st.write(f"Trade #{trade_id} の損切ラインを変更します。")
-
-    input_key = f"monitor_stop_input_{trade_id}"
-    enabled_key = f"monitor_stop_enabled_{trade_id}"
-
-    if input_key not in st.session_state:
-        st.session_state[input_key] = (
-            float(current_stop)
-            if current_stop is not None
-            else 0.01
-        )
-
-    if enabled_key not in st.session_state:
-        st.session_state[enabled_key] = stop_enabled
-
-    price_col, enabled_col = st.columns([2, 1])
-
-    with price_col:
-        if entry_price is not None:
-            if st.button(
-                "取得価格を入力",
-                key=f"monitor_stop_use_entry_price_{trade_id}",
-                help=f"取得価格 {fmt_price(entry_price)} を損切ラインに入力します",
-            ):
-                st.session_state[input_key] = float(entry_price)
-
-    with enabled_col:
-        st.toggle(
-            "STOPライン有効",
-            key=enabled_key,
-        )
-
-    with st.form(key=f"monitor_stop_form_{trade_id}"):
-        requested_stop = st.number_input(
-            "新しい損切ライン",
-            min_value=0.01,
-            step=0.1,
-            key=input_key,
-        )
-
-        submitted = st.form_submit_button(
-            "変更依頼",
-            width="stretch",
-        )
-
-    if submitted:
-        try:
-            response = update_stop_price(
-                trade_id,
-                requested_stop,
-                st.session_state[enabled_key],
-            )
-
-            if response.get("result") == "OK":
-                st.success(
-                    response.get(
-                        "message",
-                        "STOPラインを変更しました。",
-                    )
-                )
-                st.session_state["monitor_dialog_open"] = False
-                st.rerun()
-            else:
-                st.error(
-                    response.get(
-                        "message",
-                        "STOPライン変更に失敗しました。",
-                    )
-                )
-
-        except Exception as e:
-            st.error(get_error_message(e))
-
-
-@st.dialog("利確ライン変更", on_dismiss=resume_monitor_refresh)
-def profit_target_price_dialog(trade_id, current_target, entry_price, side):
-    st.session_state["monitor_dialog_open"] = True
-
-    st.write(f"Trade #{trade_id} の利確ラインを変更します。")
-
-    input_key = f"monitor_profit_target_input_{trade_id}"
-    enabled_key = f"monitor_profit_target_enabled_{trade_id}"
-    percent_key = f"monitor_profit_target_percent_{trade_id}"
-    percent_saved_key = f"monitor_profit_target_saved_{trade_id}"
-
-    if input_key not in st.session_state:
-        if current_target is not None:
-            st.session_state[input_key] = float(current_target)
-        elif entry_price is not None:
-            st.session_state[input_key] = float(entry_price)
-
-    if percent_saved_key not in st.session_state:
-        st.session_state[percent_saved_key] = 0.0
-
-    st.session_state[percent_key] = st.session_state[percent_saved_key]
-
-    def calculate_profit_target():
-        percent = st.session_state[percent_key]
-        st.session_state[percent_saved_key] = percent
-
-        if side == "long":
-            new_price = entry_price * (1 + percent / 100)
-        elif side == "short":
-            new_price = entry_price * (1 - percent / 100)
-        else:
-            return
-
-        st.session_state[input_key] = round(new_price, 2)
-
-    if entry_price is not None:
-        # 利確率入力
-        st.number_input(
-            "利確率（%）",
-            min_value=0.0,
-            step=0.1,
-            key=percent_key,
-            on_change=calculate_profit_target,
-        )
-
-        if st.button(
-            "利確率から価格を計算",
-            key=f"monitor_profit_target_calculate_{trade_id}",
-        ):
-            percent = st.session_state[percent_key]
-            st.session_state[percent_saved_key] = percent
-
-            if side == "long":
-                new_price = entry_price * (1 + percent / 100)
-            elif side == "short":
-                new_price = entry_price * (1 - percent / 100)
-            else:
-                return
-
-            st.session_state[input_key] = round(new_price, 2)
-
-        # 約定価格を入力・利確ライン有効トグル
-        price_col, enabled_col = st.columns([2, 1])
-
-        with price_col:
-            if st.button(
-                "約定価格を入力",
-                key=f"monitor_profit_target_use_entry_price_{trade_id}",
-                help=f"約定価格 {fmt_price(entry_price)} を利確ラインに入力します",
-            ):
-                st.session_state[input_key] = float(entry_price)
-
-        with enabled_col:
-            st.toggle(
-                "利確ライン有効",
-                key=enabled_key,
-            )
-
-    with st.form(key=f"monitor_profit_target_form_{trade_id}"):
-        new_profit_target_price = st.number_input(
-            "新しい利確ライン",
-            min_value=0.01,
-            step=0.1,
-            key=input_key,
-        )
-
-        submitted = st.form_submit_button(
-            "変更依頼",
-            width="stretch",
-        )
-
-    if submitted:
-        try:
-            response = update_profit_target_price(
-                trade_id,
-                new_profit_target_price,
-                st.session_state[enabled_key],
-            )
-
-            if response.get("result") == "OK":
-                st.success(
-                    response.get(
-                        "message",
-                        "利確ラインを変更しました。",
-                    )
-                )
-                st.session_state["monitor_dialog_open"] = False
-                st.rerun()
-            else:
-                st.error(
-                    response.get(
-                        "message",
-                        "利確ライン変更に失敗しました。",
-                    )
-                )
-
-        except Exception as e:
-            st.error(get_error_message(e))
+from ui.monitor.components.dialogs.dialog_utils import resume_monitor_refresh
+from ui.monitor.components.dialogs.atr_dialog import atr_dialog
+from ui.monitor.components.dialogs.stop_price_dialog import stop_price_dialog
+from ui.monitor.components.dialogs.profit_target_price_dialog import profit_target_price_dialog
+from ui.monitor.components.dialogs.range_dialog import range_dialog
 
 
 def render_item(label, value):
@@ -294,13 +51,14 @@ def render_item(label, value):
 # ==========================================
 
 def render_trail_card(trade: dict):
-    # st.write("DEBUG trade:", trade)
+    #st.write("DEBUG trade:", trade)
 
     # ---------------------
     # Strategy
     #   上部のラインを表示する為、ここで色を取得
     # ---------------------
     strategy = trade.get("strategy", "")
+    strategy_type = trade.get("strategy_type")
 
     strategy_bg_color = {
         "scalping": "#5A2929",
@@ -697,7 +455,7 @@ def render_trail_card(trade: dict):
         with space_col:
             render_item("", "")
 
-        if trade.get("strategy_type") == "standard":
+        if strategy_type == "standard":
             entry_method_text = {
                 "pullback_reversal": "押し目・反転",
                 "immediate": "即時",
@@ -718,7 +476,7 @@ def render_trail_card(trade: dict):
         # TRENDスコア（現在値）
         # ---------------------
 
-        if trade.get("strategy_type") in ("trend", "trend_test"):
+        if strategy_type in ("trend", "trend_test"):
 
             st.markdown(
                 """
@@ -779,7 +537,7 @@ def render_trail_card(trade: dict):
             unsafe_allow_html=True
         )
 
-        entry_price_col, entry_time_col, stop_price_col, profit_target_price_col = st.columns(4)
+        entry_price_col, entry_time_col, edit1_col, edit2_col = st.columns(4)
 
         with entry_price_col:
             render_item("取得価格", fmt_price(trade.get("entry_price")))
@@ -787,68 +545,85 @@ def render_trail_card(trade: dict):
         with entry_time_col:
             render_item("取得日時", fmt_dt(trade.get("entry_time")))
 
-        with stop_price_col:
-            # STOPライン
-            stop_price = trade.get("stop_price")
-
-            stop_value_col, stop_edit_col = st.columns([5, 1])
-
-            with stop_value_col:
-                render_item(
-                    "損切ライン",
-                    fmt_price(stop_price)
-                )
-
-            if trade.get("state") == "exit":
-                with stop_edit_col:
+        with edit1_col:
+            if strategy_type == "range":
+                if trade.get("state") == "exit":
                     if st.button(
-                        "✏️",
-                        key=f"monitor_stop_edit_{trade['trade_id']}",
-                        help="STOPラインを変更",
+                        "✎ RANGE",
+                        key=f"monitor_range_edit_{trade['trade_id']}",
+                        help="RANGEを変更",
                     ):
-                        st.session_state[
-                            f"monitor_stop_enabled_{trade['trade_id']}"
-                        ] = trade.get("stop_exit_enabled", True)
-
-                        stop_price_dialog(
+                        range_dialog(
                             trade["trade_id"],
-                            stop_price,
-                            trade.get("entry_price"),
-                            trade.get("stop_exit_enabled", True),
+                            trade.get("range_params"),
                         )
 
-        with profit_target_price_col:
-            # 利確ライン
-            target_price = trade.get("profit_target_price")
+            else:
+                # STOPライン
+                stop_price = trade.get("stop_price")
 
-            target_value_col, target_edit_col = st.columns([5, 1])
+                stop_value_col, stop_edit_col = st.columns([5, 1])
 
-            with target_value_col:
-                target_enabled = trade.get("profit_target_enabled", False)
-                target_display = (
-                    fmt_price(target_price)
-                    if target_enabled and target_price is not None
-                    else "-"
-                )
-                render_item("利確ライン", target_display)
+                with stop_value_col:
+                    render_item(
+                        "損切ライン",
+                        fmt_price(stop_price)
+                    )
 
-            if trade.get("state") == "exit":
-                with target_edit_col:
-                    if st.button(
-                        "✏️",
-                        key=f"monitor_profit_target_edit_{trade['trade_id']}",
-                        help="利確ラインを変更",
-                    ):
-                        st.session_state[
-                            f"monitor_profit_target_enabled_{trade['trade_id']}"
-                        ] = target_enabled
+                if trade.get("state") == "exit":
+                    with stop_edit_col:
+                        if st.button(
+                            "✏️",
+                            key=f"monitor_stop_edit_{trade['trade_id']}",
+                            help="STOPラインを変更",
+                        ):
+                            st.session_state[
+                                f"monitor_stop_enabled_{trade['trade_id']}"
+                            ] = trade.get("stop_exit_enabled", True)
 
-                        profit_target_price_dialog(
-                            trade["trade_id"],
-                            target_price,
-                            trade.get("entry_price"),
-                            side,
-                        )
+                            stop_price_dialog(
+                                trade["trade_id"],
+                                stop_price,
+                                trade.get("entry_price"),
+                                trade.get("stop_exit_enabled", True),
+                            )
+
+        with edit2_col:
+            if strategy_type == "range":
+                pass
+
+            else:
+                # 利確ライン
+                target_price = trade.get("profit_target_price")
+
+                target_value_col, target_edit_col = st.columns([5, 1])
+
+                with target_value_col:
+                    target_enabled = trade.get("profit_target_enabled", False)
+                    target_display = (
+                        fmt_price(target_price)
+                        if target_enabled and target_price is not None
+                        else "-"
+                    )
+                    render_item("利確ライン", target_display)
+
+                if trade.get("state") == "exit":
+                    with target_edit_col:
+                        if st.button(
+                            "✏️",
+                            key=f"monitor_profit_target_edit_{trade['trade_id']}",
+                            help="利確ラインを変更",
+                        ):
+                            st.session_state[
+                                f"monitor_profit_target_enabled_{trade['trade_id']}"
+                            ] = target_enabled
+
+                            profit_target_price_dialog(
+                                trade["trade_id"],
+                                target_price,
+                                trade.get("entry_price"),
+                                side,
+                            )
 
 
         # ---------------------

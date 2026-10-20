@@ -61,6 +61,12 @@ class ProfitTargetPriceRequestDTO(BaseModel):
     enabled: bool
 
 
+class RangeRequestDTO(BaseModel):
+
+    range_high: float
+    range_low: float
+
+
 class TradeHistoryDeleteRequestDTO(BaseModel):
 
     date: str

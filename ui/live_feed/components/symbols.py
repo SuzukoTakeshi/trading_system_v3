@@ -1,4 +1,3 @@
-
 import html
 import json
 from pathlib import Path
@@ -11,6 +10,23 @@ from market.rakuten.sheets.symbol_quote_sheet import SymbolQuoteSheet
 
 SYMBOLS_FILE = Path(__file__).resolve().parent / "symbols.json"
 
+def _delete_symbol(symbol):
+    """注目銘柄設定から指定銘柄を削除する。"""
+    with SYMBOLS_FILE.open("r", encoding="utf-8-sig") as file:
+        data = json.load(file)
+
+    updated = [
+        item for item in data
+        if not isinstance(item, dict)
+        or str(item.get("symbol", "")).strip() != symbol
+    ]
+
+    with SYMBOLS_FILE.open("w", encoding="utf-8") as file:
+        json.dump(updated, file, ensure_ascii=False, indent=4)
+
+    # 削除用のURLパラメータを消して再表示する
+    if "delete_symbol" in st.query_params:
+        del st.query_params["delete_symbol"]
 
 def _load_symbols():
     """有効な注目銘柄を読み込む。"""
@@ -62,11 +78,18 @@ def _format_price(value):
 
 
 def _format_tick(value):
-    """現在値ティックを表示用に整形する。"""
+    """現在値ティックを表示用HTMLに整形する。"""
     if value is None or value == "":
         return "—"
 
-    return str(value)
+    tick = html.escape(str(value))
+
+    if "↑" in tick:
+        return f'<span class="watchlist-tick-up">{tick}</span>'
+    elif "↓" in tick:
+        return f'<span class="watchlist-tick-down">{tick}</span>'
+
+    return tick
 
 
 def render_watchlist(excel, selected_symbol):
@@ -79,7 +102,15 @@ def render_watchlist(excel, selected_symbol):
     戻り値:
         有効な注目銘柄のリスト
     """
-    st.caption("注目銘柄")
+    delete_symbol = st.query_params.get("delete_symbol", "")
+
+    if delete_symbol:
+        try:
+            _delete_symbol(str(delete_symbol))
+            st.rerun()
+        except Exception as e:
+            st.error(f"注目銘柄の削除に失敗しました: {e}")
+            return []
 
     try:
         symbols = _load_symbols()
@@ -97,66 +128,34 @@ def render_watchlist(excel, selected_symbol):
         st.info("有効な注目銘柄がありません。")
         return []
 
-    # テーブルのスタイル
-    st.markdown(
-        """
-        <style>
-        .watchlist-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: auto;
-            font-size: 13px;
-        }
-        .watchlist-table th {
-            text-align: left;
-            font-weight: 600;
-            padding: 5px 4px;
-            border: 1px solid #55585c;
-            white-space: nowrap;
-        }
-        .watchlist-table td {
-            padding: 5px 4px;
-            border: 1px solid #55585c;
-            white-space: nowrap;
-        }
-        .watchlist-table .watchlist-price {
-            text-align: right;
-            font-variant-numeric: tabular-nums;
-        }
-        .watchlist-table .watchlist-tick {
-            text-align: center;
-        }
-        .watchlist-table a {
-            color: var(--link-color);
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .watchlist-table a:hover {
-            text-decoration: underline;
-        }
-        .watchlist-table .watchlist-selected {
-            font-weight: 700;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # HTMLテーブルを作成
+    # HTMLテーブルの行を作成
     rows = []
 
     for item in symbols:
         symbol = item["symbol"]
-        name = item["name"]
 
         quote = quotes.get(symbol, {})
+        name = quote.get("symbol_name") or symbol
+
+        # シートから取得した銘柄名を一覧データに反映
+        item["name"] = name
+
         price = _format_price(quote.get("current_price"))
         tick = _format_tick(quote.get("current_tick"))
 
         safe_symbol = html.escape(symbol)
         safe_name = html.escape(name)
         safe_price = html.escape(price)
-        safe_tick = html.escape(tick)
+        safe_tick = tick
+
+        query = urlencode({
+            "symbol": selected_symbol,
+            "delete_symbol": symbol,
+        })
+
+        delete_cell = (
+            f'<a class="watchlist-delete" href="?{query}">✕</a>'
+        )
 
         is_selected = symbol == selected_symbol
 
@@ -178,21 +177,110 @@ def render_watchlist(excel, selected_symbol):
             f"<td>{safe_name}</td>"
             f'<td class="watchlist-price">{safe_price}</td>'
             f'<td class="watchlist-tick">{safe_tick}</td>'
+            f'<td class="watchlist-delete-cell">{delete_cell}</td>'
             "</tr>"
         )
 
-    table_html = (
-        '<table class="watchlist-table">'
-        "<thead><tr>"
-        "<th>銘柄コード</th>"
-        "<th>銘柄名</th>"
-        '<th style="text-align:right;">現在値</th>'
-        '<th style="text-align:center;">ティック</th>'
-        "</tr></thead>"
-        "<tbody>"
-        + "".join(rows)
-        + "</tbody></table>"
-    )
+    # 見出し・CSS・テーブルをまとめて出力
+    table_html = f"""
+    <div style="
+        color: #c4c4c4;
+        font-size: 14px;
+        margin: 0 0 2px 0;
+        padding: 0;
+        line-height: 1.2;
+    ">注目銘柄</div>
+
+    <style>
+    .watchlist-table {{
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: auto;
+        font-size: 13px;
+    }}
+
+    .watchlist-table th {{
+        text-align: left;
+        font-weight: 600;
+        padding: 5px 4px;
+        border: 1px solid #55585c;
+        white-space: nowrap;
+        color: #c4c4c4;
+    }}
+
+    .watchlist-table td {{
+        padding: 5px 4px;
+        border: 1px solid #55585c;
+        white-space: nowrap;
+        color: #c4c4c4;
+    }}
+
+    .watchlist-table .watchlist-price {{
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }}
+
+    .watchlist-table .watchlist-tick {{
+        text-align: center;
+    }}
+
+    .watchlist-table a {{
+        color: var(--link-color);
+        text-decoration: none;
+        font-weight: 600;
+    }}
+
+    .watchlist-table a:hover {{
+        text-decoration: underline;
+    }}
+
+    .watchlist-table .watchlist-selected {{
+        font-weight: 700;
+    }}
+
+    .watchlist-table .watchlist-tick-up {{
+        color: red;
+        font-weight: 700;
+    }}
+
+    .watchlist-table .watchlist-tick-down {{
+        color: green;
+        font-weight: 700;
+    }}
+
+    .watchlist-table .watchlist-delete-cell {{
+        text-align: center;
+        padding: 2px;
+    }}
+
+    .watchlist-table .watchlist-delete {{
+        color: #ff6b6b;
+        text-decoration: none;
+        font-weight: 700;
+        padding: 2px 5px;
+    }}
+
+    .watchlist-table .watchlist-delete:hover {{
+        color: #ff3333;
+        background: #444;
+    }}
+    </style>
+
+    <table class="watchlist-table">
+        <thead>
+            <tr>
+                <th>銘柄コード</th>
+                <th>銘柄名</th>
+                <th style="text-align:right;">現在値</th>
+                <th style="text-align:center;">ティック</th>
+                <th>削除</th>
+            </tr>
+        </thead>
+        <tbody>
+            {''.join(rows)}
+        </tbody>
+    </table>
+    """
 
     st.markdown(table_html, unsafe_allow_html=True)
 

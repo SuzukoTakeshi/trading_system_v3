@@ -276,15 +276,16 @@ def main():
 
                         if strategy_type == "range":
                             render_range_chart(
-                                target.get("chart_datas", []),
-                                target.get("symbol", ""),
-                                target.get("name", "")
+                                symbol=target.get("symbol", ""),
+                                name=target.get("name", ""),
+                                range_params=target.get("range_params"),
+                                trail_history=target.get("chart_datas", []),
                             )
                         elif strategy_type in ("trend", "trend_test"):
                             # render_trend_chart(
-                            #     target.get("chart_datas", []),
                             #     target.get("symbol", ""),
                             #     target.get("name", "")
+                            #     target.get("chart_datas", []),
                             # )
                             # ★★★★★TRENDテストでは、通常チャート処理で追加された最後のデータを除外
                             price_datas = target.get("chart_datas", [])

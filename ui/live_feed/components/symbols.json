@@ -1,27 +1,22 @@
 [
-  {
-    "symbol": "7203",
-    "name": "トヨタ自動車",
-    "enabled": true
-  },
-  {
-    "symbol": "6758",
-    "name": "ソニーグループ",
-    "enabled": true
-  },
-  {
-    "symbol": "8306",
-    "name": "三菱UFJフィナンシャル・グループ",
-    "enabled": true
-  },
-  {
-    "symbol": "6613",
-    "name": "QDレーザー",
-    "enabled": true
-  },
-  {
-    "symbol": "9432",
-    "name": "NTT",
-    "enabled": false
-  }
+    {
+        "symbol": "7203",
+        "enabled": true
+    },
+    {
+        "symbol": "8306",
+        "enabled": true
+    },
+    {
+        "symbol": "6613",
+        "enabled": true
+    },
+    {
+        "symbol": "9432",
+        "enabled": false
+    },
+    {
+        "symbol": "3909",
+        "enabled": true
+    }
 ]

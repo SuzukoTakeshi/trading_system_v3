@@ -13,7 +13,22 @@ import streamlit as st
 def render_quote(quote):
     """株価情報をHTMLテーブルで表示する。"""
 
-    st.caption("株価情報")
+    st.markdown(
+        """
+        <div style="
+            color: #c4c4c4;
+            font-size: 14px;
+            margin: 0 0 2px 0;
+            padding: 0;
+            line-height: 1.2;
+        ">株価情報</div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    change_rate = quote.get("change_rate")
+    if change_rate is not None:
+        change_rate = f"{change_rate * 100:.2f}%"
 
     rows = [
         [
@@ -30,7 +45,7 @@ def render_quote(quote):
             quote.get("best_ask"),
             quote.get("best_ask_time"),
             "前日比率",
-            quote.get("change_rate"),
+            change_rate,
             "時価総額(百万円)",
             quote.get("market_cap"),
         ],
@@ -71,7 +86,6 @@ def render_quote(quote):
             "",
         ],
     ]
-
 
     def format_value(value):
         if value is None:
@@ -115,7 +129,7 @@ def render_quote(quote):
             border-collapse: collapse !important;
             border-spacing: 0 !important;
             table-layout: auto;
-            font-size: 13px;
+            font-size: 16px;
             line-height: 1.35;
             border: 1px solid #55585c !important;
         }}
@@ -129,6 +143,7 @@ def render_quote(quote):
             border: 1px solid #55585c !important;
             white-space: nowrap;
             background-color: transparent !important;
+            color: #c4c4c4;
         }}
 
         table.quote-table tbody td:nth-child(1),
@@ -137,6 +152,7 @@ def render_quote(quote):
             color: #ccc;
             text-align: left;
             background-color: #303030 !important;
+            color: #c4c4c4;
         }}
 
         table.quote-table tbody td:nth-child(2),

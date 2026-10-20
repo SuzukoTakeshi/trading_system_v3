@@ -488,6 +488,109 @@ class TradeEngineAPI:
 
 
     # ==========================================
+    # RANGE変更
+    # ==========================================
+    def update_range(self, trade_id, range_high, range_low):
+
+        trade = self.context.trades.get(trade_id)
+
+        if trade is None:
+            return False, f"Trade #{trade_id} が存在しません。"
+
+        if trade.param.strategy_type != "range":
+            return False, f"Trade #{trade_id} はRANGE戦略ではありません。"
+
+        runtime = trade.runtime.strategy_runtime
+
+        if not runtime.range_initialized:
+            return False, f"Trade #{trade_id} はRANGE計測中です。"
+
+        if (
+            not math.isfinite(range_high)
+            or not math.isfinite(range_low)
+            or range_high <= range_low
+            or range_low <= 0
+        ):
+            return False, "RANGE HIGHはRANGE LOWより大きい正の数値を指定してください。"
+
+        previous_high = runtime.range_high
+        previous_low = runtime.range_low
+
+        # 手動変更
+        runtime.range_high = range_high
+        runtime.range_low = range_low
+
+        # RANGE上下限
+        range_width = range_high - range_low
+
+        runtime.range_upper_limit = (
+            range_high + range_width * runtime.deviation_rate / 100
+        )
+        runtime.range_lower_limit = (
+            range_low - range_width * runtime.deviation_rate / 100
+        )
+
+        # ENTRY境界
+        runtime.long_entry_upper = (
+            range_low
+            + range_width * runtime.entry_low_deviation_rate / 100
+        )
+        runtime.short_entry_lower = (
+            range_high
+            - range_width * runtime.entry_high_deviation_rate / 100
+        )
+
+        # EXIT境界
+        runtime.long_exit_upper = (
+            range_high
+            - range_width * runtime.exit_high_deviation_rate / 100
+        )
+        runtime.short_exit_lower = (
+            range_low
+            + range_width * runtime.exit_low_deviation_rate / 100
+        )
+
+        # confirmed_rangeを更新
+        if trade.param.params is None:
+            trade.param.params = {}
+
+        range_params = trade.param.params.setdefault("range", {})
+        range_params["confirmed_range"] = {
+            "range_high": runtime.range_high,
+            "range_low": runtime.range_low,
+            "range_upper_limit": runtime.range_upper_limit,
+            "range_lower_limit": runtime.range_lower_limit,
+            "long_entry_upper": runtime.long_entry_upper,
+            "short_entry_lower": runtime.short_entry_lower,
+            "long_exit_upper": runtime.long_exit_upper,
+            "short_exit_lower": runtime.short_exit_lower,
+        }
+
+        message = (
+            f"RANGE UPDATED "
+            f"previous_high={previous_high} "
+            f"previous_low={previous_low} "
+            f"range_high={range_high} "
+            f"range_low={range_low}"
+        )
+
+        Log.event(f"(#{trade_id}) {message}")
+
+        quote = trade.get_quote()
+        current_price = quote.current_price if quote else None
+
+        trade.add_timeline(
+            event="RANGE",
+            message=message,
+            current_price=current_price,
+        )
+
+        self._save_trade(trade)
+
+        return True, "RANGEを変更しました。"
+
+
+    # ==========================================
     # Trade取消
     # ==========================================
     def cancel_trade(self, trade_id, force=False):

@@ -19,6 +19,7 @@ class SymbolQuoteSheet:
 
     HEADER_COLUMNS = [
         "銘柄コード",
+        "銘柄名称",
         "現在値",
         "現在日付",
         "現在値詳細時刻",
@@ -182,8 +183,9 @@ class SymbolQuoteSheet:
                 continue
 
             result[symbol] = {
-                "current_price": self.normalize_number(row[1]),
-                "current_tick": row[4],
+                "symbol_name": row[1],
+                "current_price": self.normalize_number(row[2]),
+                "current_tick": row[5],
             }
 
         return result

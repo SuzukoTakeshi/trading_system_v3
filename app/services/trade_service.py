@@ -265,6 +265,12 @@ class TradeService:
                 # System
                 "created_at": trade["created_at"],
 
+                # ----------------------------------------------------------------------
+                # RANGE
+                "range_params": trade.get("range_params"),
+
+                # ----------------------------------------------------------------------
+                # TREND
                 "trend_side": trade.get("trend_side"),
 
                 # TRENDスコア（現在値）
@@ -443,6 +449,41 @@ class TradeService:
             response_id="TRADE_PROFIT_TARGET_UPDATE_REJECTED",
             message=message,
         )
+
+
+    # ---------------------
+    # RANGE変更
+    # ---------------------
+    def update_range(self, trade_id, range_high, range_low):
+
+        Log.debug(
+            f"(#{trade_id}) TRADE SERVICE UPDATE RANGE "
+            f"range_high={range_high} "
+            f"range_low={range_low}"
+        )
+
+        result, message = self.trade_engine.api.update_range(
+            trade_id,
+            range_high,
+            range_low,
+        )
+
+        if result:
+            return Response.ok(
+                response_id="TRADE_RANGE_UPDATED",
+                message=f"(#{trade_id}) {message}",
+                data={
+                    "trade_id": trade_id,
+                    "range_high": range_high,
+                    "range_low": range_low,
+                },
+            )
+
+        return Response.rejected(
+            response_id="TRADE_RANGE_UPDATE_REJECTED",
+            message=message,
+        )
+
 
     # ---------------------
     # Trade取消

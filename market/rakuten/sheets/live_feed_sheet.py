@@ -91,9 +91,16 @@ class LiveFeedSheet(BaseSheet):
         if symbol is None or not symbol.strip():
             raise ValueError("銘柄コードが指定されていません。")
 
-        # 銘柄切り替え時の前回データを使わないようにする。
-        self.ws.Range("B1").ClearContents()
-        self.ws.Range("B1").Value = symbol
+        # 銘柄コードが異なる場合だけ再設定する
+        current_symbol = self.normalize_symbol(
+            self.ws.Range("B1").Value
+        )
+
+        if current_symbol != symbol:
+            self.ws.Range("B1").Value = symbol
+
+            # 銘柄切り替え時のみRSSの更新を待つ
+            time.sleep(0.5)
 
         # 楽天RSSの更新を少し待つ。
         time.sleep(0.5)
