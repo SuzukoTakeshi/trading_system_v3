@@ -27,42 +27,21 @@ def range_panel():
 
 
     # ==================================================
-    # 計測間隔
-    # ==================================================
-
-    title_col, data_col, _ = st.columns([1, 1.2, 0.8])
-
-    with title_col:
-        st.write("計測間隔（分）")
-
-    with data_col:
-        interval_minutes = st.number_input(
-            "計測間隔（分）",
-            min_value=0.1,
-            step=0.1,
-            format="%.1f",
-            value=float(range_cfg["interval_minutes"]),
-            key="trade_range_interval_minutes",
-            label_visibility="collapsed",
-        )
-
-
-    # ==================================================
     # RANGE計測時間
     # ==================================================
 
-    title_col, data_col, _ = st.columns([1, 1.2, 0.8])
+    title_col, data_col, _ = st.columns([1.2, 1.2, 1.0])
 
     with title_col:
-        st.write("RANGE計測時間（分）")
+        st.write("計測時間（分）")
 
     with data_col:
         calculation_minutes = st.number_input(
-            "RANGE計測時間（分）",
+            "計測時間（分）",
             min_value=1.0,
             step=1.0,
             format="%.1f",
-            value=5.0,
+            value=10.0,
             key="trade_range_calculation_minutes",
             label_visibility="collapsed",
         )
@@ -72,14 +51,14 @@ def range_panel():
     # ENTRY / EXIT 回数
     # ==================================================
 
-    title_col, data_col, _ = st.columns([1, 1.2, 0.8])
+    title_col, data_col, _ = st.columns([1.2, 1.2, 1.0])
 
     with title_col:
-        st.write("ENTRY/EXIT回数")
+        st.write("売買回数")
 
     with data_col:
         repeat_count = st.number_input(
-            "ENTRY/EXIT回数",
+            "売買回数",
             min_value=1,
             step=1,
             value=1,
@@ -87,15 +66,34 @@ def range_panel():
             label_visibility="collapsed",
         )
 
+    # ==================================================
+    # 最小RANGE幅率
+    # ==================================================
+
+    title_col, data_col, _ = st.columns([1.2, 1.2, 1.0])
+
+    with title_col:
+        st.write("最小RANGE幅率（%）")
+
+    with data_col:
+        min_range_width_rate = st.number_input(
+            "最小RANGE幅率（%）",
+            min_value=0.0,
+            step=0.1,
+            format="%.1f",
+            value=float(range_cfg.get("min_range_width_rate", 0.2)),
+            key="trade_range_min_range_width_rate",
+            label_visibility="collapsed",
+        )
 
     # ==================================================
     # RANGEパラメータ
     # ==================================================
 
     trade_params.update({
-        "range_interval_minutes": interval_minutes,
         "range_calculation_minutes": calculation_minutes,
         "range_repeat_count": repeat_count,
+        "min_range_width_rate": min_range_width_rate,
     })
 
     return trade_params

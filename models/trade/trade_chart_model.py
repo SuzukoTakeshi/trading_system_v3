@@ -70,14 +70,6 @@ class TradeChartModel:
 
         # RANGE
         self.range_params = range_params
-        # {
-        #     "range_high": 3060.0,
-        #     "range_low": 2975.0,
-        #     "long_entry_upper": 2993.125,
-        #     "short_entry_lower": 3041.875,
-        #     "range_upper_limit": 3078.125,
-        #     "range_lower_limit": 2956.875
-        # }
 
         # TREND
         self.trend_params = trend_params

@@ -61,10 +61,12 @@ def main():
     # URLで指定された銘柄を取得
     symbol = str(st.query_params.get("symbol", "")).strip()
 
+
     # ヘッダー
-    col_title, col_symbol, _, col_auto_refresh = st.columns(
-        [1, 4, 8, 2],
+    col_title, col_symbol, _, col_display, col_auto_refresh = st.columns(
+        [1, 3, 5, 5, 2],
         gap="small",
+        vertical_alignment="center",
     )
 
     with col_title:
@@ -73,6 +75,27 @@ def main():
     with col_symbol:
         symbol_header = st.empty()
         symbol_header.caption(symbol if symbol else "LIVE FEED")
+
+    with col_display:
+        display_cols = st.columns(5, gap="small")
+
+        display_settings = [
+            ("歩み値", "live_feed_show_ticks"),
+            ("板情報", "live_feed_show_order_book"),
+            ("株価情報", "live_feed_show_quote"),
+            ("チャート", "live_feed_show_chart"),
+            ("注目銘柄", "live_feed_show_watchlist"),
+        ]
+
+        show = {}
+
+        for col, (label, key) in zip(display_cols, display_settings):
+            with col:
+                show[key] = st.toggle(
+                    label,
+                    value=st.session_state.get(key, True),
+                    key=key,
+                )
 
     with col_auto_refresh:
         auto_refresh = st.toggle(
@@ -85,45 +108,76 @@ def main():
 
     try:
         with LiveFeedExcel() as excel:
-            # 左から歩み値、板情報、株価情報・チャート、注目銘柄
-            col_ticks, col_order_book, col_order_quote, col_watchlist = (
-                st.columns(
-                    [1, 1, 3, 1.5],
+            # 表示設定
+            show_ticks = show["live_feed_show_ticks"]
+            show_order_book = show["live_feed_show_order_book"]
+            show_quote = show["live_feed_show_quote"]
+            show_chart = show["live_feed_show_chart"]
+            show_watchlist = show["live_feed_show_watchlist"]
+
+            # 表示するエリアだけ列幅を確保する
+            sections = []
+
+            if show_ticks:
+                sections.append(("ticks", 1.7))
+            if show_order_book:
+                sections.append(("order_book", 1.7))
+            if show_quote or show_chart:
+                sections.append(("quote", 4.5))
+            if show_watchlist:
+                sections.append(("watchlist", 3))
+
+            if sections:
+                cols = st.columns(
+                    [width for _, width in sections],
                     gap="medium",
                 )
-            )
+                section_cols = dict(
+                    zip([name for name, _ in sections], cols)
+                )
+            else:
+                section_cols = {}
 
-            # 注目銘柄一覧は4列目で1回だけ描画する。
-            # RSS株価の取得もrender_watchlist側で行う。
-            with col_watchlist:
-                symbols = render_watchlist(
-                    excel=excel,
-                    selected_symbol=symbol,
+            # 注目銘柄一覧
+            if show_watchlist:
+                with section_cols["watchlist"]:
+                    symbols = render_watchlist(
+                        excel=excel,
+                        selected_symbol=symbol,
+                    )
+            else:
+                # 非表示でも銘柄一覧を読み込み、
+                # 選択中の銘柄を維持する
+                from ui.live_feed.symbol_store import SymbolStore
+
+                symbols = SymbolStore().load_symbols()
+
+                symbols = sorted(
+                    symbols,
+                    key=lambda item: item["symbol"],
                 )
 
-            # 有効な注目銘柄を確認
-            enabled_symbols = {
+            # 注目銘柄を確認
+            available_symbols = {
                 item["symbol"] for item in symbols
             }
 
-            # 未指定、または無効な銘柄なら先頭を初期選択する。
-            if symbol not in enabled_symbols:
+            # 未指定、または一覧に存在しない銘柄なら先頭を選択
+            if symbol not in available_symbols:
                 if symbols:
                     symbol = symbols[0]["symbol"]
                     st.query_params["symbol"] = symbol
                     rerun_needed = True
                 else:
-                    with col_order_quote:
-                        st.info(
-                            "表示できる注目銘柄がありません。"
-                            "symbols.json の enabled 設定を確認してください。"
-                        )
-            else:
+                    if "quote" in section_cols:
+                        with section_cols["quote"]:
+                            st.info("注目銘柄がありません。")
+
+            if symbol in available_symbols:
                 # 選択中の銘柄名をヘッダーに表示
                 selected_item = next(
                     (
-                        item
-                        for item in symbols
+                        item for item in symbols
                         if item["symbol"] == symbol
                     ),
                     None,
@@ -135,18 +189,25 @@ def main():
                         f"{selected_item['name']}"
                     )
 
-                # 選択中の銘柄のLIVE FEED情報を取得
-                data = get_live_feed(excel.book, symbol)
+                # 表示するエリアがある場合だけデータ取得
+                if show_ticks or show_order_book or show_quote:
+                    data = get_live_feed(excel.book, symbol)
 
-                with col_ticks:
-                    render_ticks(data["ticks"])
+                    if show_ticks:
+                        with section_cols["ticks"]:
+                            render_ticks(data["ticks"])
 
-                with col_order_book:
-                    render_order_book(data["order_book"])
+                    if show_order_book:
+                        with section_cols["order_book"]:
+                            render_order_book(data["order_book"])
 
-                with col_order_quote:
-                    render_quote(data["quote"])
-                    render_chart(excel.book, symbol)
+                    if show_quote:
+                        with section_cols["quote"]:
+                            render_quote(data["quote"])
+
+                if show_chart:
+                    with section_cols["quote"]:
+                        render_chart(excel.book, symbol)
 
     except Exception as e:
         st.error(f"LIVE FEEDの取得に失敗しました: {e}")
@@ -156,11 +217,14 @@ def main():
         st.rerun()
 
     # 自動更新
-    if auto_refresh:
+    if (
+        auto_refresh
+        and not st.session_state.get("show_add_symbol_dialog", False)
+        and not st.query_params.get("delete_symbol")
+    ):
         st_autorefresh(
             interval=MONITOR_REFRESH_INTERVAL_MS,
-            key="live_feed_autorefresh",
+            key="live_feed_refresh",
         )
-
 
 main()

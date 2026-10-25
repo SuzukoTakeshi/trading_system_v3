@@ -119,56 +119,13 @@ def render_range_chart(
     t = plot_df["time"]
     price = plot_df["price_close"]
 
-    # RANGEパラメータはTradeRuntimeRangeModelのデータを使用
-    range_params = range_params or {}
+    # ==================================================
+    # RANGEパラメータ
+    # ==================================================
 
-    measurement_params = range_params
+    range_params = range_params or {}
     latest_measurement_params = range_params
     visible_end = plot_df["time"].max()
-
-    if measurement_params:
-        measurement_start = pd.to_datetime(
-            measurement_params["session_start_time"],
-            errors="coerce",
-        )
-        measurement_end = measurement_start + pd.to_timedelta(
-            float(measurement_params["calculation_minutes"]),
-            unit="m",
-        )
-        if pd.notna(measurement_start) and measurement_start < visible_end:
-            ax.axvspan(
-                measurement_start,
-                min(measurement_end, visible_end),
-                color="#64B5F6",
-                alpha=0.18,
-                label="RANGE計測時間帯",
-                zorder=0,
-            )
-
-        if (
-            latest_measurement_params
-            and latest_measurement_params.get("range_initialized") is False
-            and pd.notna(measurement_start)
-            and measurement_start <= visible_end < measurement_end
-        ):
-            ax.text(
-                0.5,
-                0.96,
-                "RANGE計測中",
-                transform=ax.transAxes,
-                ha="center",
-                va="top",
-                fontsize=8,
-                fontweight="bold",
-                color="#1565C0",
-                bbox={
-                    "boxstyle": "round,pad=0.25",
-                    "facecolor": "white",
-                    "edgecolor": "#64B5F6",
-                    "alpha": 0.85,
-                },
-                zorder=5,
-            )
 
     boundary_start_value = range_params.get(
         "boundary_outside_start_time"
@@ -217,6 +174,31 @@ def render_range_chart(
                 },
                 zorder=5,
             )
+
+    # ==================================================
+    # RANGE判定前の背景色
+    # ==================================================
+
+    range_confirmed_time = range_params.get("range_confirmed_time")
+
+    if range_confirmed_time:
+        range_start_time = pd.to_datetime(
+            range_confirmed_time,
+            errors="coerce",
+        )
+
+        if pd.notna(range_start_time):
+            chart_start_time = t.min()
+
+            if chart_start_time < range_start_time:
+                ax.axvspan(
+                    chart_start_time,
+                    min(range_start_time, t.max()),
+                    facecolor="lightblue",
+                    alpha=0.35,
+                    zorder=0,
+                    label="RANGE判定前",
+                )
 
     # ==================================================
     # PRICE

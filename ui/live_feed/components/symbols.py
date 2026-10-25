@@ -3,100 +3,89 @@
 #
 
 import html
-import json
-from pathlib import Path
 from urllib.parse import urlencode
 
 import streamlit as st
 
 from market.rakuten.sheets.symbol_quote_sheet import SymbolQuoteSheet
 
+from core.symbol_store import SymbolStore as MasterSymbolStore
+from ui.live_feed.symbol_store import SymbolStore
 
-SYMBOLS_FILE = Path(__file__).resolve().parent / "symbols.json"
+symbol_store = SymbolStore()
+
 
 def _delete_symbol(symbol):
     """注目銘柄設定から指定銘柄を削除する。"""
-    with SYMBOLS_FILE.open("r", encoding="utf-8-sig") as file:
-        data = json.load(file)
+    symbol_store.delete(symbol)
 
-    updated = [
-        item for item in data
-        if not isinstance(item, dict)
-        or str(item.get("symbol", "")).strip() != symbol
-    ]
-
-    with SYMBOLS_FILE.open("w", encoding="utf-8") as file:
-        json.dump(updated, file, ensure_ascii=False, indent=4)
-
-    # 削除用のURLパラメータを消して再表示する
     if "delete_symbol" in st.query_params:
         del st.query_params["delete_symbol"]
 
 
 def _add_symbol(symbol):
-    """注目銘柄設定に銘柄を追加する。"""
+    """マスタから銘柄情報を取得し、注目銘柄に追加する。"""
     symbol = str(symbol).strip()
 
     if not symbol:
         raise ValueError("銘柄コードを入力してください。")
 
-    with SYMBOLS_FILE.open("r", encoding="utf-8-sig") as file:
-        data = json.load(file)
+    master_store = MasterSymbolStore()
+    master_symbol = master_store.get(symbol)
 
-    if not isinstance(data, list):
+    if master_symbol is None:
         raise ValueError(
-            "symbols.json のルート要素はリストである必要があります。"
+            f"銘柄マスタに銘柄コード「{symbol}」が存在しません。"
         )
 
-    # 登録済みなら有効化する
-    for item in data:
-        if (
-            isinstance(item, dict)
-            and str(item.get("symbol", "")).strip() == symbol
-        ):
-            item["enabled"] = True
+    symbol_store.add(master_symbol)
 
-            with SYMBOLS_FILE.open("w", encoding="utf-8") as file:
-                json.dump(data, file, ensure_ascii=False, indent=4)
-
-            return
-
-    # 新規銘柄を追加
-    data.append({
-        "symbol": symbol,
-        "name": symbol,
-        "enabled": True,
-    })
-
-    with SYMBOLS_FILE.open("w", encoding="utf-8") as file:
-        json.dump(data, file, ensure_ascii=False, indent=4)
+    # 銘柄マスタの情報を返す
+    return master_symbol
 
 
 @st.dialog("注目銘柄の追加")
 def _add_symbol_dialog():
-    symbol = st.text_input(
-        "銘柄コード",
-        placeholder="例：9433",
-        key="add_symbol_code",
-    )
-
-    col_cancel, col_add = st.columns(2)
-
-    with col_cancel:
-        if st.button("キャンセル", width="stretch"):
-            st.rerun()
-
-    with col_add:
-        if st.button(
+    with st.form("add_symbol_form", clear_on_submit=True):
+        symbol = st.text_input(
+            "銘柄コード",
+            placeholder="例：9433",
+            key="add_symbol_code",
+        )
+        submit = st.form_submit_button(
             "追加する",
             type="primary",
             width="stretch",
-        ):
-            try:
-                _add_symbol(symbol)
-                st.rerun()
-            except Exception as e:
-                st.error(f"銘柄の追加に失敗しました: {e}")
+        )
+
+    cancel = st.button(
+        "キャンセル",
+        key="cancel_add_symbol",
+        width="stretch",
+    )
+
+    # キャンセル時：ダイアログを閉じて自動更新を再開
+    if cancel:
+        st.session_state["show_add_symbol_dialog"] = False
+        st.rerun(scope="app")
+
+    # 追加時
+    if submit:
+        try:
+            symbol = symbol.strip()
+
+            if not symbol:
+                st.error("銘柄コードを入力してください。")
+                return
+
+            _add_symbol(symbol)
+
+            # 追加成功：ダイアログを閉じて一覧を更新
+            st.session_state["show_add_symbol_dialog"] = False
+            st.rerun(scope="app")
+
+        except Exception as e:
+            st.error(f"銘柄の追加に失敗しました: {e}")
 
 
 @st.dialog("注目銘柄の削除確認")
@@ -126,41 +115,8 @@ def _confirm_delete_symbol(symbol):
 
 
 def _load_symbols():
-    """有効な注目銘柄を読み込む。"""
-    if not SYMBOLS_FILE.exists():
-        raise FileNotFoundError(
-            f"注目銘柄設定ファイルが見つかりません: {SYMBOLS_FILE}"
-        )
-
-    with SYMBOLS_FILE.open("r", encoding="utf-8-sig") as file:
-        data = json.load(file)
-
-    if not isinstance(data, list):
-        raise ValueError(
-            "symbols.json のルート要素はリストである必要があります。"
-        )
-
-    result = []
-    seen = set()
-
-    for item in data:
-        if not isinstance(item, dict) or not item.get("enabled", False):
-            continue
-
-        symbol = str(item.get("symbol", "")).strip()
-        name = str(item.get("name", "")).strip()
-
-        if not symbol or symbol in seen:
-            continue
-
-        seen.add(symbol)
-        result.append({
-            "symbol": symbol,
-            "name": name or symbol,
-            "enabled": True,
-        })
-
-    return result
+    """注目銘柄を読み込む。"""
+    return symbol_store.load_symbols()
 
 
 def _format_price(value):
@@ -205,7 +161,10 @@ def render_watchlist(excel, selected_symbol):
         _confirm_delete_symbol(str(delete_symbol))
 
     try:
-        symbols = _load_symbols()
+        symbols = sorted(
+            _load_symbols(),
+            key=lambda item: item["symbol"],
+        )
 
         ws = excel.get_sheet("symbol_quotes")
         sheet = SymbolQuoteSheet(ws=ws)
@@ -216,10 +175,10 @@ def render_watchlist(excel, selected_symbol):
         st.error(f"注目銘柄の取得に失敗しました: {e}")
         return []
 
-    if st.button(
-        "＋ 銘柄追加",
-        key="open_add_symbol_dialog",
-    ):
+    if st.button("＋ 銘柄追加", key="open_add_symbol_dialog"):
+        st.session_state["show_add_symbol_dialog"] = True
+
+    if st.session_state.get("show_add_symbol_dialog", False):
         _add_symbol_dialog()
 
     if not symbols:
@@ -294,7 +253,7 @@ def render_watchlist(excel, selected_symbol):
         width: 100%;
         border-collapse: collapse;
         table-layout: auto;
-        font-size: 13px;
+        font-size: 16px;
     }}
 
     .watchlist-table th {{
@@ -303,6 +262,7 @@ def render_watchlist(excel, selected_symbol):
         padding: 5px 4px;
         border: 1px solid #55585c;
         white-space: nowrap;
+        background-color: #303030 !important;
         color: #c4c4c4;
     }}
 

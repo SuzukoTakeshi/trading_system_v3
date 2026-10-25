@@ -1,7 +1,7 @@
 {
     "description": {
-        "range.interval_minutes": "RANGE計測の価格集計間隔（分）",
         "range.calculation_minutes": "RANGE計測を行う期間（分）",
+        "range.min_range_width_rate": "現在価格に対する最小RANGE幅率（%）。この値以下の場合はENTRY判定を行わない",
         "range.deviation_rate": "RANGE HIGH / LOWからの許容乖離率（%）",
         "range.entry_high_deviation_rate": "HIGHからのENTRY判定乖離率（%）",
         "range.entry_low_deviation_rate": "LOWからのENTRY判定乖離率（%）",
@@ -11,8 +11,8 @@
     },
 
     "range": {
-        "interval_minutes": 0.2,
-        "calculation_minutes": 5,
+        "calculation_minutes": 10,
+        "min_range_width_rate": 0.2,
         "deviation_rate": 50.0,
         "entry_high_deviation_rate": 30.0,
         "entry_low_deviation_rate": 30.0,

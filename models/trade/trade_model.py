@@ -176,10 +176,13 @@ class TradeModel(BaseEntity):
         self.timeline.append(item)
 
 
-    def change_state(self, new_state):
+    def change_state(self, new_state, message=None):
         """
         Trade状態変更
         """
+
+        if message is not None:
+            self.message = message
 
         if self.state == new_state:
             return False

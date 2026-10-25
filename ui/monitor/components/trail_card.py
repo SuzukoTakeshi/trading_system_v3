@@ -547,7 +547,7 @@ def render_trail_card(trade: dict):
 
         with edit1_col:
             if strategy_type == "range":
-                if trade.get("state") == "exit":
+                if trade.get("state") == "entry" or trade.get("state") == "exit":
                     if st.button(
                         "✎ RANGE",
                         key=f"monitor_range_edit_{trade['trade_id']}",
@@ -590,7 +590,11 @@ def render_trail_card(trade: dict):
 
         with edit2_col:
             if strategy_type == "range":
-                pass
+                range_params = trade.get("range_params")
+                current_range_high = range_params.get("range_high")
+                current_range_low = range_params.get("range_low")
+                st.write(f"HIGH:{current_range_high}")
+                st.write(f"LOW:{current_range_low}")
 
             else:
                 # 利確ライン

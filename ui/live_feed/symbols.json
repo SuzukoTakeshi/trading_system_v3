@@ -1,0 +1,66 @@
+{
+    "7203": {
+        "code": "7203",
+        "name": "トヨタ自動車",
+        "market": "プライム（内国株式）",
+        "exchange": "TSE",
+        "sector": "輸送用機器",
+        "type": "STOCK"
+    },
+    "8306": {
+        "code": "8306",
+        "name": "三菱ＵＦＪフィナンシャル・グループ",
+        "market": "プライム（内国株式）",
+        "exchange": "TSE",
+        "sector": "銀行業",
+        "type": "STOCK"
+    },
+    "6613": {
+        "code": "6613",
+        "name": "ＱＤレーザ",
+        "market": "グロース（内国株式）",
+        "exchange": "TSE",
+        "sector": "電気機器",
+        "type": "STOCK"
+    },
+    "9432": {
+        "code": "9432",
+        "name": "ＮＴＴ",
+        "market": "プライム（内国株式）",
+        "exchange": "TSE",
+        "sector": "情報・通信業",
+        "type": "STOCK"
+    },
+    "3909": {
+        "code": "3909",
+        "name": "ショーケース",
+        "market": "スタンダード（内国株式）",
+        "exchange": "TSE",
+        "sector": "情報・通信業",
+        "type": "STOCK"
+    },
+    "5016": {
+        "code": "5016",
+        "name": "ＪＸ金属",
+        "market": "プライム（内国株式）",
+        "exchange": "TSE",
+        "sector": "非鉄金属",
+        "type": "STOCK"
+    },
+    "285A": {
+        "code": "285A",
+        "name": "キオクシアホールディングス",
+        "market": "プライム（内国株式）",
+        "exchange": "TSE",
+        "sector": "電気機器",
+        "type": "STOCK"
+    },
+    "2222": {
+        "code": "2222",
+        "name": "寿スピリッツ",
+        "market": "プライム（内国株式）",
+        "exchange": "TSE",
+        "sector": "食料品",
+        "type": "STOCK"
+    }
+}

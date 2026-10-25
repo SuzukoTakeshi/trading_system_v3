@@ -130,11 +130,11 @@ def trade_panel():
 
                 payload["params"] = {
                     "range": {
-                        "interval_minutes": trade_params[
-                            "range_interval_minutes"
-                        ],
                         "calculation_minutes": trade_params[
                             "range_calculation_minutes"
+                        ],
+                        "min_range_width_rate": trade_params[
+                            "min_range_width_rate"
                         ],
                     }
                 }

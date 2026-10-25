@@ -98,33 +98,48 @@ class SymbolQuoteSheet:
 
         return result
 
+
     def sync_symbols(self, symbols):
         """
-        有効な注目銘柄をシートへ同期する。
+        注目銘柄をシートへ同期する。
 
         symbols:
-            [{"symbol": "7203", "name": "...", "enabled": True}, ...]
+            [{"symbol": "7203", "name": "トヨタ自動車"}, ...]
         """
 
-        enabled_symbols = []
+        watchlist_symbols = []
 
         for item in symbols:
-            if not item.get("enabled", False):
-                continue
-
             symbol = self.normalize_symbol(item.get("symbol"))
 
-            if symbol and symbol not in enabled_symbols:
-                enabled_symbols.append(symbol)
+            if symbol and symbol not in watchlist_symbols:
+                watchlist_symbols.append(symbol)
 
         current_symbols = self._get_registered_symbols()
 
-        # 登録銘柄に変更がなければ、数式を書き直さない。
-        if current_symbols == enabled_symbols:
-            return
+        # 登録銘柄が一致し、RSS数式も存在する場合だけ更新を省略する。
+        if current_symbols == watchlist_symbols:
+            formulas_exist = True
+
+            for row in range(2, len(watchlist_symbols) + 2):
+                for col in range(2, len(self.HEADER_COLUMNS) + 1):
+                    formula = self.ws.Cells(row, col).Formula
+
+                    if not formula:
+                        formulas_exist = False
+                        break
+
+                if not formulas_exist:
+                    break
+
+            if formulas_exist:
+                return
 
         # 以前の登録内容と数式をクリアする。
-        last_row = max(self._last_symbol_row(), len(enabled_symbols) + 1)
+        last_row = max(
+            self._last_symbol_row(),
+            len(watchlist_symbols) + 1,
+        )
 
         if last_row >= 2:
             self.ws.Range(
@@ -133,7 +148,7 @@ class SymbolQuoteSheet:
             ).ClearContents()
 
         # 銘柄コードとRSS数式を登録する。
-        for row, symbol in enumerate(enabled_symbols, start=2):
+        for row, symbol in enumerate(watchlist_symbols, start=2):
             self.ws.Cells(row, 1).NumberFormat = "@"
             self.ws.Cells(row, 1).Value = symbol
 

@@ -45,15 +45,15 @@ class TrendTest:
             self.config
         )
 
-        Log.event(
-            f"TREND TEST CONFIG "
-            f"bar_interval_minutes={self.config['bar_interval_minutes']} "
-            f"history_bars={self.config['history_bars']} "
-            f"structure={self.config['structure']} "
-            f"moving_average={self.config['moving_average']} "
-            f"price_change={self.config['price_change']} "
-            f"decision={self.config['decision']}"
-        )
+        # Log.event(
+        #     f"TREND TEST CONFIG "
+        #     f"bar_interval_minutes={self.config['bar_interval_minutes']} "
+        #     f"history_bars={self.config['history_bars']} "
+        #     f"structure={self.config['structure']} "
+        #     f"moving_average={self.config['moving_average']} "
+        #     f"price_change={self.config['price_change']} "
+        #     f"decision={self.config['decision']}"
+        # )
 
 
     # TrendTest.run() では、次の処理をしている。

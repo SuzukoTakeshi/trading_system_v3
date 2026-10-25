@@ -115,6 +115,19 @@
         "voice_file": "trade_close_time_exit.wav"
     },
 
+    "RANGE_DATA_SHORTAGE": {
+        "message": "レンジ判定データが不足の為、終了します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "range_data_shortage.wav"
+    },
+
+    "RANGE_LIMIT_OUT": {
+        "message": "レンジ超過が継続した為、終了します。",
+        "voice_type": "VOICE_FILE",
+        "voice_file": "range_limit_out.wav"
+    },
+
+
     "ENTRY RANGE START": {
         "message": "レンジトレード判定を開始します。",
         "voice_type": "VOICE_FILE",

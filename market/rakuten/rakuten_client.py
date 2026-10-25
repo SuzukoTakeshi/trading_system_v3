@@ -1,5 +1,5 @@
 #
-# market/rakuten/market.py
+# market/rakuten/rakuten_client.py
 #
 # Rakuten Market
 #
@@ -24,6 +24,7 @@ from market.rakuten.sheets.order_id_list_sheet import OrderIDListSheet
 from market.rakuten.sheets.order_list_sheet import OrderListSheet
 from market.rakuten.sheets.execution_list_sheet import ExecutionListSheet
 from market.rakuten.sheets.margin_position_list_sheet import MarginPositionListSheet
+from market.rakuten.sheets.range_chart_sheet import RangeChartSheet
 
 
 class RakutenClient:
@@ -56,6 +57,7 @@ class RakutenClient:
         self.order_list_sheet = None
         self.execution_list_sheet = None
         self.margin_position_list_sheet = None
+        self.range_chart_sheet = None
 
         # MarketDes
         self.market_des_cleared_at = None
@@ -95,6 +97,7 @@ class RakutenClient:
         self.order_list_sheet = None
         self.execution_list_sheet = None
         self.margin_position_list_sheet = None
+        self.range_chart_sheet = None
 
         pythoncom.CoInitialize()
 
@@ -137,6 +140,9 @@ class RakutenClient:
         # Margin Position List
         self.margin_position_list_sheet = MarginPositionListSheet(self, self.get_sheet(self.sheets["margin_position_list"]))
 
+        # Range Chart List
+        self.range_chart_sheet = RangeChartSheet(self, self.get_sheet(self.sheets["range_chart"]))
+
         # 国内株式銘柄情報クリア (売買単位 / 制限値幅下限 / 制限値幅上限)
         self.market_des_sheet.clear()
         self.market_des_cleared_at = None
@@ -155,6 +161,7 @@ class RakutenClient:
         self.order_list_sheet = None
         self.execution_list_sheet = None
         self.margin_position_list_sheet = None
+        self.range_chart_sheet = None
 
         self.book = None
         self.app = None
@@ -445,3 +452,22 @@ class RakutenClient:
         self.order_id_list_sheet.debug_add_order_id_list(order_id, order_no)
 
         self.execution_list_sheet.debug_add_execution_list(request)
+
+
+    def get_range_chart(
+        self,
+        symbol,
+        interval,
+        count,
+        timeout_seconds,
+    ):
+        return self.range_chart_sheet.get_range_chart(
+            symbol=symbol,
+            interval=interval,
+            count=count,
+            timeout_seconds=timeout_seconds,
+        )
+
+
+    def clear_range_chart(self):
+        self.range_chart_sheet.clear_range_chart()

@@ -502,8 +502,8 @@ class TradeEngineAPI:
 
         runtime = trade.runtime.strategy_runtime
 
-        if not runtime.range_initialized:
-            return False, f"Trade #{trade_id} はRANGE計測中です。"
+        if runtime.range_high is None or runtime.range_low is None:
+            return False, f"Trade #{trade_id} はRANGE初期化中です。"
 
         if (
             not math.isfinite(range_high)

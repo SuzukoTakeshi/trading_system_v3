@@ -91,7 +91,6 @@ CHART_COUNT_OPTIONS = [
     332,
     500,
     1000,
-    "直接入力",
 ]
 
 # Session State keys
@@ -136,7 +135,7 @@ def _render_chart_settings():
 
     _init_chart_settings()
 
-    col_interval, col_count, _ = st.columns([2, 2, 5])
+    col_interval, col_count, _ = st.columns([2, 2, 4])
 
     with col_interval:
         label_col, select_col = st.columns([1, 3])
@@ -164,29 +163,30 @@ def _render_chart_settings():
             st.markdown("本数")
 
         with select_col:
-            st.selectbox(
+            count_options = [
+                value
+                for value in CHART_COUNT_OPTIONS
+                if isinstance(value, int)
+            ]
+
+            selected_count = st.selectbox(
                 "表示本数",
-                options=CHART_COUNT_OPTIONS,
-                format_func=lambda value: (
-                    value if isinstance(value, str)
-                    else f"{value}本"
+                options=count_options,
+                index=(
+                    count_options.index(
+                        st.session_state[COUNT_CHOICE_KEY]
+                    )
+                    if st.session_state[COUNT_CHOICE_KEY] in count_options
+                    else 0
                 ),
+                accept_new_options=True,
                 key=COUNT_CHOICE_KEY,
                 label_visibility="collapsed",
                 width=160,
             )
 
-    if st.session_state[COUNT_CHOICE_KEY] == "直接入力":
-        custom_count = st.number_input(
-            "本数を入力",
-            min_value=1,
-            max_value=10000,
-            step=1,
-            key=CUSTOM_COUNT_KEY,
-        )
-        count = int(custom_count)
-    else:
-        count = int(st.session_state[COUNT_CHOICE_KEY])
+        count = int(selected_count)
+        st.session_state[CUSTOM_COUNT_KEY] = count
 
     return st.session_state[INTERVAL_KEY], count
 
@@ -407,6 +407,34 @@ def render_chart(workbook, symbol):
         col=1,
     )
 
+    # 移動平均線（終値ベース）
+    moving_averages = [
+        (5, "MA5"),
+        (25, "MA25"),
+        (75, "MA75"),
+    ]
+
+    for period, name in moving_averages:
+        ma = df["close"].rolling(
+            window=period,
+            min_periods=period,
+        ).mean()
+
+        # 必要な本数が揃った部分だけ表示
+        if ma.notna().any():
+            fig.add_trace(
+                go.Scatter(
+                    x=df["datetime"],
+                    y=ma,
+                    name=name,
+                    mode="lines",
+                    connectgaps=False,
+                    line=dict(width=1.5),
+                ),
+                row=1,
+                col=1,
+            )
+
     # 出来高
     fig.add_trace(
         go.Bar(
@@ -423,8 +451,15 @@ def render_chart(workbook, symbol):
 
     fig.update_layout(
         height=500,
-        margin=dict(l=10, r=10, t=20, b=10),
-        showlegend=False,
+        margin=dict(l=10, r=10, t=30, b=10),
+        showlegend=True,    # 凡例
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="left",
+            x=0,
+        ),
         xaxis_rangeslider_visible=False,
 
         # グラフ全体の外枠
