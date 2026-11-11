@@ -71,3 +71,4 @@ audio/voices/*.wav
 audio/comment.txt
 
 storage/json/trade_history/
+ui/live_feed/symbols.json
