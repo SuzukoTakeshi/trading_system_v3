@@ -4,9 +4,12 @@
 # トレンド分析
 #
 # 確定したTREND BARをもとに、
-#   ・移動平均（MA）
-#   ・価格変化
-#   ・高値・安値の構造
+#   判定項目	評価内容
+#   ・MAスコア       短期・中期・長期MAの位置関係と傾き
+#                    ※ SCALPING / DAYTRADE は短期・中期MAを使用
+#                    ※ SWING は短期・中期・長期MAを使用
+#   ・価格変化スコア  一定本数前と現在の価格変化率
+#   ・構造スコア     高値・安値の切り上がり・切り下がり
 # の3方向からトレンドを評価する。
 #
 # 各評価をスコア化して合計し、
@@ -15,8 +18,12 @@
 #
 
 from core.logger import Log
+import math
 
-from trade.trade_enums import TrendDirection
+from trade.trade_enums import (
+    TrendDirection,
+    StrategyType,
+)
 
 
 class TrendAnalyzer:
@@ -25,16 +32,23 @@ class TrendAnalyzer:
 
         self.config = config
 
+    @staticmethod
+    def is_valid_number(value):
+
+        try:
+            return value is not None and math.isfinite(value)
+        except (TypeError, ValueError):
+            return False
 
     #
     # トレンド分析
     #
-    def analyze(self, bars):
+    def analyze(self, bars, strategy):
 
         # --------------------------------------
         # 移動平均
         #
-        # Short / Medium / Long のMAを計算する。
+        # RSSから取得したShort / Medium / LongのMAを取得する。
         # --------------------------------------
         (
             short_moving_averages,
@@ -46,11 +60,12 @@ class TrendAnalyzer:
         # 各スコアを計算
         # --------------------------------------
 
-        # MAの位置関係と傾き
         ma_score = self.calculate_ma_score(
             short_moving_averages,
             medium_moving_averages,
             long_moving_averages,
+            bars,
+            strategy,
         )
 
         # 一定期間の価格変化
@@ -59,30 +74,28 @@ class TrendAnalyzer:
         # 高値・安値の切り上がり / 切り下がり
         structure_score = self.calculate_structure_score(bars)
 
-        # --------------------------------------
-        # 合計スコア
-        #
-        # 3つの判定結果を合計し、
-        # 全体としての方向性を求める。
-        # --------------------------------------
-        total_score = (
-            ma_score
-            + price_change_score
-            + structure_score
-        )
+        # いずれかのスコアが計算不能なら方向判定を行わない
+        if (
+            ma_score is None
+            or price_change_score is None
+            or structure_score is None
+        ):
+            total_score = None
+            trend_direction = TrendDirection.UNDEFINED
 
-        # --------------------------------------
-        # 最終トレンド判定
-        #
-        # 各スコアの方向一致・対立も考慮して、
-        # UP / DOWN / RANGE / UNDEFINED を決定する。
-        # --------------------------------------
-        trend_direction = self.determine_trend(
-            ma_score,
-            price_change_score,
-            structure_score,
-            total_score,
-        )
+        else:
+            total_score = (
+                ma_score
+                + price_change_score
+                + structure_score
+            )
+
+            trend_direction = self.determine_trend(
+                ma_score,
+                price_change_score,
+                structure_score,
+                total_score,
+            )
 
         Log.trace(
             "TREND",
@@ -111,45 +124,30 @@ class TrendAnalyzer:
     #
     def calculate_moving_averages(self, bars):
 
-        moving_average = self.config["moving_average"]
+        short_moving_averages = []
+        medium_moving_averages = []
+        long_moving_averages = []
 
-        short_period = moving_average["short_bars"]
-        medium_period = moving_average["medium_bars"]
-        long_period = moving_average["long_bars"]
+        for bar in bars:
 
-        def calculate(period):
-
-            moving_averages = []
-
-            # 必要なBAR数がない場合は計算しない
-            if len(bars) < period:
-                return moving_averages
-
-            for i in range(period - 1, len(bars)):
-
-                window = bars[i - period + 1:i + 1]
-
-                closes = [
-                    bar.close
-                    for bar in window
-                    if bar.close is not None
-                ]
-
-                if len(closes) != period:
-                    continue
-
-                average = sum(closes) / period
-
-                moving_averages.append({
-                    "time": bars[i].time,
-                    "value": average,
+            # RSSから取得した移動平均を使用
+            if self.is_valid_number(bar.ma_short):
+                short_moving_averages.append({
+                    "time": bar.time,
+                    "value": bar.ma_short,
                 })
 
-            return moving_averages
+            if self.is_valid_number(bar.ma_medium):
+                medium_moving_averages.append({
+                    "time": bar.time,
+                    "value": bar.ma_medium,
+                })
 
-        short_moving_averages = calculate(short_period)
-        medium_moving_averages = calculate(medium_period)
-        long_moving_averages = calculate(long_period)
+            if self.is_valid_number(bar.ma_long):
+                long_moving_averages.append({
+                    "time": bar.time,
+                    "value": bar.ma_long,
+                })
 
         return (
             short_moving_averages,
@@ -162,91 +160,185 @@ class TrendAnalyzer:
     # MAスコア
     #
     # MAの「位置関係」と「傾き」の2方向から評価する。
+    # 位置関係は最新BAR、傾きは直近2本のBARを使用する。
     # ============================================================
     def calculate_ma_score(
         self,
         short_moving_averages,
         medium_moving_averages,
         long_moving_averages,
+        bars,
+        strategy,
     ):
+        """
+        MAスコア計算
 
-        moving_average = self.config["moving_average"]
+        判定方式:
+            SCALPING : Short / Medium MA
+            DAYTRADE : Short / Medium MA
+            SWING    : Short / Medium / Long MA
 
-        position_base_score = moving_average["position_score"]
-        slope_base_score = moving_average["slope_score"]
+        判定内容:
+            ・MAの位置関係
+            ・MAの傾き
 
-        # MAデータ不足
+        必要なデータが不足している場合は None を返す。
+        正常に計算できて方向性がない場合は 0 を返す。
+        """
+
+        # ---------------------------------------
+        # 使用するMAの決定
+        # ---------------------------------------
+        if strategy in (
+            StrategyType.SCALPING,
+            StrategyType.DAYTRADE,
+        ):
+            use_long_ma = False
+
+        elif strategy == StrategyType.SWING:
+            use_long_ma = True
+
+        else:
+            return None
+
+        # ---------------------------------------
+        # データ数チェック
+        # ---------------------------------------
+        required_count = 2
+
         if (
-            len(short_moving_averages) < 2
-            or len(medium_moving_averages) < 2
-            or len(long_moving_averages) < 2
+            short_moving_averages is None
+            or medium_moving_averages is None
+            or len(short_moving_averages) < required_count
+            or len(medium_moving_averages) < required_count
         ):
-            Log.trend("TREND MA SCORE skipped: insufficient data")
-            return 0
+            return None
 
-        # --------------------------------------
-        # 最新のMA
-        # --------------------------------------
-        short = short_moving_averages[-1]["value"]
-        medium = medium_moving_averages[-1]["value"]
-        long = long_moving_averages[-1]["value"]
+        if use_long_ma:
+            if (
+                long_moving_averages is None
+                or len(long_moving_averages) < required_count
+            ):
+                return None
 
-        # --------------------------------------
-        # MAの位置関係
-        #
-        # Short > Medium > Long → 上昇
-        # Short < Medium < Long → 下降
-        # --------------------------------------
-        position_score = 0
+        # ---------------------------------------
+        # 直近2本のBARに対応するMAを取得
+        # ---------------------------------------
+        if bars is None or len(bars) < required_count:
+            return None
 
-        if short > medium > long:
-            position_score = position_base_score
-        elif short < medium < long:
-            position_score = -position_base_score
+        recent_bars = bars[-required_count:]
 
-        # --------------------------------------
-        # MAの傾き
-        #
-        # 各MAについて、直前の値と比較する。
-        # --------------------------------------
-        slope_score = 0
+        def get_ma_values(moving_averages, recent_bars):
+            """
+            指定した直近BARに対応するMA値を取得する。
+            時刻が一致しない場合は None を返す。
+            """
 
-        for moving_averages in (
+            ma_map = {
+                item["time"]: item["value"]
+                for item in moving_averages
+            }
+
+            values = []
+
+            for bar in recent_bars:
+                bar_time = bar.time
+
+                value = ma_map.get(bar_time)
+
+                if not self.is_valid_number(value):
+                    return None
+
+                values.append(value)
+
+            return values
+
+        short_values = get_ma_values(
             short_moving_averages,
+            recent_bars,
+        )
+
+        medium_values = get_ma_values(
             medium_moving_averages,
-            long_moving_averages,
-        ):
-            if len(moving_averages) < 2:
-                continue
-
-            current = moving_averages[-1]["value"]
-            previous = moving_averages[-2]["value"]
-
-            if current > previous:
-                slope_score += slope_base_score
-            elif current < previous:
-                slope_score -= slope_base_score
-
-        ma_score = position_score + slope_score
-
-        Log.trace(
-            "TREND",
-            f"TREND MA POSITION score={position_score}"
+            recent_bars,
         )
 
-        Log.trace(
-            "TREND",
-            f"TREND MA SLOPE "
-            f"short={'UP' if short_moving_averages[-1]['value'] > short_moving_averages[-2]['value'] else 'DOWN' if short_moving_averages[-1]['value'] < short_moving_averages[-2]['value'] else 'FLAT'} "
-            f"medium={'UP' if medium_moving_averages[-1]['value'] > medium_moving_averages[-2]['value'] else 'DOWN' if medium_moving_averages[-1]['value'] < medium_moving_averages[-2]['value'] else 'FLAT'} "
-            f"long={'UP' if long_moving_averages[-1]['value'] > long_moving_averages[-2]['value'] else 'DOWN' if long_moving_averages[-1]['value'] < long_moving_averages[-2]['value'] else 'FLAT'} "
-            f"score={slope_score}"
-        )
+        if short_values is None or medium_values is None:
+            return None
 
-        Log.trend(f"TREND MA SCORE={ma_score}")
+        if use_long_ma:
+            long_values = get_ma_values(
+                long_moving_averages,
+                recent_bars,
+            )
 
-        return ma_score
+            if long_values is None:
+                return None
+        else:
+            long_values = None
 
+        # ---------------------------------------
+        # MAの位置関係
+        # ---------------------------------------
+        short_ma = short_values[-1]
+        medium_ma = medium_values[-1]
+
+        if use_long_ma:
+            long_ma = long_values[-1]
+
+            if short_ma > medium_ma > long_ma:
+                position_score = 20
+
+            elif short_ma < medium_ma < long_ma:
+                position_score = -20
+
+            else:
+                position_score = 0
+
+        else:
+            if short_ma > medium_ma:
+                position_score = 20
+
+            elif short_ma < medium_ma:
+                position_score = -20
+
+            else:
+                position_score = 0
+
+        # ---------------------------------------
+        # MAの傾き
+        # ---------------------------------------
+        short_slope = short_values[-1] - short_values[-2]
+        medium_slope = medium_values[-1] - medium_values[-2]
+
+        if use_long_ma:
+            long_slope = long_values[-1] - long_values[-2]
+
+            slope = (
+                short_slope
+                + medium_slope
+                + long_slope
+            )
+        else:
+            slope = (
+                short_slope
+                + medium_slope
+            )
+
+        if slope > 0:
+            slope_score = 20
+
+        elif slope < 0:
+            slope_score = -20
+
+        else:
+            slope_score = 0
+
+        # ---------------------------------------
+        # 合計スコア
+        # ---------------------------------------
+        return position_score + slope_score
 
     # ============================================================
     # 価格変化スコア
@@ -268,27 +360,38 @@ class TrendAnalyzer:
         score_2 = price_change["score_2"]
         score_3 = price_change["score_3"]
 
-        # 比較に必要なデータが不足
-        if len(bars) <= comparison_bars:
+        # 比較に必要な連続データを確認
+        required_bars = comparison_bars + 1
+
+        if len(bars) < required_bars:
             Log.trace(
                 "TREND",
                 "TREND PRICE CHANGE skipped: insufficient data"
             )
-            return 0
+            return None
 
-        current_price = bars[-1].close
-        previous_price = bars[-1 - comparison_bars].close
+        recent_bars = bars[-required_bars:]
 
-        if (
-            current_price is None
-            or previous_price is None
-            or previous_price == 0
+        # 比較区間内の終値がすべて有効であること
+        if any(
+            not self.is_valid_number(bar.close)
+            for bar in recent_bars
         ):
             Log.trace(
                 "TREND",
-                "TREND PRICE CHANGE skipped: invalid price"
+                "TREND PRICE CHANGE skipped: invalid close"
             )
-            return 0
+            return None
+
+        current_price = recent_bars[-1].close
+        previous_price = recent_bars[0].close
+
+        if previous_price == 0:
+            Log.trace(
+                "TREND",
+                "TREND PRICE CHANGE skipped: invalid previous price"
+            )
+            return None
 
         # --------------------------------------
         # 価格変化率（%）
@@ -298,6 +401,13 @@ class TrendAnalyzer:
             / previous_price
             * 100
         )
+
+        if not self.is_valid_number(price_change_rate):
+            Log.trace(
+                "TREND",
+                "TREND PRICE CHANGE skipped: invalid rate"
+            )
+            return None
 
         # --------------------------------------
         # スコア判定
@@ -347,12 +457,25 @@ class TrendAnalyzer:
         partial_score = structure["partial_score"]
 
         if len(bars) < structure_bars:
-            Log.trend(
+            Log.trace(
+                "TREND",
                 "TREND STRUCTURE skipped: insufficient data"
             )
-            return 0
+            return None
 
         recent_bars = bars[-structure_bars:]
+
+        # 高値・安値がすべて有効であること
+        if any(
+            not self.is_valid_number(value)
+            for bar in recent_bars
+            for value in (bar.high, bar.low)
+        ):
+            Log.trace(
+                "TREND",
+                "TREND STRUCTURE skipped: invalid high/low"
+            )
+            return None
 
         highs = [bar.high for bar in recent_bars]
         lows = [bar.low for bar in recent_bars]
@@ -441,6 +564,14 @@ class TrendAnalyzer:
         structure_score,
         total_score,
     ):
+
+        if (
+            ma_score is None
+            or price_change_score is None
+            or structure_score is None
+            or total_score is None
+        ):
+            return TrendDirection.UNDEFINED
 
         decision = self.config["decision"]
 

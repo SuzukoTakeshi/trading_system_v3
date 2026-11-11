@@ -257,3 +257,21 @@ class MarketService:
     # ==========================================
     def clear_range_chart(self):
         self.rakuten_client.clear_range_chart()
+
+
+    # ==========================================
+    # TRENDチャートデータ取得
+    # ==========================================
+    def get_trend_chart(
+        self,
+        symbol,
+        interval,
+        count,
+        timeout_seconds,
+    ):
+        return self.rakuten_client.get_trend_chart(
+            symbol=symbol,
+            interval=interval,
+            count=count,
+            timeout_seconds=timeout_seconds,
+        )

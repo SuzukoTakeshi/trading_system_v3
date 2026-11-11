@@ -18,7 +18,6 @@ from core.logger import Log
 from trade.entry.entry_standard.process_entry_standard import ProcessEntryStandard
 from trade.entry.entry_range.process_entry_range import ProcessEntryRange
 from trade.entry.entry_trend.process_entry_trend import ProcessEntryTrend
-
 from trade.trend.trend_test import TrendTest
 from trade.trade_enums import TradeState
 

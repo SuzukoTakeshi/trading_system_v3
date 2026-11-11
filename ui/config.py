@@ -42,6 +42,8 @@ TRADE_HISTORY_URL = f"http://127.0.0.1:{UI_PORT}/trade_history"
 
 LIVE_FEED_URL = f"http://127.0.0.1:{UI_PORT}/live_feed"
 
+TREND_TRADER_URL = f"http://127.0.0.1:{UI_PORT}/trend_trader"
+
 # =========================
 # API
 # =========================
@@ -61,3 +63,6 @@ CONSOLE_REFRESH_INTERVAL_MS = 2000
 
 # Trail Monitor
 MONITOR_REFRESH_INTERVAL_MS = 5000
+
+# Trend Trader
+TREND_TRADER_REFRESH_INTERVAL_MS = 5000

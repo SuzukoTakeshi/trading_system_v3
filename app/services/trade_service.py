@@ -15,6 +15,7 @@ from core.strategy_config_loader import StrategyConfig
 from core.logger import Log
 from core.response import Response
 
+from trade.trade_enums import SideType
 
 class TradeService:
 
@@ -174,6 +175,16 @@ class TradeService:
 
         if req.atr is None or req.atr < 0.1:
             return { "response_id": "TRADE_REGISTER_INVALID_ATR" }
+
+        # 現物取引ではSHORTエントリーを禁止
+        if (
+            req.trade_type == "cash"
+            and req.side == SideType.SHORT.value
+        ):
+            return {
+                "response_id": "TRADE_REGISTER_CASH_SHORT_NOT_ALLOWED",
+                "message": "現物取引では売り(SHORT)エントリーはできません。",
+            }
 
         repeat_count = getattr(req, "repeat_count", 1)
         if repeat_count < 1:

@@ -147,7 +147,8 @@ class TrendTest:
             # Analyzerへ渡して判定する。
             # --------------------------------------
             result = self.trend_analyzer.analyze(
-                trend_runtime.bars
+                trend_runtime.bars,
+                trade.param.strategy,
             )
 
             # --------------------------------------

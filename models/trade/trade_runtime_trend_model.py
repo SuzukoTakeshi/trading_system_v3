@@ -17,6 +17,10 @@ class TradeRuntimeTrendModel:
         self.current_bar = None
         self.bars = []
 
+        # TRENDチャート最終取得時刻
+        # 一時データなので保存・復元は行わない
+        self.trend_last_chart_fetch_time = None
+
         # TREND判定結果
         self.trend_direction = TrendDirection.UNDEFINED
 

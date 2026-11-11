@@ -62,5 +62,13 @@
         "exchange": "TSE",
         "sector": "食料品",
         "type": "STOCK"
+    },
+    "9984": {
+        "code": "9984",
+        "name": "ソフトバンクグループ",
+        "market": "プライム（内国株式）",
+        "exchange": "TSE",
+        "sector": "情報・通信業",
+        "type": "STOCK"
     }
 }

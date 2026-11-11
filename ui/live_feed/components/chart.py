@@ -25,7 +25,7 @@ CHART_WAIT_SECONDS = 1
 
 # 足種の選択肢
 CHART_INTERVALS = [
-    "T",
+    #"T",
     "1M",
     "2M",
     "3M",
@@ -44,7 +44,7 @@ CHART_INTERVALS = [
 ]
 
 CHART_INTERVAL_LABELS = {
-    "T": "ティック",
+    #"T": "ティック",
     "1M": "1分足",
     "2M": "2分足",
     "3M": "3分足",
@@ -64,7 +64,7 @@ CHART_INTERVAL_LABELS = {
 
 # 足種ごとの標準本数
 CHART_DEFAULT_COUNTS = {
-    "T": 332,
+    # "T": 332,
     "1M": 332,
     "2M": 200,
     "3M": 200,
@@ -172,13 +172,6 @@ def _render_chart_settings():
             selected_count = st.selectbox(
                 "表示本数",
                 options=count_options,
-                index=(
-                    count_options.index(
-                        st.session_state[COUNT_CHOICE_KEY]
-                    )
-                    if st.session_state[COUNT_CHOICE_KEY] in count_options
-                    else 0
-                ),
                 accept_new_options=True,
                 key=COUNT_CHOICE_KEY,
                 label_visibility="collapsed",
@@ -385,6 +378,15 @@ def render_chart(workbook, symbol):
         st.info("チャートデータがありません。")
         return
 
+    # 日足・週足・月足以外は本日分だけ表示
+    if interval not in ("D", "W", "M"):
+        today = pd.Timestamp.now().date()
+        df = df[df["datetime"].dt.date == today].reset_index(drop=True)
+
+    if df.empty:
+        st.info("本日のチャートデータがありません。")
+        return
+
     fig = make_subplots(
         rows=2,
         cols=1,
@@ -402,6 +404,12 @@ def render_chart(workbook, symbol):
             low=df["low"],
             close=df["close"],
             name="株価",
+            # 陽線：赤に近いオレンジの枠線のみ
+            increasing_line_color="#CC4500",
+            increasing_fillcolor="rgba(0,0,0,0)",
+            # 陰線：水色で塗りつぶし
+            decreasing_line_color="lightskyblue",
+            decreasing_fillcolor="lightskyblue",
         ),
         row=1,
         col=1,
@@ -441,6 +449,7 @@ def render_chart(workbook, symbol):
             x=df["datetime"],
             y=df["volume"],
             name="出来高",
+            marker_color="lightskyblue",
         ),
         row=2,
         col=1,
@@ -472,6 +481,9 @@ def render_chart(workbook, symbol):
         linewidth=1,
         linecolor="gray",
         mirror=True,
+        rangebreaks=[
+            dict(bounds=[11.5, 12.5], pattern="hour")
+        ]
     )
 
     fig.update_yaxes(
