@@ -224,6 +224,9 @@ def main():
                         stop_exit_enabled=target.get(
                             "stop_exit_enabled", True
                         ),
+                        show_long_moving_average=(
+                            target.get("strategy") not in ("daytrade", "scalping")
+                        ),
                     )
 
 

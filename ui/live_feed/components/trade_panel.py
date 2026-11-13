@@ -1,0 +1,263 @@
+#
+# ui/live_feed/components/trade_panel.py
+#
+# Trade Entry Panel
+#
+
+import streamlit as st
+
+from ui.api.client import (
+    get_error_message,
+    get_trade_options,
+    register_trade,
+)
+
+from ui.live_feed import message_store
+from ui.live_feed.components.standard_panel import standard_panel
+from ui.live_feed.components.range_panel import range_panel
+from ui.live_feed.components.trend_panel import trend_panel
+from ui.live_feed.components.trend_test_panel import trend_test_panel
+
+
+def trade_panel():
+
+    url_symbol = str(st.query_params.get("symbol", "")).strip()
+    last_url_symbol = st.session_state.get(
+        "live_feed_trade_panel_url_symbol"
+    )
+
+    if url_symbol and url_symbol != last_url_symbol:
+        st.session_state["trade_symbol"] = url_symbol
+        st.session_state["live_feed_trade_panel_url_symbol"] = url_symbol
+
+    st.markdown(
+        """
+        <style>
+        .st-key-live_feed_trade_panel [data-testid="stVerticalBlock"] {
+            gap: 0.45rem;
+        }
+
+        .st-key-live_feed_trade_panel [data-testid="stHorizontalBlock"] {
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .st-key-live_feed_trade_panel h3 {
+            margin: 0;
+            padding: 0.15rem 0;
+            font-size: 1.05rem;
+        }
+
+        .st-key-live_feed_trade_panel [data-testid="stWidgetLabel"] {
+            padding-bottom: 0;
+            font-size: 0.8rem;
+        }
+
+        .st-key-live_feed_trade_panel [data-testid="stRadio"] [role="radiogroup"] {
+            gap: 0.25rem;
+            flex-wrap: wrap;
+        }
+
+        .st-key-live_feed_trade_panel [data-testid="stButton"] button {
+            width: 100%;
+            min-height: 2.5rem;
+            font-weight: 600;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # ==================================================
+    # 初期化
+    # ==================================================
+
+    options = get_trade_options()
+
+    if "trade_strategy_type" not in st.session_state:
+        st.session_state.trade_strategy_type = "standard"
+
+
+    # ==================================================
+    # TRADE ENTRY
+    # ==================================================
+
+    with st.container(key="live_feed_trade_panel", border=True):
+
+        # --------------------------------------------------
+        # タイトル + トレード条件
+        # --------------------------------------------------
+
+        title_col, condition_col = st.columns([3, 2])
+
+        with title_col:
+            st.subheader("エントリー")
+
+        with condition_col:
+
+            strategy_type_options = {
+                "STANDARD": "standard",
+                "RANGE": "range",
+                "TREND": "trend",
+                "TREND TEST": "trend_test",
+            }
+
+            condition_values = list(strategy_type_options.values())
+
+            current_condition = st.session_state.trade_strategy_type
+
+            if current_condition not in condition_values:
+                current_condition = "standard"
+                st.session_state.trade_strategy_type = current_condition
+
+            condition_index = condition_values.index(current_condition)
+
+            condition_label = st.selectbox(
+                "トレード条件",
+                list(strategy_type_options.keys()),
+                index=condition_index,
+                accept_new_options=False,
+                key="trade_strategy_type_select",
+                label_visibility="collapsed",
+            )
+
+            strategy_type = strategy_type_options[condition_label]
+
+            st.session_state.trade_strategy_type = strategy_type
+
+
+        # ==================================================
+        # 入力パネル
+        # ==================================================
+
+        if strategy_type == "standard":
+            trade_params = standard_panel()
+
+        elif strategy_type == "range":
+            trade_params = range_panel()
+
+        elif strategy_type == "trend":
+            trade_params = trend_panel()
+
+        elif strategy_type == "trend_test":
+            trade_params = trend_test_panel()
+
+        else:
+            trade_params = standard_panel()
+
+
+        # ==================================================
+        # トレード開始
+        # ==================================================
+
+        if st.button("トレードGO", width="stretch"):
+
+            payload = {
+                "strategy_type": strategy_type,
+                "symbol": trade_params["symbol"],
+                "quantity": trade_params["quantity"],
+                "atr": trade_params["atr"],
+                "trade_type": trade_params["trade_type"],
+                "margin_type": trade_params["margin_type"],
+                "side": trade_params["side"],
+                "strategy": trade_params["strategy"],
+            }
+
+            if strategy_type == "standard":
+                payload["entry_method"] = trade_params["entry_method"]
+                payload["exit_method"] = trade_params["exit_method"]
+
+            # ==================================================
+            # RANGEパラメータ
+            # ==================================================
+
+            if strategy_type == "range":
+
+                payload["repeat_count"] = trade_params["range_repeat_count"]
+
+                payload["params"] = {
+                    "range": {
+                        "calculation_minutes": trade_params[
+                            "range_calculation_minutes"
+                        ],
+                        "min_range_width_rate": trade_params[
+                            "min_range_width_rate"
+                        ],
+                    }
+                }
+
+
+            # ==================================================
+            # TREND EXIT判定パラメータ
+            # ==================================================
+
+            if strategy_type == "trend":
+
+                payload["params"] = {
+                    "trend_exit_enabled": trade_params[
+                        "trend_exit_enabled"
+                    ],
+                    "stop_exit_enabled": trade_params[
+                        "stop_exit_enabled"
+                    ],
+                }
+
+
+            # ==================================================
+            # TREND TESTパラメータ
+            # ==================================================
+
+            if strategy_type == "trend_test":
+
+                payload["params"] = {
+                    "trend_test_type": trade_params[
+                        "trend_test_type"
+                    ],
+                }
+
+
+            try:
+
+                result = register_trade(payload)
+
+                st.session_state.notify_list.append({
+                    "voice_id": result.get("response_id"),
+                    "voice_text": result.get("message"),
+                    "voice_file": result.get("voice_file"),
+                })
+
+                if result.get("result") == "OK":
+
+                    message_store.set(
+                        level="INFO",
+                        message=result.get(
+                            "message",
+                            "TRADE REGISTERED",
+                        ),
+                    )
+
+                    # 銘柄履歴更新
+                    options = get_trade_options()
+
+                    st.session_state.trade_symbols = options["symbols"]
+
+                else:
+
+                    message_store.set(
+                        level="WARNING",
+                        message=result.get(
+                            "message",
+                            "Trade登録に失敗しました。",
+                        ),
+                    )
+
+                st.rerun()
+
+            except Exception as e:
+
+                message_store.set(
+                    level="ERROR",
+                    message=f"TRADE ERROR : {get_error_message(e)}",
+                )
+
+                st.rerun()

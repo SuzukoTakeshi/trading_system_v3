@@ -242,7 +242,7 @@ def render_watchlist(excel, selected_symbol):
     table_html = f"""
     <div style="
         color: #c4c4c4;
-        font-size: 14px;
+        font-size: 12px;
         margin: 0 0 2px 0;
         padding: 0;
         line-height: 1.2;
@@ -253,7 +253,7 @@ def render_watchlist(excel, selected_symbol):
         width: 100%;
         border-collapse: collapse;
         table-layout: auto;
-        font-size: 16px;
+        font-size: 12px;
     }}
 
     .watchlist-table th {{

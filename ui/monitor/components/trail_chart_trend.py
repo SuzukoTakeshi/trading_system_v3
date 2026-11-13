@@ -259,6 +259,7 @@ def render_trend_chart(
     symbol: str = "",
     name: str = "",
     stop_exit_enabled: bool = True,
+    show_long_moving_average: bool = True,
 ):
     """TRENDチャートを表示する。"""
 
@@ -490,7 +491,7 @@ def render_trend_chart(
     # Long SMA
     # ==================================================
 
-    if long_moving_averages:
+    if show_long_moving_average and long_moving_averages:
 
         ma_df = pd.DataFrame(
             long_moving_averages,

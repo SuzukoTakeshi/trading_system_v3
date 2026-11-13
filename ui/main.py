@@ -47,8 +47,14 @@ trend_trader_page = st.Page(
     url_path="trend_trader",
 )
 
+trade_entry_page = st.Page(
+    str(ROOT / "ui" / "trade_entry" / "trade_entry.py"),
+    title="TRADE ENTRY",
+    url_path="trade_entry",
+)
+
 pg = st.navigation(
-    [console_page, monitor_page, trade_history_page, live_feed_page,  trend_trader_page],
+    [console_page, monitor_page, trade_history_page, live_feed_page, trend_trader_page, trade_entry_page],
     position="hidden",
 )
 

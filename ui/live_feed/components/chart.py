@@ -135,7 +135,7 @@ def _render_chart_settings():
 
     _init_chart_settings()
 
-    col_interval, col_count, _ = st.columns([2, 2, 4])
+    col_interval, col_count, _ = st.columns([3, 3, 4])
 
     with col_interval:
         label_col, select_col = st.columns([1, 3])
@@ -188,7 +188,19 @@ def _to_timestamp(date_value, time_value):
     """Excelの日付・時刻をTimestampに変換する。"""
 
     try:
-        date = pd.to_datetime(date_value, errors="coerce")
+        # Excel COM may return date cells as serial day numbers instead of
+        # datetime objects. Convert those using Excel's 1900 date system.
+        if isinstance(date_value, (int, float)) and not isinstance(
+            date_value, bool
+        ):
+            date = pd.to_datetime(
+                date_value,
+                unit="D",
+                origin="1899-12-30",
+                errors="coerce",
+            )
+        else:
+            date = pd.to_datetime(date_value, errors="coerce")
 
         if pd.isna(date):
             return pd.NaT
@@ -311,7 +323,14 @@ def _get_chart_data(workbook, symbol, interval, count):
         time.sleep(CHART_WAIT_SECONDS)
 
     # A2:J2が見出し、A3以降がデータ
-    values = ws.Range(f"A2:J{2 + count}").Value
+    # RSS output can extend below the requested count. Read through its last
+    # populated date row so the latest bars are included.
+    last_row = ws.Cells(ws.Rows.Count, 4).End(-4162).Row  # xlUp
+
+    if last_row <= 2:
+        return pd.DataFrame()
+
+    values = ws.Range(f"A2:J{last_row}").Value
 
     if not values:
         return pd.DataFrame()
@@ -351,7 +370,9 @@ def _get_chart_data(workbook, symbol, interval, count):
         subset=["datetime", "open", "high", "low", "close"]
     )
 
-    return df.sort_values("datetime").reset_index(drop=True)
+    df = df.sort_values("datetime").reset_index(drop=True)
+
+    return df.tail(count).reset_index(drop=True)
 
 
 def render_chart(workbook, symbol):

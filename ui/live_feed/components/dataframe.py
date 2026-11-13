@@ -1,3 +1,16 @@
+#
+# ui/live_feed/components/dataframe.py
+#
+# Live Feed DataFrame Helper
+#
+# このモジュールは、ライブフィードから取得した行データを
+# 表示用の pandas DataFrame に変換するためのユーティリティです。
+#
+# 主な機能:
+#   - 空行・区切り行の除外
+#   - ヘッダー行の判定
+#   - 列数の正規化
+#   - 数値の表示用フォーマット整形
 
 import pandas as pd
 

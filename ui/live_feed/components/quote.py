@@ -17,7 +17,7 @@ def render_quote(quote):
         """
         <div style="
             color: #c4c4c4;
-            font-size: 14px;
+            font-size: 12px;
             margin: 0 0 2px 0;
             padding: 0;
             line-height: 1.2;
@@ -129,7 +129,7 @@ def render_quote(quote):
             border-collapse: collapse !important;
             border-spacing: 0 !important;
             table-layout: auto;
-            font-size: 16px;
+            font-size: 12px;
             line-height: 1.35;
             border: 1px solid #55585c !important;
         }}

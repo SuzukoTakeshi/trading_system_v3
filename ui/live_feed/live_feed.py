@@ -16,6 +16,7 @@ from ui.live_feed.components.ticks import render_ticks
 from ui.live_feed.components.order_book import render_order_book
 from ui.live_feed.components.chart import render_chart
 from ui.live_feed.components.symbols import render_watchlist
+from ui.live_feed.components.trade_panel import trade_panel
 
 
 def get_live_feed(workbook, symbol):
@@ -64,7 +65,7 @@ def main():
 
     # ヘッダー
     col_title, col_symbol, _, col_display, col_auto_refresh = st.columns(
-        [1, 3, 5, 5, 2],
+        [1, 3, 3, 7, 2],
         gap="small",
         vertical_alignment="center",
     )
@@ -77,7 +78,7 @@ def main():
         symbol_header.caption(symbol if symbol else "LIVE FEED")
 
     with col_display:
-        display_cols = st.columns(5, gap="small")
+        display_cols = st.columns(6, gap="small")
 
         display_settings = [
             ("歩み値", "live_feed_show_ticks"),
@@ -85,22 +86,27 @@ def main():
             ("株価情報", "live_feed_show_quote"),
             ("チャート", "live_feed_show_chart"),
             ("注目銘柄", "live_feed_show_watchlist"),
+            ("エントリー", "live_feed_show_entry"),
         ]
 
         show = {}
 
         for col, (label, key) in zip(display_cols, display_settings):
             with col:
+                default_value = key not in (
+                    "live_feed_show_ticks",
+                    "live_feed_show_order_book",
+                )
                 show[key] = st.toggle(
                     label,
-                    value=st.session_state.get(key, True),
+                    value=st.session_state.get(key, default_value),
                     key=key,
                 )
 
     with col_auto_refresh:
         auto_refresh = st.toggle(
             f"AUTO REFRESH ({MONITOR_REFRESH_INTERVAL_MS / 1000:g}s)",
-            value=True,
+            value=False,
             key="live_feed_auto_refresh",
         )
 
@@ -114,18 +120,21 @@ def main():
             show_quote = show["live_feed_show_quote"]
             show_chart = show["live_feed_show_chart"]
             show_watchlist = show["live_feed_show_watchlist"]
+            show_entry = show["live_feed_show_entry"]
 
             # 表示するエリアだけ列幅を確保する
             sections = []
 
             if show_ticks:
-                sections.append(("ticks", 1.7))
+                sections.append(("ticks", 1))
             if show_order_book:
-                sections.append(("order_book", 1.7))
+                sections.append(("order_book", 1.2))
             if show_quote or show_chart:
-                sections.append(("quote", 4.5))
+                sections.append(("quote", 4))
             if show_watchlist:
-                sections.append(("watchlist", 3))
+                sections.append(("watchlist", 2.5))
+            if show_entry:
+                sections.append(("entry", 2.5))
 
             if sections:
                 cols = st.columns(
@@ -208,6 +217,10 @@ def main():
                 if show_chart:
                     with section_cols["quote"]:
                         render_chart(excel.book, symbol)
+
+            if show_entry:
+                with section_cols["entry"]:
+                    trade_panel()
 
     except Exception as e:
         st.error(f"LIVE FEEDの取得に失敗しました: {e}")

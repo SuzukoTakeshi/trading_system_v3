@@ -44,6 +44,8 @@ LIVE_FEED_URL = f"http://127.0.0.1:{UI_PORT}/live_feed"
 
 TREND_TRADER_URL = f"http://127.0.0.1:{UI_PORT}/trend_trader"
 
+TRADE_ENTRY_URL = f"http://localhost:{UI_PORT}/trade_entry"
+
 # =========================
 # API
 # =========================

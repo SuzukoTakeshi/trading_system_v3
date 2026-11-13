@@ -27,8 +27,6 @@ class ConsoleContext:
     auto_refresh: bool = True
 
     # Trade表示
-    show_trade: bool = True
-
     # Auditor表示
     show_auditor: bool = True
 

@@ -27,7 +27,7 @@ def render_ticks(ticks):
     table_html = f"""
     <div style="
         color: #c4c4c4;
-        font-size: 14px;
+        font-size: 12px;
         margin: 0 0 2px 0;
         padding: 0;
         line-height: 1.2;
@@ -36,7 +36,7 @@ def render_ticks(ticks):
     <style>
     .ticks-table-container {{
         height: 820px;
-        width: 280px;
+        width: 160px;
         overflow-y: auto;
         overflow-x: hidden;
     }}
@@ -45,7 +45,7 @@ def render_ticks(ticks):
         width: 100%;
         border-collapse: collapse;
         table-layout: fixed;
-        font-size: 18px;
+        font-size: 12px;
     }}
 
     .ticks-table th {{
@@ -73,17 +73,17 @@ def render_ticks(ticks):
 
     .ticks-table th:first-child,
     .ticks-table td:first-child {{
-        width: 33%;
+        width: 38%;
     }}
 
     .ticks-table th:nth-child(2),
     .ticks-table td:nth-child(2) {{
-        width: 32%;
+        width: 30%;        
     }}
 
     .ticks-table th:last-child,
     .ticks-table td:last-child {{
-        width: 35%;
+        width: 32;
     }}
     </style>
 

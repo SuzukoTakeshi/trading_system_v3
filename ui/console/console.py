@@ -57,7 +57,6 @@ from ui.api.client import (
 from ui.console.components.console_context import ConsoleContext
 from ui.console.components.header import header
 from ui.console.components.main_panel import main_panel
-from ui.console.components.trade_panel import trade_panel
 
 from ui.auditor.auditor_panel import auditor_panel
 
@@ -174,44 +173,7 @@ def main():
         # AUDITOR / TRADE 表示
         # ==========================================
 
-        if ctx.show_trade and ctx.show_auditor:
-            col_main, col_trade, col_auditor = st.columns(
-                [8, 3, 2]
-            )
-
-            with col_main:
-                main_panel(ctx)
-
-            with col_trade:
-                trade_panel()
-
-            with col_auditor:
-                auditor_panel(
-                    ctx.notify_list,
-                    voice_enabled=ctx.play_voice,
-                    image_enabled=True
-                )
-
-
-        elif ctx.show_trade:
-            col_main, col_trade = st.columns(
-                [10, 3]
-            )
-
-            with col_main:
-                main_panel(ctx)
-
-            with col_trade:
-                trade_panel()
-
-            auditor_panel(
-                ctx.notify_list,
-                voice_enabled=ctx.play_voice,
-                image_enabled=False
-            )
-
-
-        elif ctx.show_auditor:
+        if ctx.show_auditor:
             col_main, col_auditor = st.columns(
                 [10, 2]
             )
@@ -284,8 +246,8 @@ def system_header(ctx):
         message_level = system_message.get("level")
         message_text = system_message.get("message")
 
-    col_title, col_mode, col_message, col_trade, col_auditor, col_voice, col_refresh, col_datetime = st.columns(
-        [3, 2, 8, 2, 2, 2, 3, 3]
+    col_title, col_mode, col_message, col_auditor, col_voice, col_refresh, col_datetime = st.columns(
+        [3, 2, 8, 2, 2, 3, 3]
     )
 
 
@@ -336,19 +298,6 @@ def system_header(ctx):
                 """,
                 unsafe_allow_html=True
             )
-
-
-    # ==========================================
-    # TRADE
-    # ==========================================
-    with col_trade:
-        show_trade = st.toggle(
-            "TRADE",
-            value=ctx.show_trade,
-            key="console_show_trade",
-        )
-
-        ctx.show_trade = show_trade
 
 
     # ==========================================

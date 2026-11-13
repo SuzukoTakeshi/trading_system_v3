@@ -5,7 +5,7 @@
 import streamlit as st
 import webbrowser
 
-from ui.config import TRADE_HISTORY_URL, LIVE_FEED_URL
+from ui.config import TRADE_HISTORY_URL, TRADE_ENTRY_URL
 
 from ui.console.components.trade_list_panel import trade_list_panel
 from ui.console.components.log_panel import log_panel
@@ -35,7 +35,7 @@ def main_panel(ctx):
         unsafe_allow_html=True,
     )
 
-    trade_col, asset_col, log_col, config_col, history_col, live_feed_col = st.columns(6)
+    trade_col, trade_start_col, asset_col, log_col, config_col, history_col, live_feed_col = st.columns(7)
 
     with trade_col:
         if st.button(
@@ -46,6 +46,14 @@ def main_panel(ctx):
         ):
             ctx.main_page = "trade"
             st.rerun()
+
+    with trade_start_col:
+        if st.button(
+            "トレード開始",
+            width="stretch",
+            key="open_trade_entry",
+        ):
+            webbrowser.open_new_tab(TRADE_ENTRY_URL)
 
     with asset_col:
         if st.button(
@@ -86,12 +94,49 @@ def main_panel(ctx):
             webbrowser.open_new_tab(TRADE_HISTORY_URL)
 
     with live_feed_col:
-        if st.button(
-            "銘柄情報",
-            width="stretch",
-            key="main_page_live_feed",
-        ):
-            webbrowser.open_new_tab(LIVE_FEED_URL)
+        st.html(
+            """
+            <a id="main-page-live-feed-link" href="/live_feed" style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-sizing: border-box;
+                width: 100%;
+                min-height: 2.5rem;
+                padding: 0.375rem 0.75rem;
+                border: 1px solid rgba(128, 128, 128, 0.35);
+                border-radius: 0.5rem;
+                background: transparent;
+                color: inherit;
+                font: inherit;
+                text-decoration: none;
+                white-space: nowrap;
+            ">銘柄情報</a>
+            <script>
+            const liveFeedLink = document.getElementById(
+                "main-page-live-feed-link"
+            );
+
+            liveFeedLink.addEventListener("click", (event) => {
+                event.preventDefault();
+
+                const currentWindow =
+                    window.__tradingSystemLiveFeedWindow;
+
+                if (currentWindow && !currentWindow.closed) {
+                    currentWindow.focus();
+                    return;
+                }
+
+                window.__tradingSystemLiveFeedWindow = window.open(
+                    liveFeedLink.href,
+                    "live_feed"
+                );
+            });
+            </script>
+            """,
+            unsafe_allow_javascript=True,
+        )
 
 
     match ctx.main_page:

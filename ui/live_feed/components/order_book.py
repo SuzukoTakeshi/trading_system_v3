@@ -1,5 +1,8 @@
-import html
+#
+# ui/live_feed/components/order_book.py
+#
 
+import html
 import streamlit as st
 
 from ui.live_feed.components.dataframe import make_dataframe
@@ -27,7 +30,7 @@ def render_order_book(order_book):
     table_html = f"""
     <div style="
         color: #c4c4c4;
-        font-size: 14px;
+        font-size: 12px;
         margin: 0 0 2px 0;
         padding: 0;
         line-height: 1.2;
@@ -36,7 +39,7 @@ def render_order_book(order_book):
     <style>
     .order-book-table-container {{
         height: 840px;
-        width: 260px;
+        width: 200px;
         overflow-y: auto;
         overflow-x: hidden;
     }}
@@ -45,7 +48,7 @@ def render_order_book(order_book):
         width: 100%;
         border-collapse: collapse;
         table-layout: fixed;
-        font-size: 18px;
+        font-size: 12px;
     }}
 
     .order-book-table th {{
@@ -72,9 +75,19 @@ def render_order_book(order_book):
         color: #c4c4c4;
     }}
 
-    .order-book-table th,
-    .order-book-table td {{
-        width: 33.33%;
+    .order-book-table th:nth-child(1),
+    .order-book-table td:nth-child(1) {{
+        width: 35%;
+    }}
+
+    .order-book-table th:nth-child(2),
+    .order-book-table td:nth-child(2) {{
+        width: 30%;
+    }}
+
+    .order-book-table th:nth-child(3),
+    .order-book-table td:nth-child(3) {{
+        width: 35%;
     }}
     </style>
 
